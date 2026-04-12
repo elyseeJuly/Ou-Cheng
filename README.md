@@ -1,20 +1,82 @@
+# 偶成 (Ou-Cheng) - 东方美学诗词创作助手
+
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" alt="Ou-Cheng Banner" width="100%">
+  <p><em>“佳句本天成，妙手偶得之。”</em></p>
 </div>
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+## 📖 项目简介
 
-View your app in AI Studio: https://ai.studio/apps/5454b52a-7fc8-45fb-875b-475862528ed9
+**偶成 (Ou-Cheng)** 是一款专注于东方美学的诗词创作与鉴赏工具。它结合了传统诗词的格律底蕴与现代 AI 技术，为创作者提供一个沉浸式、极简且专业的创作空间。
 
-## Run Locally
+本项目已从原生原生架构全面迁移至 **React + Vite** 体系，确保了在保留高保真审美设计的同时，拥有更强大的逻辑处理与 AI 交互能力。
 
-**Prerequisites:**  Node.js
+## ✨ 核心特性
 
+- **✒️ 创作大厅 (Creation Room)**
+  - **分屏创作体验**：左侧极简输入区，右侧实时纸型预览。
+  - **沉浸式 UI**：无边框设计、下划线输入、宣纸质感背景。
+  - **实时纵向预览**：自动将诗词转换为传统纵向排版，支持红印章（Red Seal）生成。
+  - **多模式切换**：支持“自由创作”与“专业格律”两种模式，适配多样化需求。
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- **📚 用户文集 (Works Library)**
+  - **作品管理**：瀑布流式展示历史创作，支持预览、搜索及删除。
+  - **审美一致性**：文集页面延续左侧导航边栏设计，保持全局交互逻辑统一。
+
+- **⛩ 经典赏读 (Classics Appreciation)**
+  - **名篇荟萃**：精选历代名家名篇，提供极简的阅读视界。
+  - **灵感源泉**：在创作间隙品味经典，汲取文字与意象的力量。
+
+- **✨ 偶成君 AI 点评**
+  - 集成 **Gemini AI**，为您的诗作提供即时的格律分析、意象解读与审美建议。
+
+## 🛠 技术栈
+
+- **框架**: [React 19](https://react.dev/)
+- **构建工具**: [Vite 6](https://vitejs.dev/)
+- **样式**: [Tailwind CSS](https://tailwindcss.com/) & Vanilla CSS
+- **图标**: [Lucide React](https://lucide.dev/)
+- **字体**: Noto Serif SC, Ma Shan Zheng, ZCOOL KuaiLe
+- **AI 能力**: [Google Gemini Pro](https://ai.google.dev/)
+
+## 🚀 快速开始
+
+### 环境依赖
+
+- [Node.js](https://nodejs.org/) (建议最新 LTS 版本)
+
+### 安装与运行
+
+1. **克隆仓库**
+   ```bash
+   git clone https://github.com/elyseeJuly/Ou-Cheng.git
+   cd Ou-Cheng
+   ```
+
+2. **安装依赖**
+   ```bash
+   npm install
+   ```
+
+3. **配置环境变量**
+   在根目录创建 `.env.local` 文件并添加您的 Gemini API Key：
+   ```env
+   VITE_GEMINI_API_KEY=your_api_key_here
+   ```
+
+4. **启动开发服务器**
+   ```bash
+   npm run dev
+   ```
+
+## 🎨 视觉设计
+
+本项目采用了独特的“左侧大边栏”桌面布局，针对大屏幕进行了适配。
+- **色彩规范**：采用温润的纸张白 (`#F7F1E3`) 作为背景，文字使用墨黑色 (`rgba(26, 26, 26, 0.85)`)，点缀朱砂红 (`#B22222`)。
+- **排版系统**：创作核心区采用 **Vertical Writing Mode**，还原宣纸书写体验。
+
+---
+
+© 2026 偶成开发组。传承经典，创新未来。

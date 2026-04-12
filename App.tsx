@@ -3,18 +3,16 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Library from './pages/Library';
 import Create from './pages/Create';
-import Chat from './pages/Chat';
-import Imagine from './pages/Imagine';
+import Works from './pages/Works'; // Added Works
 
 const App: React.FC = () => {
   return (
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Library />} />
-          <Route path="/create" element={<Create />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/imagine" element={<Imagine />} />
+          <Route path="/" element={<Create />} />
+          <Route path="/works" element={<Works />} />
+          <Route path="/classics" element={<Library />} />
         </Routes>
       </Layout>
     </Router>
