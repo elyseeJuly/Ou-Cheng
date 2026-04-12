@@ -1,7 +1,6 @@
 # 偶成 (Ou-Cheng) - 东方美学诗词创作助手
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" alt="Ou-Cheng Banner" width="100%">
   <p><em>“佳句本天成，妙手偶得之。”</em></p>
 </div>
 
