@@ -77,6 +77,27 @@
 - **色彩规范**：采用温润的纸张白 (`#F7F1E3`) 作为背景，文字使用墨黑色 (`rgba(26, 26, 26, 0.85)`)，点缀朱砂红 (`#B22222`)。
 - **排版系统**：创作核心区采用 **Vertical Writing Mode**，还原宣纸书写体验。
 
+## 🤝 贡献指南
+
+我们欢迎并感谢任何形式的贡献！如果您有好的建议或发现了 Bug，请通过以下方式参与：
+
+1. **提交 Issue**：描述您遇到的问题或建议的功能。
+2. **提交 Pull Request**：
+   - Fork 本仓库。
+   - 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)。
+   - 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)。
+   - 推送到分支 (`git push origin feature/AmazingFeature`)。
+   - 开启一个 Pull Request。
+
+### 开源要求
+- 请保持代码风格的一致性。
+- 提交 PR 前请确保本地运行无误。
+- 对于涉及 UI 变动的贡献，请附上截图或录屏。
+
+## 📄 开源协议
+
+本项目采用 [MIT License](LICENSE) 开源协议。您可以自由地使用、修改和分发本项目，但请保留原作者的版权声明。
+
 ---
 
 © 2026 偶成开发组。传承经典，创新未来。
