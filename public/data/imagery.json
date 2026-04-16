@@ -1,0 +1,22 @@
+[
+  {"word":"明月","frequency":1823,"dynasty":"tang","samplePoems":["静夜思","水调歌头","春江花月夜"]},
+  {"word":"东风","frequency":1456,"dynasty":"song","samplePoems":["春望","春日","钗头凤"]},
+  {"word":"孤舟","frequency":987,"dynasty":"tang","samplePoems":["江雪","登岳阳楼","旅夜书怀"]},
+  {"word":"春风","frequency":1678,"dynasty":"tang","samplePoems":["春晓","江南春","赋得古原草送别"]},
+  {"word":"落花","frequency":1234,"dynasty":"song","samplePoems":["蝶恋花","浪淘沙","无题"]},
+  {"word":"相思","frequency":1102,"dynasty":"tang","samplePoems":["相思","锦瑟","无题"]},
+  {"word":"黄叶","frequency":756,"dynasty":"tang","samplePoems":["山居秋暝","暮秋山行","秋风引"]},
+  {"word":"江水","frequency":1089,"dynasty":"song","samplePoems":["念奴娇","水调歌头","沁园春"]},
+  {"word":"白鹭","frequency":634,"dynasty":"tang","samplePoems":["绝句","春江花月夜","江雪"]},
+  {"word":"残阳","frequency":823,"dynasty":"tang","samplePoems":["乐游原","登高","送元二使安西"]},
+  {"word":"古道","frequency":712,"dynasty":"song","samplePoems":["天净沙·秋思","送别","渭城曲"]},
+  {"word":"芳草","frequency":945,"dynasty":"song","samplePoems":["蝶恋花","青玉案","摸鱼儿"]},
+  {"word":"霜冷","frequency":567,"dynasty":"tang","samplePoems":["枫桥夜泊","秋夕","暮江吟"]},
+  {"word":"寒鸦","frequency":489,"dynasty":"song","samplePoems":["天净沙","乌夜啼","虞美人"]},
+  {"word":"烟雨","frequency":878,"dynasty":"song","samplePoems":["青玉案","雨霖铃","望海潮"]},
+  {"word":"离愁","frequency":934,"dynasty":"song","samplePoems":["雨霖铃","蝶恋花","踏莎行"]},
+  {"word":"长亭","frequency":698,"dynasty":"song","samplePoems":["雨霖铃","长亭怨慢","送别"]},
+  {"word":"梅花","frequency":1123,"dynasty":"song","samplePoems":["卜算子","暗香","疏影"]},
+  {"word":"西楼","frequency":612,"dynasty":"song","samplePoems":["虞美人","相见欢","蝶恋花"]},
+  {"word":"斜阳","frequency":789,"dynasty":"song","samplePoems":["声声慢","摸鱼儿","永遇乐"]}
+]

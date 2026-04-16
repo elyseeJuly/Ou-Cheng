@@ -1,0 +1,1994 @@
+[
+  {
+    "name": "渔歌子",
+    "charCount": 27,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZ",
+      "XPXZR",
+      "XZXP",
+      "PZXZR"
+    ],
+    "representative": "张志和"
+  },
+  {
+    "name": "天净沙",
+    "charCount": 29,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZZPP",
+      "ZPPZPP",
+      "ZZPPZZ",
+      "PPZZ",
+      "PPZZPPR"
+    ],
+    "representative": "马致远"
+  },
+  {
+    "name": "忆江南",
+    "charCount": 31,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZR",
+      "XZZPPR",
+      "XZXPPZZ",
+      "XPXZZPPR",
+      "XZZPPR"
+    ],
+    "representative": "白居易"
+  },
+  {
+    "name": "锦瑟",
+    "charCount": 31,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZXPZR",
+      "XZPPXZPR",
+      "XPXZPPZ",
+      "XZPPXZPR"
+    ],
+    "representative": "李商隐"
+  },
+  {
+    "name": "清明",
+    "charCount": 31,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZPPXZPR",
+      "XZXPPZZ",
+      "XPXZZPPR"
+    ],
+    "representative": "杜牧"
+  },
+  {
+    "name": "四块玉",
+    "charCount": 36,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZ",
+      "ZPR",
+      "XPXZP",
+      "XZXR"
+    ],
+    "lowerPattern": [
+      "PPZ",
+      "ZPR",
+      "XPXZP",
+      "XZXR"
+    ],
+    "representative": "关汉卿"
+  },
+  {
+    "name": "忆王孙",
+    "charCount": 36,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZPPXZPR",
+      "XZPPXZPR",
+      "ZPPR",
+      "XZPPXZPR"
+    ],
+    "representative": "李重元"
+  },
+  {
+    "name": "如梦令",
+    "charCount": 39,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXPPZR",
+      "XZXPPZR",
+      "XZZPP",
+      "XZXPPZR",
+      "PZR",
+      "PZR",
+      "XZXPPZR"
+    ],
+    "representative": "李清照"
+  },
+  {
+    "name": "天仙子",
+    "charCount": 39,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXPPZZR",
+      "XZXPPZZR",
+      "XPXZZPP",
+      "PXZR",
+      "PXZR",
+      "XZXPPZZR"
+    ],
+    "representative": "张先"
+  },
+  {
+    "name": "相见欢",
+    "charCount": 41,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZPPR",
+      "ZPPR",
+      "XZXPXZZPPR"
+    ],
+    "lowerPattern": [
+      "XPZ",
+      "XPZ",
+      "ZPPR",
+      "XZXPXZZPPR"
+    ],
+    "representative": "李煜"
+  },
+  {
+    "name": "乌夜啼",
+    "charCount": 41,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZPPR",
+      "ZPPR",
+      "XZXPXZZPPR"
+    ],
+    "lowerPattern": [
+      "XPZ",
+      "XPZ",
+      "ZPPR",
+      "XZXPXZZPPR"
+    ],
+    "representative": "李煜"
+  },
+  {
+    "name": "双调·大德歌",
+    "charCount": 42,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZR",
+      "XPXZR",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZR",
+      "XPXZR",
+      "XZXPXZR"
+    ],
+    "representative": "关汉卿"
+  },
+  {
+    "name": "霜天晓角",
+    "charCount": 43,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPR",
+      "XZXPXZR",
+      "XZXP",
+      "XPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZR",
+      "XZXPXZR",
+      "XPXZXZR"
+    ],
+    "representative": "姜夔"
+  },
+  {
+    "name": "诉衷情",
+    "charCount": 43,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XPXZPPZ",
+      "XPX",
+      "XZPPR",
+      "XZXP",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "representative": "晏殊"
+  },
+  {
+    "name": "采桑子",
+    "aliases": [
+      "丑奴儿",
+      "罗敷媚"
+    ],
+    "charCount": 44,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZZPPR",
+      "ZPPZR",
+      "PPZZPPR",
+      "ZPPZR"
+    ],
+    "lowerPattern": [
+      "PPZZPPR",
+      "ZPPZR",
+      "PPZZPPR",
+      "ZPPZR"
+    ],
+    "representative": "欧阳修"
+  },
+  {
+    "name": "减字木兰花",
+    "aliases": [
+      "减兰"
+    ],
+    "charCount": 44,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXP",
+      "XZXPXZR",
+      "XZXP",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XZXP",
+      "XZXPXZR",
+      "XZXP",
+      "XZXPXZR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "菩萨蛮",
+    "charCount": 44,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXPXZR",
+      "XPXZXPR",
+      "XZZZP",
+      "XPXZR"
+    ],
+    "lowerPattern": [
+      "XZXPXZR",
+      "XPXZXPR",
+      "XZZZP",
+      "XPXZR"
+    ],
+    "representative": "韦庄"
+  },
+  {
+    "name": "生查子",
+    "charCount": 44,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZP",
+      "XZPPZR",
+      "XZZPP",
+      "XZPPZR"
+    ],
+    "lowerPattern": [
+      "XPXZP",
+      "XZPPZR",
+      "XZZPP",
+      "XZPPZR"
+    ],
+    "representative": "欧阳修"
+  },
+  {
+    "name": "长相思",
+    "charCount": 44,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPPR",
+      "XPPR",
+      "XZPPXZPR",
+      "XPXZPR"
+    ],
+    "representative": "白居易",
+    "lowerPattern": [
+      "XPPR",
+      "XPPR",
+      "XZPPXZPR",
+      "XPXZPR"
+    ]
+  },
+  {
+    "name": "朝天子",
+    "charCount": 46,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PP",
+      "ZZ",
+      "XPXZR",
+      "XZXP",
+      "XPXZR",
+      "XZXP",
+      "XPXZR",
+      "XPXZR"
+    ],
+    "representative": "赵善庆"
+  },
+  {
+    "name": "沉醉东风",
+    "charCount": 46,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZPPZZR",
+      "ZPPZZPPR",
+      "PZP",
+      "PPZR",
+      "ZPP",
+      "ZZPPR",
+      "ZZPPZZPR",
+      "ZZPPZPR"
+    ],
+    "representative": "关汉卿"
+  },
+  {
+    "name": "浣溪沙",
+    "charCount": 48,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZPPXZPR",
+      "XPXZZPPR",
+      "XPXZZPPR"
+    ],
+    "lowerPattern": [
+      "XZXPPZZR",
+      "XPXZZPPR",
+      "XPXZZPPR"
+    ],
+    "representative": "晏殊"
+  },
+  {
+    "name": "好事近",
+    "charCount": 48,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZZPP",
+      "XZXPPZR",
+      "XZXPPZ",
+      "ZXPPZR"
+    ],
+    "representative": "宋祁",
+    "lowerPattern": [
+      "XZZPP",
+      "XZXPPZR",
+      "XZXPPZ",
+      "ZXPPZR"
+    ]
+  },
+  {
+    "name": "踏雪寻梅",
+    "charCount": 49,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPPZZR",
+      "XPP",
+      "ZZPPR",
+      "XPXZ",
+      "XPXZPPR"
+    ],
+    "representative": "佚名",
+    "lowerPattern": [
+      "PPZZZPR",
+      "XZZPPR",
+      "XPXZ",
+      "XPXZPPR"
+    ]
+  },
+  {
+    "name": "卜算子",
+    "charCount": 50,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZZPP",
+      "XZPPZR",
+      "XZPPZZPR",
+      "XZPPZR"
+    ],
+    "lowerPattern": [
+      "XZZPP",
+      "XZPPZR",
+      "XZPPZZPR",
+      "XZPPZR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "西江月",
+    "charCount": 50,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXPXZP",
+      "XPXZXPR",
+      "XZXPXZP",
+      "XPXZXPR"
+    ],
+    "lowerPattern": [
+      "XZXPXZP",
+      "XPXZXZR",
+      "XZXPXZP",
+      "PPXZXPR"
+    ],
+    "representative": "辛弃疾"
+  },
+  {
+    "name": "水仙子",
+    "charCount": 50,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZZZPPR",
+      "ZZPPZZPR",
+      "PPZZPPZR",
+      "PPZZPR",
+      "ZPP",
+      "ZZPPR",
+      "PPZ",
+      "ZZPR",
+      "ZZPPR"
+    ],
+    "representative": "张养浩"
+  },
+  {
+    "name": "点绛唇",
+    "charCount": 51,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZPPR",
+      "XPXZPPZR",
+      "XPXZR",
+      "XZPPZR"
+    ],
+    "representative": "汪藻",
+    "lowerPattern": [
+      "XZPPR",
+      "XZPPZR",
+      "PPZR",
+      "XZPPZR",
+      "XZPPZR"
+    ]
+  },
+  {
+    "name": "清平乐",
+    "charCount": 53,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZR",
+      "XZPPZR",
+      "XZXPPZZR",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZPPR",
+      "XPXZPPR",
+      "XZXPXZ",
+      "XPXZPPR"
+    ],
+    "representative": "辛弃疾"
+  },
+  {
+    "name": "醉太平",
+    "charCount": 54,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "PPZPR",
+      "PPZPR",
+      "XPXZZPPR",
+      "ZPPZPR"
+    ],
+    "representative": "刘过",
+    "lowerPattern": [
+      "PPZZPPZR",
+      "PPZZPPZR",
+      "PPZZZPPR",
+      "ZPPZPR"
+    ]
+  },
+  {
+    "name": "木兰花",
+    "charCount": 55,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPXZXZR",
+      "XPXZXZR",
+      "XZXPXZP",
+      "XPXZXZR"
+    ],
+    "lowerPattern": [
+      "XZXPXZXZR",
+      "XPXZXZR",
+      "XZXPXZP",
+      "XPXZXZR"
+    ],
+    "representative": "宋祁"
+  },
+  {
+    "name": "阮郎归",
+    "charCount": 55,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XPXZPR",
+      "XPXZZPPR",
+      "XPXZPR"
+    ],
+    "representative": "晏几道",
+    "lowerPattern": [
+      "PZZ",
+      "ZPPR",
+      "XPXZPR",
+      "XPXZZPPR",
+      "XPXZPR"
+    ]
+  },
+  {
+    "name": "虞美人",
+    "charCount": 56,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZXPR",
+      "XZXPXZR",
+      "XPXZXPR",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZXPR",
+      "XZXPXZR",
+      "XPXZXPR",
+      "XZXPXZR"
+    ],
+    "representative": "李煜"
+  },
+  {
+    "name": "太常引",
+    "charCount": 56,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XZZPPR",
+      "XZZ",
+      "PPZPR"
+    ],
+    "representative": "辛弃疾",
+    "lowerPattern": [
+      "XPXZ",
+      "XPXZ",
+      "XZZPPR",
+      "XZZPPR",
+      "XZZ",
+      "PPZPR"
+    ]
+  },
+  {
+    "name": "醉花阴",
+    "charCount": 58,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XZXPPZZR",
+      "XZPPZR",
+      "XZZPP",
+      "XZPP",
+      "XZPPZR"
+    ],
+    "representative": "李清照",
+    "lowerPattern": [
+      "XZXPPZZR",
+      "XZPPZR",
+      "XZZPP",
+      "XZPP",
+      "XZPPZR"
+    ]
+  },
+  {
+    "name": "沈园",
+    "charCount": 58,
+    "category": "xiao_ling",
+    "upperPattern": [
+      "XPXZPPZR",
+      "XZPPZR",
+      "XZZPP",
+      "XZPP",
+      "XPXZZR"
+    ],
+    "lowerPattern": [
+      "XZXPPZZR",
+      "XZPPZR",
+      "XZZPP",
+      "XZPP",
+      "XPXZZR"
+    ],
+    "representative": "陆游"
+  },
+  {
+    "name": "山坡羊",
+    "charCount": 60,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPR",
+      "XZR",
+      "XZXPXZR",
+      "XPXPXZR",
+      "XZR",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZXZR",
+      "XZXP",
+      "XPXZXZR",
+      "XZR",
+      "XPXZR"
+    ],
+    "representative": "张养浩"
+  },
+  {
+    "name": "鹊桥仙",
+    "charCount": 60,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZ",
+      "XPXZ",
+      "XZXPXZR",
+      "XPXZZPP",
+      "ZXZ",
+      "PPXZR"
+    ],
+    "representative": "秦观",
+    "lowerPattern": [
+      "XPXZ",
+      "XPXZ",
+      "XZXPXZR",
+      "XPXZZPP",
+      "ZXZ",
+      "PPXZR"
+    ]
+  },
+  {
+    "name": "鹧鸪天",
+    "charCount": 61,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPXZPR",
+      "XPXZZPPR",
+      "XPXZPPZ",
+      "XZPPXZPR"
+    ],
+    "lowerPattern": [
+      "PZZ",
+      "ZPPR",
+      "XPXZZPPR",
+      "XPXZPPZ",
+      "XZPPXZPR"
+    ],
+    "representative": "晏几道"
+  },
+  {
+    "name": "玉楼春",
+    "charCount": 62,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZPPZR",
+      "XZXPPZZR",
+      "XPXZZPP",
+      "XZXPPZZR"
+    ],
+    "lowerPattern": [
+      "XPXZPPZR",
+      "XZXPPZZR",
+      "XPXZZPP",
+      "XZXPPZZR"
+    ],
+    "representative": "宋祁"
+  },
+  {
+    "name": "踏莎行",
+    "charCount": 64,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZR",
+      "XPXZPPZR",
+      "XPXZZPP",
+      "XPXZPPZR"
+    ],
+    "representative": "晏殊",
+    "lowerPattern": [
+      "XZPP",
+      "XPXZR",
+      "XPXZPPZR",
+      "XPXZZPP",
+      "XPXZPPZR"
+    ]
+  },
+  {
+    "name": "南乡子",
+    "charCount": 64,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZZPPR",
+      "XZPPXZPR",
+      "XZXPPZZ",
+      "PPR",
+      "XZPPXZPR"
+    ],
+    "representative": "辛弃疾",
+    "lowerPattern": [
+      "XZZPPR",
+      "XZPPXZPR",
+      "XZXPPZZ",
+      "PPR",
+      "XZPPXZPR"
+    ]
+  },
+  {
+    "name": "临江仙",
+    "charCount": 66,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPPZZ",
+      "XPXZPPR",
+      "XPXZZPPR",
+      "XPPZZ",
+      "XZZPPR"
+    ],
+    "representative": "杨慎",
+    "lowerPattern": [
+      "XZXPPZZ",
+      "XPXZPPR",
+      "XPXZZPPR",
+      "XPPZZ",
+      "XZZPPR"
+    ]
+  },
+  {
+    "name": "破阵子",
+    "charCount": 68,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPXZ",
+      "XPXZPPR",
+      "XZXPPZZ",
+      "XZPPXZPR",
+      "XPXZPR"
+    ],
+    "representative": "辛弃疾",
+    "lowerPattern": [
+      "XZXPXZ",
+      "XPXZPPR",
+      "XZXPPZZ",
+      "XZPPXZPR",
+      "XPXZPR"
+    ]
+  },
+  {
+    "name": "蝶恋花",
+    "charCount": 68,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPPZZR",
+      "XZPP",
+      "XZPPZR",
+      "XZXPPZZR",
+      "XPXZPPZR"
+    ],
+    "lowerPattern": [
+      "XZXPPZZR",
+      "XZPP",
+      "XZPPZR",
+      "XZXPPZZR",
+      "XPXZPPZR"
+    ],
+    "representative": "柳永"
+  },
+  {
+    "name": "渔家傲",
+    "charCount": 72,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZXPPZZR",
+      "XPXZPPZR",
+      "XZXPPZZR",
+      "PXZR",
+      "XPXZPPZR"
+    ],
+    "representative": "范仲淹",
+    "lowerPattern": [
+      "XZXPPZZR",
+      "XPXZPPZR",
+      "XZXPPZZR",
+      "PXZR",
+      "XPXZPPZR"
+    ]
+  },
+  {
+    "name": "一剪梅",
+    "charCount": 72,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZPPXZPR",
+      "XZPPR",
+      "XZPPR",
+      "XPXZZPPR",
+      "XZPPR",
+      "XZPPR"
+    ],
+    "lowerPattern": [
+      "XZPPXZPR",
+      "XZPPR",
+      "XZPPR",
+      "XPXZZPPR",
+      "XZPPR",
+      "XZPPR"
+    ],
+    "representative": "李清照"
+  },
+  {
+    "name": "苏幕遮",
+    "charCount": 72,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "ZPPR",
+      "PZZR",
+      "XZPP",
+      "XZPPZR",
+      "XZXPPZZR",
+      "XZPP",
+      "XZPPZR"
+    ],
+    "lowerPattern": [
+      "ZPPR",
+      "PZZR",
+      "XZPP",
+      "XZPPZR",
+      "XZXPPZZR",
+      "XZPP",
+      "XZPPZR"
+    ],
+    "representative": "范仲淹"
+  },
+  {
+    "name": "定风波",
+    "charCount": 73,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XZPPXZPR",
+      "XPXZZPPR",
+      "XZXPPZZR",
+      "XZR",
+      "XPXZZPPR"
+    ],
+    "lowerPattern": [
+      "XZXPXZZR",
+      "XZR",
+      "XPXZZPPR",
+      "XZXPPZZR",
+      "XZR",
+      "XPXZZPPR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "青玉案",
+    "charCount": 74,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZPPZR",
+      "XZZ",
+      "PPZR",
+      "XZXPPZZR",
+      "XPXZ",
+      "XPXZ",
+      "XZPPZR"
+    ],
+    "representative": "贺铸",
+    "lowerPattern": [
+      "XPXZPPZR",
+      "XZZ",
+      "PPZR",
+      "XZXPPZZR",
+      "XPXZ",
+      "XPXZ",
+      "XZPPZR"
+    ]
+  },
+  {
+    "name": "祝英台近",
+    "charCount": 77,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZXPXZR",
+      "XPXZP",
+      "XZXPXZR"
+    ],
+    "lowerPattern": [
+      "XPXZXZR",
+      "XPXZP",
+      "XZXPXZR"
+    ],
+    "representative": "辛弃疾"
+  },
+  {
+    "name": "钗头凤",
+    "charCount": 78,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPZR",
+      "PPZR",
+      "XPXZPPZR",
+      "PPZR",
+      "PPZR",
+      "XPXZ",
+      "XPXZR",
+      "ZR",
+      "ZR",
+      "ZR"
+    ],
+    "lowerPattern": [
+      "XPZR",
+      "PPZR",
+      "XPXZPPZR",
+      "PPZR",
+      "PPZR",
+      "XPXZ",
+      "XPXZR",
+      "ZR",
+      "ZR",
+      "ZR"
+    ],
+    "representative": "陆游"
+  },
+  {
+    "name": "江城子",
+    "charCount": 80,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZZPPR",
+      "ZPPR",
+      "ZPPR",
+      "XZXP",
+      "XZZPPR",
+      "XZXPPZZ",
+      "PZZ",
+      "ZPPR"
+    ],
+    "lowerPattern": [
+      "XPXZZPPR",
+      "ZPPR",
+      "ZPPR",
+      "XZXP",
+      "XZZPPR",
+      "XZXPPZZ",
+      "PZZ",
+      "ZPPR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "千秋岁",
+    "charCount": 81,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZR",
+      "XZPPZR",
+      "XZZ",
+      "PPZR",
+      "XPPZZ",
+      "XZPPZR",
+      "XXZ",
+      "XPXZPPZR"
+    ],
+    "representative": "张先",
+    "lowerPattern": [
+      "XZPPZR",
+      "XZPPZR",
+      "XZZ",
+      "PPZR",
+      "XPPZZ",
+      "XZPPZR",
+      "XXZ",
+      "XPXZPPZR"
+    ]
+  },
+  {
+    "name": "风入松",
+    "charCount": 84,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XPXZPPZ",
+      "ZPP",
+      "XZPPR",
+      "XZXPPZ",
+      "XPXZPPR"
+    ],
+    "representative": "吴文英",
+    "lowerPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XPXZPPZ",
+      "ZPP",
+      "XZPPR",
+      "XZXPPZ",
+      "XPXZPPR"
+    ]
+  },
+  {
+    "name": "一丛花",
+    "charCount": 86,
+    "category": "zhong_diao",
+    "upperPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XPXZPPZ",
+      "XPX",
+      "XZPPR",
+      "XZXP",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "representative": "张先",
+    "lowerPattern": [
+      "XPXZZPPR",
+      "XZZPPR",
+      "XPXZPPZ",
+      "XPX",
+      "XZPPR",
+      "XZXP",
+      "XPXZ",
+      "XZZPPR"
+    ]
+  },
+  {
+    "name": "八六子",
+    "charCount": 93,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPPR",
+      "XPXZPP",
+      "XZPPR",
+      "XZZXPZZR",
+      "XPXZPPR",
+      "PPPZPPR"
+    ],
+    "representative": "杜牧",
+    "lowerPattern": [
+      "XPR",
+      "XPXZR",
+      "XZXPXZR",
+      "XZXPXZR",
+      "XZPP",
+      "XPXZPP",
+      "XZPPZR",
+      "XPXZPP",
+      "XZPZR",
+      "XPPZPPR"
+    ]
+  },
+  {
+    "name": "惜红衣",
+    "charCount": 98,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZ",
+      "XZPP",
+      "XPPZR",
+      "XZPP",
+      "PPZPZR",
+      "XPXZ",
+      "XZZ",
+      "PPXZR",
+      "XZR",
+      "XPXZ",
+      "XPPZR"
+    ],
+    "representative": "姜夔",
+    "lowerPattern": [
+      "PPPZR",
+      "PZXP",
+      "PPZPZR",
+      "XPXZ",
+      "XZZPZR",
+      "XZXPXZ",
+      "XZZ",
+      "PPXZR",
+      "ZZR",
+      "XPXZ",
+      "XPPZR"
+    ]
+  },
+  {
+    "name": "满江红",
+    "charCount": 102,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPZ",
+      "XPXZR",
+      "XXZ",
+      "XPXZ",
+      "XPXZR",
+      "XZXPPZZ",
+      "XPXZPPZR",
+      "XPX",
+      "XZZPP",
+      "PPZR"
+    ],
+    "representative": "柳永",
+    "lowerPattern": [
+      "XXZ",
+      "PPZR",
+      "XXZ",
+      "PPZR",
+      "ZXPXZ",
+      "XPXZR",
+      "XZXPPZZ",
+      "XPXZPPZR",
+      "XPX",
+      "XZZPP",
+      "PPZR"
+    ]
+  },
+  {
+    "name": "水调歌头",
+    "charCount": 103,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZXPZ",
+      "XZZPPR",
+      "XPXZPZ",
+      "XZZPPR",
+      "XZPPXZ",
+      "XZPPXZ",
+      "XZZPPR",
+      "XZXPZ",
+      "XZZPPR"
+    ],
+    "lowerPattern": [
+      "XPZ",
+      "PXZ",
+      "ZPPR",
+      "XPXZ",
+      "XZXZZPPR",
+      "XZPPXZ",
+      "XZPPXZ",
+      "XZZPPR",
+      "XZXPZ",
+      "XZZPPR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "雨霖铃",
+    "charCount": 103,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZR",
+      "XPPZ",
+      "XZPP",
+      "XPXZPPZR",
+      "XPXZR",
+      "XZPP",
+      "XPXZR",
+      "XPXZ",
+      "XZXPPZR"
+    ],
+    "lowerPattern": [
+      "XPXZPPR",
+      "XPXZR",
+      "XPXZ",
+      "XZPP",
+      "XPXZPPZR",
+      "XPXZ",
+      "XPXZR",
+      "XZPP",
+      "XPXZR",
+      "XPXZ",
+      "XZXPPZR"
+    ],
+    "representative": "柳永"
+  },
+  {
+    "name": "满庭芳",
+    "charCount": 104,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZ",
+      "XPXZPPR",
+      "XPXZ",
+      "XZZPPR",
+      "XZXPXZ",
+      "XXZ",
+      "XZPPR",
+      "PPZ",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "lowerPattern": [
+      "PPR",
+      "PZZ",
+      "XPXZ",
+      "XZPPR",
+      "ZXPXZ",
+      "XZPPR",
+      "XZXPXZ",
+      "XXZ",
+      "XZPPR",
+      "PPZ",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "representative": "秦观"
+  },
+  {
+    "name": "念奴娇",
+    "charCount": 108,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZ",
+      "ZPP",
+      "XZPPPZR",
+      "XZPP",
+      "PZZ",
+      "XZPPPZR",
+      "XZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XPXZ",
+      "XPPZPZR"
+    ],
+    "lowerPattern": [
+      "XZXZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XZPP",
+      "PZZ",
+      "XZPPPZR",
+      "XZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XPXZ",
+      "XPPZPZR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "声声慢",
+    "charCount": 108,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZ",
+      "XZPP",
+      "XPXZPPR",
+      "XZPPXZ",
+      "XZPPR",
+      "XPXPXZ",
+      "ZXP",
+      "XZPPR",
+      "XPZ",
+      "XPXPZ",
+      "XZPPR"
+    ],
+    "lowerPattern": [
+      "XZXPXZR",
+      "XPZ",
+      "PPXZPPR",
+      "XZPPXZ",
+      "XZPPR",
+      "XPXPXZ",
+      "ZXP",
+      "XZPPR",
+      "XPZ",
+      "ZXPXZ",
+      "XZPPR"
+    ],
+    "representative": "李清照"
+  },
+  {
+    "name": "扬州慢",
+    "charCount": 108,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZ",
+      "XPXZPPR",
+      "XPXPZ",
+      "XZZPPR",
+      "XXZ",
+      "PPXZ",
+      "XPXZ",
+      "XZPPR",
+      "ZPP",
+      "XZPP",
+      "XPZPR"
+    ],
+    "lowerPattern": [
+      "XPXZR",
+      "XPXZ",
+      "XZPPR",
+      "XXZXP",
+      "XPXZ",
+      "XZPPR",
+      "XZXPXZ",
+      "PPZ",
+      "XZPPR",
+      "ZXPXZ",
+      "XPXPZPR"
+    ],
+    "representative": "姜夔"
+  },
+  {
+    "name": "凤凰台上忆吹箫",
+    "charCount": 108,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZ",
+      "XPXZPPR",
+      "XZZ",
+      "PPXZ",
+      "XZPPR",
+      "XZPPXZ",
+      "XPX",
+      "XZPPR",
+      "PPZ",
+      "XPXZ",
+      "ZZPPR"
+    ],
+    "representative": "李清照",
+    "lowerPattern": [
+      "PPR",
+      "XPXZ",
+      "XZZPP",
+      "XZPPR",
+      "XZZ",
+      "PPXZ",
+      "XZPPR",
+      "XZXPXZ",
+      "XXZ",
+      "XZPPR",
+      "PPZ",
+      "XPXZ",
+      "ZZPPR"
+    ]
+  },
+  {
+    "name": "高阳台",
+    "charCount": 108,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZ",
+      "XPXZPPR",
+      "XZPP",
+      "XPXZPPR",
+      "XPXZPPZ",
+      "ZXP",
+      "XZPPR",
+      "ZPP",
+      "XZPP",
+      "XZPPR"
+    ],
+    "representative": "王锴",
+    "lowerPattern": [
+      "XPXZPPR",
+      "ZPPXZ",
+      "XZPPR",
+      "XZPP",
+      "XPXZPPR",
+      "XPXZPPZ",
+      "ZXP",
+      "XZPPR",
+      "ZPP",
+      "XZPP",
+      "XZPPR"
+    ]
+  },
+  {
+    "name": "玉蝴蝶",
+    "charCount": 109,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZXPXZ",
+      "XPXZ",
+      "XZPPR",
+      "XZPP",
+      "XZZPPR",
+      "XPX",
+      "XPXZ",
+      "XZX",
+      "XZPPR",
+      "ZPPR",
+      "XPXZ",
+      "XZPPR"
+    ],
+    "representative": "柳永",
+    "lowerPattern": [
+      "PPR",
+      "XPXZ",
+      "XPXZ",
+      "XZPPR",
+      "XZPP",
+      "XXXZZPPR",
+      "XPX",
+      "XPXZ",
+      "XZX",
+      "XZPPR",
+      "ZPPR",
+      "XPXZ",
+      "XZPPR"
+    ]
+  },
+  {
+    "name": "水龙吟",
+    "charCount": 110,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZPP",
+      "XPXZPPZR",
+      "XPXZ",
+      "XPXZ",
+      "XPXZR",
+      "XZPP",
+      "XPXZ",
+      "XPXZR",
+      "ZXPXZ",
+      "XPXZ",
+      "XPZ",
+      "PPZR"
+    ],
+    "lowerPattern": [
+      "XZXPXZR",
+      "ZPP",
+      "XPXZR",
+      "XPXZ",
+      "XPXZ",
+      "XPXZR",
+      "XZPP",
+      "XPXZ",
+      "XPXZR",
+      "ZXPXZ",
+      "XPXZ",
+      "PPZR"
+    ],
+    "representative": "苏轼"
+  },
+  {
+    "name": "暗香",
+    "charCount": 111,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZR",
+      "XZPPZ",
+      "XPPZR",
+      "XZXP",
+      "XZPPZPZR",
+      "XZPPXZ",
+      "XXZ",
+      "XPPZR",
+      "XXZ",
+      "XZPP",
+      "XZZPZR"
+    ],
+    "representative": "姜夔",
+    "lowerPattern": [
+      "PZR",
+      "ZXZR",
+      "XZZXP",
+      "XZPZR",
+      "XPPZR",
+      "XZPPZPZR",
+      "XZPPXZ",
+      "XXZ",
+      "XPPZR",
+      "XXZ",
+      "XZPP",
+      "XZZPZR"
+    ]
+  },
+  {
+    "name": "桂枝香",
+    "charCount": 111,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZR",
+      "XXZXP",
+      "XZPZR",
+      "XZPPXZ",
+      "XPPZR",
+      "XPXZPPZ",
+      "ZPP",
+      "XPXZR",
+      "XPXZ",
+      "XPXZ",
+      "XZPPR"
+    ],
+    "representative": "王安石",
+    "lowerPattern": [
+      "XZZ",
+      "XPXZR",
+      "XXZXP",
+      "XZPZR",
+      "XZPPXZ",
+      "XPPZR",
+      "XPXZPPZ",
+      "ZPP",
+      "XPXZR",
+      "XPXZ",
+      "XPXZ",
+      "XZPPR"
+    ]
+  },
+  {
+    "name": "翠楼吟",
+    "charCount": 114,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPZZ",
+      "PPZPPZR",
+      "XPPZZ",
+      "ZXZ",
+      "PPXZR",
+      "XPXZR",
+      "ZXZPP",
+      "XPPZR",
+      "XPZR",
+      "ZPPZ",
+      "XPPZR"
+    ],
+    "representative": "姜夔",
+    "lowerPattern": [
+      "PZR",
+      "XZPP",
+      "ZZXPZ",
+      "XPPZR",
+      "XPPZZ",
+      "ZXZ",
+      "PPXZR",
+      "XPXZR",
+      "ZXZPP",
+      "XPPZR",
+      "PPZR",
+      "ZPPZ",
+      "ZPPZR"
+    ]
+  },
+  {
+    "name": "花犯",
+    "charCount": 115,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPP",
+      "XPZZ",
+      "PPZPZR",
+      "ZPPZR",
+      "XZZPP",
+      "XZPZR",
+      "XPXZPPZR",
+      "XPPZZR",
+      "XZZ",
+      "XPPZ",
+      "XPPZZR"
+    ],
+    "representative": "周邦彦",
+    "lowerPattern": [
+      "XP",
+      "XZXPP",
+      "PPZPZR",
+      "XXZ",
+      "XPXZR",
+      "XXZ",
+      "XPXZR",
+      "XZZ",
+      "XPPZZR",
+      "XZZ",
+      "XPPZZR",
+      "XZZ",
+      "PPXZ",
+      "XPPZZR"
+    ]
+  },
+  {
+    "name": "永遇乐",
+    "charCount": 115,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XPXZ",
+      "XPXZ",
+      "XZZPPZR",
+      "ZPP",
+      "XPXZ",
+      "ZXXZPZR"
+    ],
+    "representative": "辛弃疾",
+    "lowerPattern": [
+      "XPXZ",
+      "XPXZ",
+      "XZXPXZR",
+      "XZPP",
+      "XPXZ",
+      "XZPPZR",
+      "XPXZ",
+      "XPXZ",
+      "XZXPPZR",
+      "ZPP",
+      "XPXZ",
+      "ZXZZPZR"
+    ]
+  },
+  {
+    "name": "望海潮",
+    "charCount": 118,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPPZ",
+      "XPXZ",
+      "XPXZPPR",
+      "XZZP",
+      "XPXZ",
+      "XPXZPPR",
+      "XZZPPR",
+      "ZXPXZ",
+      "XZPPR",
+      "XZPP",
+      "XPXZZPPR"
+    ],
+    "representative": "柳永",
+    "lowerPattern": [
+      "XPXZPPR",
+      "ZPPXZ",
+      "XZPPR",
+      "XZZP",
+      "XPXZ",
+      "XPXZPPR",
+      "XZZPPR",
+      "ZXPXZ",
+      "XZPPR",
+      "XZPPXZ",
+      "XZZPPR"
+    ]
+  },
+  {
+    "name": "八声甘州",
+    "charCount": 119,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZXPXZPR",
+      "XPXZR",
+      "XPXZ",
+      "XZPPR",
+      "XZXPPZZ",
+      "XPXZPPZR",
+      "XPXZR",
+      "XZPP",
+      "XPXZR",
+      "XPXZ",
+      "XZXPPZR"
+    ],
+    "representative": "柳永",
+    "lowerPattern": [
+      "XPXZPPR",
+      "XPXZR",
+      "XPXZ",
+      "XZPP",
+      "XPXZPPZR",
+      "XPXZ",
+      "XPXZR",
+      "XZPP",
+      "XPXZR",
+      "XPXZ",
+      "XZXPPZR"
+    ]
+  },
+  {
+    "name": "疏影",
+    "charCount": 119,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPZZR",
+      "ZXPXZ",
+      "XZPZR",
+      "XZPP",
+      "XZPP",
+      "XZZPPZR",
+      "XPXZPPZ",
+      "ZXZ",
+      "XPPZR",
+      "ZXP",
+      "XZPP",
+      "XZZPPZR"
+    ],
+    "representative": "姜夔",
+    "lowerPattern": [
+      "XZXPXZ",
+      "ZPPZZ",
+      "XZPZR",
+      "XZPP",
+      "XZPP",
+      "XZZPPZR",
+      "XPXZPPZ",
+      "ZXZ",
+      "XPPZR",
+      "ZXP",
+      "XZPP",
+      "XZZPPZR"
+    ]
+  },
+  {
+    "name": "沁园春",
+    "charCount": 123,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPP",
+      "XZPP",
+      "XZZPR",
+      "XXPXZ",
+      "XPXZ",
+      "XPXZ",
+      "XZPPR",
+      "XZPP",
+      "XPXZ",
+      "XZPPXZPR",
+      "PPZ",
+      "ZXPXZ",
+      "XZPPR"
+    ],
+    "lowerPattern": [
+      "XPXZPPR",
+      "XXZ",
+      "PPXZPR",
+      "XXPXZ",
+      "XPXZ",
+      "XPXZ",
+      "XZPPR",
+      "XZPP",
+      "XPXZ",
+      "XZPPXZPR",
+      "PPZ",
+      "ZXPXZ",
+      "XZPPR"
+    ],
+    "representative": "毛泽东"
+  },
+  {
+    "name": "贺新郎",
+    "charCount": 128,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XZPPZR",
+      "XPX",
+      "XPXZ",
+      "XPXZR",
+      "XZXPPPZ",
+      "XZXPXZR",
+      "XXZ",
+      "PPXZR",
+      "XZXPPZZ",
+      "ZXP",
+      "XZPPZR",
+      "XXZ",
+      "XPZR"
+    ],
+    "lowerPattern": [
+      "XPXZPPZR",
+      "XPX",
+      "XPXZ",
+      "XPXZR",
+      "XZXPPPZ",
+      "XZXPXZR",
+      "XXZ",
+      "PPXZR",
+      "XZXPPZZ",
+      "ZXP",
+      "XZPPZR",
+      "XXZ",
+      "XPZR"
+    ],
+    "representative": "辛弃疾"
+  },
+  {
+    "name": "摸鱼儿",
+    "charCount": 132,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZPP",
+      "XPXZ",
+      "XPXZPZR",
+      "XPXZPPZ",
+      "XZXPPZR",
+      "PXZR",
+      "XXZ",
+      "XPXZPPZR",
+      "XPXZR",
+      "XXZPP",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "lowerPattern": [
+      "XPZ",
+      "XZPPXZR",
+      "XPXZPZR",
+      "XPXZPPZ",
+      "XZXPPZR",
+      "PXZR",
+      "XXZ",
+      "XPXZPPZR",
+      "XPXZR",
+      "XXZPP",
+      "XPXZ",
+      "XZZPPR"
+    ],
+    "representative": "辛弃疾"
+  },
+  {
+    "name": "兰陵王",
+    "charCount": 150,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPZR",
+      "XZPPZZR",
+      "XPZ",
+      "XZPP",
+      "XZPPZPZR",
+      "XPZPZR",
+      "XZR",
+      "PPXZR",
+      "XPZ",
+      "XZZP",
+      "XZPPZPZR",
+      "",
+      "XPZPZR",
+      "XZZPP",
+      "XZPPZR",
+      "XPXZZPZR",
+      "XXZPZ",
+      "XPPZR",
+      "XPPZZPZR",
+      "XZZPZR"
+    ],
+    "representative": "周邦彦",
+    "lowerPattern": [
+      "PZR",
+      "ZPZR",
+      "ZXZPP",
+      "XZPZR",
+      "XPXZPPZR",
+      "XXZPZ",
+      "XPPZR",
+      "XPPZ",
+      "XZZ",
+      "XPZR"
+    ]
+  },
+  {
+    "name": "六州歌头",
+    "charCount": 154,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPXZ",
+      "XZZPPR",
+      "PXZ",
+      "PXZ",
+      "ZPPR",
+      "ZPPR",
+      "XZPPZ",
+      "XPZ",
+      "XPZ",
+      "XPZ",
+      "XPZ",
+      "ZPPR",
+      "XZPP",
+      "XZPPZ",
+      "XZPPR",
+      "ZPPXZ",
+      "XZZPPR",
+      "XZPPR",
+      "ZPPR"
+    ],
+    "representative": "贺铸",
+    "lowerPattern": [
+      "ZXPXZ",
+      "PPZ",
+      "PXZ",
+      "ZPPR",
+      "PXZ",
+      "PXZ",
+      "ZPPR",
+      "ZPPR",
+      "XZPPZ",
+      "XPZ",
+      "XPZ",
+      "ZPPR",
+      "XZPP",
+      "XPZPPR",
+      "XZPPR",
+      "ZPPXZ",
+      "XZZPPR",
+      "XZPPR"
+    ]
+  },
+  {
+    "name": "莺啼序",
+    "charCount": 261,
+    "category": "chang_diao",
+    "upperPattern": [
+      "XPZPZZ",
+      "ZPPZZR",
+      "XPZ",
+      "XZPP",
+      "XZPZPZR",
+      "XPZPPZZ",
+      "XPZPPPZR",
+      "ZXPXZ",
+      "XPZZPZR",
+      "",
+      "XPPZZ",
+      "ZZZP",
+      "ZPPZR",
+      "XPZ",
+      "XZPP",
+      "XPPZPZR",
+      "ZXP",
+      "PPZZ",
+      "XPZ",
+      "PPPZR",
+      "ZPP",
+      "XZPP",
+      "XZPPZZR"
+    ],
+    "representative": "吴文英",
+    "lowerPattern": [
+      "XPXZZ",
+      "ZXPP",
+      "XZZPZR",
+      "XXZ",
+      "XPPZ",
+      "ZXPP",
+      "XZPP",
+      "ZPPZR",
+      "XPXZ",
+      "XPXZ",
+      "XPXZPPZ",
+      "ZXP",
+      "XZPPZR",
+      "XPXZ",
+      "XPXZPP",
+      "XZXPPZR",
+      "",
+      "XPXZ",
+      "XZPP",
+      "XPZZZR",
+      "ZXZ",
+      "XPPZ",
+      "XZPP",
+      "XZPP",
+      "ZPPZR",
+      "XPXZ",
+      "XPXZ",
+      "XPXZPPZ",
+      "ZXP",
+      "XZPPZR",
+      "XPXZ",
+      "XPXZPP",
+      "XZXPPZR"
+    ]
+  }
+]
