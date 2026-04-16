@@ -185,6 +185,16 @@ const Library: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* 致谢页脚 */}
+      <footer style={{
+        marginTop: '60px', paddingTop: '20px', borderTop: '1px solid rgba(178,34,34,0.1)',
+        textAlign: 'center', opacity: 0.6,
+      }}>
+        <p style={{ fontSize: '12px', color: '#888', fontFamily: '"Ma Shan Zheng", serif', letterSpacing: '2px' }}>
+          数据源于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--cinnabar-red)', textDecoration: 'none' }}>chinese-poetry/chinese-poetry</a> 开源项目
+        </p>
+      </footer>
     </div>
   );
 };

@@ -13,7 +13,7 @@ const Settings: React.FC = () => {
   const [settings, setSettings] = useState<UserSettings>(getSettings());
   const [saved, setSaved] = useState(false);
   const [newPenName, setNewPenName] = useState('');
-  const [tab, setTab] = useState<'general' | 'seals' | 'api'>('general');
+  const [tab, setTab] = useState<'general' | 'seals' | 'api' | 'about'>('general');
 
   const handleSave = () => {
     saveSettings(settings);
@@ -48,7 +48,7 @@ const Settings: React.FC = () => {
 
       {/* Tab 导航 */}
       <div style={{ display: 'flex', gap: '6px', background: '#f0ede8', borderRadius: '20px', padding: '3px', width: 'fit-content', margin: '0 auto 36px' }}>
-        {([['general', '⚙ 通用'], ['seals', '🔖 印章库'], ['api', '🤖 AI 接入']] as const).map(([v, label]) => (
+        {([['general', '⚙ 通用'], ['seals', '🔖 印章库'], ['api', '🤖 AI 接入'], ['about', '📜 关于']] as const).map(([v, label]) => (
           <button
             key={v}
             onClick={() => setTab(v)}
@@ -171,8 +171,44 @@ const Settings: React.FC = () => {
           </div>
         )}
 
+        {/* ── 关于 & 致谢 ── */}
+        {tab === 'about' && (
+          <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'var(--font-kaiti)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '48px', color: 'var(--cinnabar-red)', marginBottom: '16px' }}>偶成</div>
+              <p style={{ fontSize: '14px', color: '#999', letterSpacing: '2px' }}>版本 v4.0.0 "东方美学" 重大更新</p>
+            </div>
+
+            <section>
+              <h3 style={{ fontSize: '18px', color: '#333', borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '12px', letterSpacing: '2px' }}>数据源致谢</h3>
+              <p style={{ fontSize: '15px', color: '#666', lineHeight: 1.8 }}>
+                「典籍」模块中的所有唐诗、宋词数据均来源于开源项目 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--cinnabar-red)', textDecoration: 'none', borderBottom: '1px solid var(--cinnabar-red)' }}>chinese-poetry/chinese-poetry</a>。
+                感谢该项目及其贡献者为中华传统文化数字化所作出的卓越贡献。
+              </p>
+            </section>
+
+            <section>
+              <h3 style={{ fontSize: '18px', color: '#333', borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '12px', letterSpacing: '2px' }}>开源愿景</h3>
+              <p style={{ fontSize: '15px', color: '#666', lineHeight: 1.8 }}>
+                偶成致力于在提供极致创作体验的同时，反哺开源社区。我们内置了 AI 格律审计功能，鼓励每一位用户在阅读时参与到「纠错与数据维护」中，共同完善这幅跨越千年的文学版图。
+              </p>
+            </section>
+
+            <section>
+              <h3 style={{ fontSize: '18px', color: '#333', borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '12px', letterSpacing: '2px' }}>使用的开源技术</h3>
+              <ul style={{ fontSize: '14px', color: '#888', listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: '8px 16px' }}>
+                <li>• React & Vite</li>
+                <li>• Tailwind CSS</li>
+                <li>• Lucide Icons</li>
+                <li>• html2canvas</li>
+                <li>• Google Gemini Pro</li>
+              </ul>
+            </section>
+          </div>
+        )}
+
         {/* 保存按钮 */}
-        {tab !== 'seals' && (
+        {tab !== 'seals' && tab !== 'about' && (
           <div style={{ marginTop: '32px', display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button
               onClick={handleSave}

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ClassicPoem } from '../../types';
+import { ClassicPoem, MeterCheckResult } from '../../types';
+import { checkJintiShi } from '../../engine/meterChecker';
+import { getUpstreamIssueUrl, formatCorrectionJSON } from '../../services/contributionService';
 
 interface ClassicReaderProps {
   poems: ClassicPoem[];
@@ -11,7 +12,37 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
   const [flipDir, setFlipDir] = useState<'up' | 'down'>('up');
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [auditResult, setAuditResult] = useState<MeterCheckResult | null>(null);
+  const [showContributionTip, setShowContributionTip] = useState(false);
   const poem = poems[currentIdx];
+
+  // 自动探测并审计格律 (简单启发式)
+  const performAudit = () => {
+    if (!poem) return;
+    const lines = poem.content?.split('\n').filter(Boolean) || [];
+    const charCount = lines[0]?.replace(/[，。、；？！]/g, '').length || 0;
+    const lineCount = lines.length;
+
+    let type = '';
+    if (poem.genre?.includes('诗')) {
+      if (lineCount === 4 && charCount === 5) type = 'jueju_5';
+      else if (lineCount === 4 && charCount === 7) type = 'jueju_7';
+      else if (lineCount === 8 && charCount === 5) type = 'lvshi_5';
+      else if (lineCount === 8 && charCount === 7) type = 'lvshi_7';
+    }
+
+    if (type) {
+      const result = checkJintiShi(poem.content, type, 'ping_shui');
+      setAuditResult(result);
+    } else {
+      setAuditResult(null);
+    }
+  };
+
+  useEffect(() => {
+    setAuditResult(null); // 翻页时重置
+    setShowContributionTip(false);
+  }, [currentIdx]);
 
   const goTo = (idx: number, dir: 'up' | 'down') => {
     if (isFlipping || idx < 0 || idx >= poems.length) return;
@@ -155,15 +186,96 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
           ))}
         </div>
 
-        {/* 页码 */}
-        <div style={{
-          position: 'absolute', bottom: '24px', left: 0, right: 0,
-          textAlign: 'center',
-          fontSize: '12px', color: '#bbb',
-          fontFamily: 'monospace', letterSpacing: '2px',
-        }}>
           {currentIdx + 1} / {poems.length}
         </div>
+
+        {/* AI 纠错悬浮按钮 */}
+        <div style={{
+          position: 'absolute', bottom: '20px', right: '30px',
+          display: 'flex', gap: '8px', zIndex: 10,
+        }}>
+           {!auditResult ? (
+             <button
+               onClick={performAudit}
+               style={{
+                 background: 'rgba(178,34,34,0.05)', border: '1px solid rgba(178,34,34,0.2)',
+                 color: 'var(--cinnabar-red)', padding: '4px 12px', borderRadius: '15px',
+                 fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)',
+               }}
+             >
+               AI 审计
+             </button>
+           ) : (
+             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+               <span style={{
+                 fontSize: '11px', padding: '2px 8px', borderRadius: '10px',
+                 background: auditResult.isValid ? 'rgba(45,90,61,0.1)' : 'rgba(178,34,34,0.1)',
+                 color: auditResult.isValid ? '#2d5a3d' : 'var(--cinnabar-red)',
+                 fontFamily: 'monospace',
+               }}>
+                 {auditResult.isValid ? '✓ 格律严整' : `⚠ ${auditResult.violationCount}处疑误`}
+               </span>
+               {!auditResult.isValid && (
+                 <button
+                   onClick={() => setShowContributionTip(true)}
+                   style={{
+                     background: 'var(--cinnabar-red)', color: 'white', border: 'none',
+                     padding: '2px 10px', borderRadius: '4px', fontSize: '11px',
+                     cursor: 'pointer', boxShadow: '0 2px 4px rgba(178,34,34,0.2)',
+                   }}
+                 >
+                   去纠错
+                 </button>
+               )}
+             </div>
+           )}
+        </div>
+
+        {/* 纠错弹窗 (简单 Tip) */}
+        {showContributionTip && (
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.96)',
+            zIndex: 100, padding: '40px', display: 'flex', flexDirection: 'column',
+            justifyContent: 'center', borderRadius: '8px', border: '2px solid var(--cinnabar-red)',
+          }}>
+             <h3 style={{ fontFamily: 'var(--font-kaiti)', color: 'var(--cinnabar-red)', marginBottom: '16px' }}>回馈开源社区</h3>
+             <p style={{ fontSize: '14px', color: '#666', lineHeight: 1.6, marginBottom: '20px' }}>
+               经 AI 格律审计，此篇作品在数字录入过程中可能存在偏差。由于数据源自 <strong>chinese-poetry</strong> 开源项目，建议您将纠错信息回传至上游。
+             </p>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  onClick={() => {
+                    const json = formatCorrectionJSON({
+                      original: poem,
+                      corrected: poem, // 演示目的，实际应支持用户手动修改
+                      notes: auditResult?.summary || '',
+                      timestamp: Date.now()
+                    });
+                    navigator.clipboard.writeText(json);
+                    alert('已复制纠错 JSON 格式数据！正在跳转 GitHub Issue 页面...');
+                    window.open(getUpstreamIssueUrl(poem.title), '_blank');
+                  }}
+                  style={{
+                    background: '#1a1a1a', color: 'white', border: 'none',
+                    padding: '10px', borderRadius: '4px', cursor: 'pointer',
+                    fontFamily: 'var(--font-kaiti)', fontSize: '14px',
+                  }}
+                >
+                  复制 JSON 并跳转 GitHub 纠错
+                </button>
+                <button
+                  onClick={() => setShowContributionTip(false)}
+                  style={{
+                    background: 'none', border: '1px solid #ddd',
+                    padding: '8px', borderRadius: '4px', cursor: 'pointer',
+                    color: '#999', fontSize: '12px',
+                  }}
+                >
+                  暂不纠错
+                </button>
+             </div>
+          </div>
+        )}
       </div>
 
       {/* 翻页控制 */}
