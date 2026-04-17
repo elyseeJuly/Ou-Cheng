@@ -3,7 +3,7 @@
 <div align="center">
   <p><em>“佳句本天成，妙手偶得之。”</em></p>
   <p>
-    <a href="https://github.com/elyseeJuly/Ou-Cheng">
+    <a href="https://elyseejuly.github.io/Ou-Cheng/">
       <img src="https://img.shields.io/badge/Version-v4.0.0-B22222?style=for-the-badge" alt="Version">
     </a>
     <a href="LICENSE">
