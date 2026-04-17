@@ -8,7 +8,6 @@ import CipaiSelector from '../components/creator/CipaiSelector';
 import MeterGrid, { JINTI_DISPLAY } from '../components/creator/MeterGrid';
 import StructuredInput from '../components/creator/StructuredInput';
 import { MeterLegend } from '../components/creator/RhymeHighlighter';
-import { PaperStyleSelector } from '../components/preview/PaperBackground';
 
 // ── Mock AI 点评（高质量文言库） ─────────────────────────
 const MOCK_COMMENTS = [
@@ -101,7 +100,21 @@ const Create: React.FC = () => {
 
   // 实时格律校验
   useEffect(() => {
-    if (!activeContent.trim() || mode === 'free') {
+    if (!activeContent.trim()) {
+      setMeterResult(null);
+      return;
+    }
+    // Free mode with sonnet subtype: run sonnet check
+    if (mode === 'free' && sonnetType !== 'none') {
+      const timer = setTimeout(() => {
+        try {
+          const result = checkSonnet(activeContent, sonnetType);
+          setMeterResult(result);
+        } catch (_) { /* ignore */ }
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+    if (mode === 'free') {
       setMeterResult(null);
       return;
     }
@@ -117,7 +130,7 @@ const Create: React.FC = () => {
       } catch (_) { /* ignore */ }
     }, 400);
     return () => clearTimeout(timer);
-  }, [activeContent, mode, proTab, poemType, selectedCipai, rhymeBook]);
+  }, [activeContent, mode, proTab, poemType, selectedCipai, rhymeBook, sonnetType]);
 
   // 自由模式十四行实时状态
   const [sonnetLineCount, setSonnetLineCount] = useState(0);
@@ -165,7 +178,11 @@ const Create: React.FC = () => {
     author: author || '佚名',
     content: activeContent || '在此输入佳句...',
     heartNote,
-    type: 'free',
+    type: mode === 'free'
+      ? (sonnetType !== 'none' ? 'sonnet' : 'free')
+      : (proTab === 'cipai' ? 'cipai' : poemType),
+    sonnetType: sonnetType !== 'none' ? sonnetType : undefined,
+    cipaiName: selectedCipai?.name,
     layout,
     paperStyle,
     fontStyle,
@@ -468,10 +485,6 @@ const Create: React.FC = () => {
 
       {/* ── 右侧预览区 ────────────────────────────── */}
       <div className="editor-right">
-        {/* 花笺纸选择 */}
-        <div style={{ marginBottom: '12px' }}>
-          <PaperStyleSelector value={paperStyle} onChange={setPaperStyle} />
-        </div>
         <PoemPreview
           poem={{ ...previewPoem, layout, paperStyle, fontStyle }}
           onLayoutChange={setLayout}

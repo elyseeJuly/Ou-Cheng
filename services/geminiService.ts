@@ -1,5 +1,5 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { ChatMessage, ImageSize } from "../types";
+import { GoogleGenAI } from "@google/genai";
+import { ChatMessage } from "../types";
 
 // Helper to ensure API key exists
 const getClient = () => {
@@ -14,24 +14,12 @@ export const checkMeterAndComment = async (
   rhymeScheme: string
 ): Promise<string> => {
   const ai = getClient();
-  const prompt = `
-    Role: Senior Classical Chinese Poetry Editor.
-    Task: Review the following poem.
-    Context:
-    - Type: ${type}
-    - Rhyme Scheme: ${rhymeScheme}
-    - Poem: "${content}"
-
-    Requirements:
-    1. Briefly check tone patterns (Ping/Ze) and rhyme if the type requires it.
-    2. Provide a 1-2 sentence aesthetic comment or suggestion.
-    3. DO NOT output long explanations. Keep it under 100 words.
-    4. If it is free verse, focus on the imagery.
-  `;
+  // Whitepaper: "用不超过60字的文言或半文言，给出简短点评或一两处润色建议，语气雅致、不油腻、不堆砌华丽词藻"
+  const prompt = `你是一位博古通今的诗词大家，笔名"偶成君"。请用不超过60字的文言或半文言，对以下${type}（韵书：${rhymeScheme}）进行简短点评或给出一两处润色建议。语气雅致，不油腻，不堆砌华丽词藻。诗词内容：「${content}」`;
 
   try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-preview-04-17',
       contents: prompt,
     });
     return response.text || "AI 暂时无法评价。";
@@ -43,20 +31,15 @@ export const checkMeterAndComment = async (
 
 export const chatWithPoet = async (history: ChatMessage[], newMessage: string): Promise<string> => {
   const ai = getClient();
-  
-  // Convert our simple history to Gemini format
-  // Note: For simplicity in this demo, we'll just use generateContent with history as context string
-  // or use the Chat API if strictly following the rigorous structure.
-  // Let's use the Chat API properly.
-  
+
   const chat = ai.chats.create({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-2.5-flash-preview-04-17',
     config: {
-      systemInstruction: "你是一位博古通今的诗词大家。你的名字叫“偶成君”。请用优雅、简练、富有文学气息的中文回答用户关于诗词格律、历史背景或鉴赏的问题。不要过于啰嗦。",
+      systemInstruction: "你是一位博古通今的诗词大家。你的名字叫"偶成君"。请用优雅、简练、富有文学气息的中文回答用户关于诗词格律、历史背景或鉴赏的问题。不要过于啰嗦。",
     },
     history: history.map(h => ({
-        role: h.role,
-        parts: [{ text: h.text }]
+      role: h.role,
+      parts: [{ text: h.text }]
     }))
   });
 
@@ -69,32 +52,24 @@ export const chatWithPoet = async (history: ChatMessage[], newMessage: string): 
   }
 };
 
-export const generatePoemImage = async (prompt: string, size: ImageSize): Promise<string> => {
+export const generatePoemImage = async (prompt: string): Promise<string> => {
   const ai = getClient();
-  
-  // Map UI sizes to API constants if needed, or just prompt context
-  // gemini-3-pro-image-preview supports '1K' | '2K' | '4K' in imageConfig
-  
+
   const fullPrompt = `Traditional Chinese Ink Wash Painting style, high aesthetic, minimal, zen. Subject: ${prompt}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview',
-      contents: {
-        parts: [{ text: fullPrompt }],
-      },
+      model: 'gemini-2.0-flash-exp',
+      contents: fullPrompt,
       config: {
-        imageConfig: {
-          imageSize: size,
-          aspectRatio: "3:4" 
-        }
-      }
+        responseModalities: ['image', 'text'],
+      },
     });
 
-    // Extract image
+    // Extract image from inline data
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
     }
     throw new Error("No image data returned");

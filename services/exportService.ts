@@ -145,7 +145,7 @@ export async function exportPoem(
   Object.assign(brandDiv.style, {
     position: 'absolute',
     bottom: '24px',
-    [direction === 'vertical' ? 'right' : 'right']: '24px',
+    right: '24px',
     zIndex: '3',
     fontSize: '11px',
     color: 'rgba(178,34,34,0.4)',

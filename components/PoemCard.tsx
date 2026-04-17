@@ -18,7 +18,7 @@ const PoemCard = forwardRef<HTMLDivElement, PoemCardProps>(({ poem, previewMode 
       ref={ref}
       className={`relative overflow-hidden transition-all duration-500 shadow-lg
         ${previewMode ? 'w-full aspect-[3/4] max-w-md mx-auto scale-95' : 'w-full min-h-[60vh]'}
-        ${BACKGROUND_STYLES[poem.backgroundTheme as keyof typeof BACKGROUND_STYLES] || BACKGROUND_STYLES.paper}
+        ${BACKGROUND_STYLES.paper}
       `}
       style={{
         backgroundImage: poem.backgroundImage ? `url(${poem.backgroundImage})` : undefined,

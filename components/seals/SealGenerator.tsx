@@ -166,6 +166,9 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
 // ── React 预览组件 ────────────────────────────────────────
 const SealGenerator: React.FC<SealGeneratorProps> = ({ penName, style, size = 120, onGenerated }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Store onGenerated in ref to avoid triggering the effect on every render
+  const onGeneratedRef = useRef(onGenerated);
+  useEffect(() => { onGeneratedRef.current = onGenerated; }, [onGenerated]);
 
   useEffect(() => {
     const dataUrl = generateSealDataUrl(penName, style, size);
@@ -178,8 +181,8 @@ const SealGenerator: React.FC<SealGeneratorProps> = ({ penName, style, size = 12
       };
       img.src = dataUrl;
     }
-    onGenerated?.(dataUrl);
-  }, [penName, style, size, onGenerated]);
+    onGeneratedRef.current?.(dataUrl);
+  }, [penName, style, size]);
 
   return (
     <canvas

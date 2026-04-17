@@ -12,6 +12,9 @@ interface StructuredInputProps {
 
 const StructuredInput: React.FC<StructuredInputProps> = ({ patterns, lines, meterResult, onChange, inputMode }) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // Stable ref for onChange to prevent effect dependency loop
+  const onChangeRef = useRef(onChange);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   // Expand lines array if it's shorter than patterns (ignoring empty separators)
   useEffect(() => {
@@ -20,9 +23,9 @@ const StructuredInput: React.FC<StructuredInputProps> = ({ patterns, lines, mete
       while (newLines.length < patterns.length) {
         newLines.push('');
       }
-      onChange(newLines);
+      onChangeRef.current(newLines);
     }
-  }, [patterns, lines.length, onChange]);
+  }, [patterns, lines.length]);
 
   const handleInputChange = (val: string, ri: number) => {
     const newLines = [...lines];

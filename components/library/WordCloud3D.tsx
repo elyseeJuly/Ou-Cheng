@@ -167,6 +167,18 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(frameRef.current);
+      // Dispose all scene objects to prevent GPU memory leaks
+      scene.traverse((obj) => {
+        if ((obj as THREE.Mesh).geometry) (obj as THREE.Mesh).geometry.dispose();
+        const mat = (obj as THREE.Mesh).material;
+        if (mat) {
+          if (Array.isArray(mat)) mat.forEach(m => m.dispose());
+          else mat.dispose();
+        }
+        if ((obj as THREE.Sprite).material?.map) {
+          (obj as THREE.Sprite).material.map!.dispose();
+        }
+      });
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };

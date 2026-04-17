@@ -18,13 +18,13 @@ export const TEMPLATES: Record<string, TemplateRule> = {
   lvshi_5: {
     name: "五言律诗",
     description: "八句，每句五字。对仗工整。",
-    structure: ["...", "...", "...", "..."],
+    structure: ["...", "...", "...", "...", "...", "...", "...", "..."],
     charCountPerLine: 5
   },
   lvshi_7: {
     name: "七言律诗",
     description: "八句，每句七字。起承转合。",
-    structure: ["...", "...", "...", "..."],
+    structure: ["...", "...", "...", "...", "...", "...", "...", "..."],
     charCountPerLine: 7
   },
   sonnet: {
@@ -48,7 +48,7 @@ export const BACKGROUND_STYLES = {
   dark: "bg-stone-900 text-stone-200", // Ink mode
 };
 
-export export const FONT_STYLES: Record<string, { label: string, family: string }> = {
+export const FONT_STYLES: Record<string, { label: string, family: string }> = {
   none: { label: '系统默认', family: 'var(--font-serif)' },
   lxgw_wenkai: { label: '霞鹜文楷', family: '"LXGW WenKai Lite", var(--font-serif)' },
   noto_serif: { label: '思源宋体', family: '"Noto Serif SC", var(--font-serif)' },
