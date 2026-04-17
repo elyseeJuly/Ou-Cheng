@@ -187,6 +187,13 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
           ))}
         </div>
 
+        {/* 页码 */}
+        <div style={{
+          position: 'absolute', bottom: '24px', left: 0, right: 0,
+          textAlign: 'center',
+          fontSize: '12px', color: '#bbb',
+          fontFamily: 'monospace', letterSpacing: '2px',
+        }}>
           {currentIdx + 1} / {poems.length}
         </div>
 
