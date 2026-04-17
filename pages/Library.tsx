@@ -17,8 +17,8 @@ const Library: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/data/poetry.json').then(r => r.json()).catch(() => []),
-      fetch('/data/imagery.json').then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.BASE_URL}data/poetry.json`).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.BASE_URL}data/imagery.json`).then(r => r.json()).catch(() => []),
     ]).then(([poems, imagery]) => {
       setAllPoems(poems);
       setImageryItems(imagery);

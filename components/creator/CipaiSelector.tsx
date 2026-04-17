@@ -20,7 +20,7 @@ const CipaiSelector: React.FC<CipaiSelectorProps> = ({ value, onChange }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/data/cipai.json')
+    fetch(`${import.meta.env.BASE_URL}data/cipai.json`)
       .then(r => r.json())
       .then((data: CipaiData[]) => { setCipaiList(data); setLoading(false); })
       .catch(() => setLoading(false));
