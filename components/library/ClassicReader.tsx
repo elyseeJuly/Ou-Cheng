@@ -1,5 +1,6 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { ClassicPoem, MeterCheckResult } from '../../types';
-import { checkJintiShi } from '../../engine/meterChecker';
+import { checkJintiShi } from '../../src/engine/meterChecker';
 import { getUpstreamIssueUrl, formatCorrectionJSON } from '../../services/contributionService';
 
 interface ClassicReaderProps {
