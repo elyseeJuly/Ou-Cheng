@@ -1,43 +1,73 @@
 // ============================================================
-// 偶成 v4.0 — 格律双指针校验引擎
+// 偶成 v4.0 — 格律双指针校验引擎（精细纠错版）
 // ============================================================
 import { getTone, getCanonicalTone, isMultiTone, ToneClass } from './rhymeData';
 import { MeterCheckResult, LineResult, CharResult, CharStatus, RhymeBook, CipaiData, SonnetType } from '../../types';
 
 // ============================================================
-// 近体诗格律模板
+// 近体诗格律模板（平仄起、首韵支持）
 // 格式: 'P'=平, 'Z'=仄, 'R'=韵脚, 'X'=可平可仄, 'r'=可韵可不韵
 // ============================================================
-const JINTI_TEMPLATES: Record<string, string[][]> = {
-  // 五言绝句（仄起首句不入韵）
+export const JINTI_TEMPLATES: Record<string, string[][]> = {
+  // 五言绝句 (仄起首句不入韵)
   jueju_5_ze_no: [
     ['Z','Z','P','P','Z'],
     ['P','P','Z','Z','R'],
     ['P','P','P','Z','Z'],
     ['Z','Z','Z','P','R'],
   ],
-  // 五言绝句（平起首句不入韵）
+  // 五言绝句 (仄起首句入韵)
+  jueju_5_ze_yes: [
+    ['Z','Z','Z','P','R'],
+    ['P','P','Z','Z','R'],
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+  ],
+  // 五言绝句 (平起首句不入韵)
   jueju_5_ping_no: [
-    ['P','P','Z','Z','P'],
+    ['P','P','P','Z','Z'],
     ['Z','Z','Z','P','R'],
     ['Z','Z','P','P','Z'],
     ['P','P','Z','Z','R'],
   ],
-  // 七言绝句（仄起首句入韵）
+  // 五言绝句 (平起首句入韵)
+  jueju_5_ping_yes: [
+    ['P','P','Z','Z','R'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+  ],
+
+  // 七言绝句 (仄起首句不入韵)
+  jueju_7_ze_no: [
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+  ],
+  // 七言绝句 (仄起首句入韵)
   jueju_7_ze_yes: [
     ['Z','Z','P','P','Z','Z','R'],
     ['P','P','Z','Z','Z','P','R'],
     ['P','P','Z','Z','P','P','Z'],
     ['Z','Z','P','P','Z','Z','R'],
   ],
-  // 七言绝句（平起首句入韵）
+  // 七言绝句 (平起首句不入韵)
+  jueju_7_ping_no: [
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+  ],
+  // 七言绝句 (平起首句入韵)
   jueju_7_ping_yes: [
     ['P','P','Z','Z','Z','P','R'],
     ['Z','Z','P','P','Z','Z','R'],
     ['Z','Z','P','P','P','Z','Z'],
     ['P','P','Z','Z','Z','P','R'],
   ],
-  // 五言律诗（仄起首句不入韵）
+
+  // 五言律诗 (仄起首句不入韵)
   lvshi_5_ze_no: [
     ['Z','Z','P','P','Z'],
     ['P','P','Z','Z','R'],
@@ -48,7 +78,74 @@ const JINTI_TEMPLATES: Record<string, string[][]> = {
     ['P','P','P','Z','Z'],
     ['Z','Z','Z','P','R'],
   ],
-  // 七言律诗（平起首句入韵）
+  // 五言律诗 (仄起首句入韵)
+  lvshi_5_ze_yes: [
+    ['Z','Z','Z','P','R'],
+    ['P','P','Z','Z','R'],
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+  ],
+  // 五言律诗 (平起首句不入韵)
+  lvshi_5_ping_no: [
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+  ],
+  // 五言律诗 (平起首句入韵)
+  lvshi_5_ping_yes: [
+    ['P','P','Z','Z','R'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+    ['P','P','P','Z','Z'],
+    ['Z','Z','Z','P','R'],
+    ['Z','Z','P','P','Z'],
+    ['P','P','Z','Z','R'],
+  ],
+
+  // 七言律诗 (仄起首句不入韵)
+  lvshi_7_ze_no: [
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+  ],
+  // 七言律诗 (仄起首句入韵)
+  lvshi_7_ze_yes: [
+    ['Z','Z','P','P','Z','Z','R'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+  ],
+  // 七言律诗 (平起首句不入韵)
+  lvshi_7_ping_no: [
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+    ['P','P','Z','Z','P','P','Z'],
+    ['Z','Z','P','P','Z','Z','R'],
+    ['Z','Z','P','P','P','Z','Z'],
+    ['P','P','Z','Z','Z','P','R'],
+  ],
+  // 七言律诗 (平起首句入韵)
   lvshi_7_ping_yes: [
     ['P','P','Z','Z','Z','P','R'],
     ['Z','Z','P','P','Z','Z','R'],
@@ -64,7 +161,7 @@ const JINTI_TEMPLATES: Record<string, string[][]> = {
 // 模板匹配映射(poemType -> 默认模板key)
 const DEFAULT_TEMPLATE: Record<string, string> = {
   jueju_5: 'jueju_5_ze_no',
-  jueju_7: 'jueju_7_ping_yes',
+  jueju_7: 'jueju_7_ze_yes', // Match the default visual grid 仄起首句入韵
   lvshi_5: 'lvshi_5_ze_no',
   lvshi_7: 'lvshi_7_ping_yes',
 };
@@ -77,47 +174,42 @@ export function checkJintiShi(
   poemType: string,
   rhymeBook: RhymeBook
 ): MeterCheckResult {
-  const templateKey = DEFAULT_TEMPLATE[poemType] || 'jueju_5_ze_no';
+  const templateKey = JINTI_TEMPLATES[poemType] ? poemType : (DEFAULT_TEMPLATE[poemType] || 'jueju_5_ze_no');
   const template = JINTI_TEMPLATES[templateKey];
-  const rawLines = Array.isArray(content) ? content : content.split('\n');
+  const rawLines = (Array.isArray(content) ? content : content.split('\n')).filter(l => l.trim().length > 0);
 
   const lines: LineResult[] = template.map((pattern, lineIdx) => {
     let line = rawLines[lineIdx] || '';
-    if (typeof content === 'string') {
-      line = line.replace(/[，。、；？！]/g, '').trim(); // Remove punctuation
-    }
+    line = line.replace(/[，。、；？！]/g, '').trim(); // Remove punctuation
+
     const chars: CharResult[] = pattern.map((expected, charIdx) => {
       const char = line[charIdx];
       let status: CharStatus = 'neutral';
       let tooltip = '';
 
       if (!char || char === ' ') {
-        status = 'neutral';
-        return { char: '', status, expected, actual: '?', tooltip: '' };
+        // Missing character treated as error/violation
+        return { char: '', status: 'error', expected, actual: '?', tooltip: '此处缺字' };
       }
 
       const actualTones = getTone(char, rhymeBook);
       const actualMain = getCanonicalTone(char, rhymeBook);
       const multi = isMultiTone(char);
 
-      if (!expected || expected === 'X') {
+      if (actualMain === 'unknown') {
+        status = 'warn';
+        tooltip = '此字未收录于该韵书，平仄待考';
+      } else if (!expected || expected === 'X') {
         status = 'neutral';
       } else if (expected === 'R' || expected === 'r') {
-        // Technically Rhyme should be checked against previous rhymes, but this is a simple check
-        status = 'rhyme'; 
-        // Let's at least mark it valid visually if it's typed
-        if (actualMain === 'P' || actualMain === 'Z') {
-           // We just highlight it blue/green for being filled. Let's make it 'ok' if it expects rhyme and they filled it. 
-           // We keep 'rhyme' status, the UI will color it ok anyway.
-        }
+        status = 'rhyme';
       } else {
         const expectedTone = expected as ToneClass;
         if (actualMain === expectedTone) {
           status = 'ok';
         } else if (multi) {
-          // 多音字中有一个符合则警告
           status = (actualTones as ToneClass[]).includes(expectedTone) ? 'warn' : 'error';
-          tooltip = multi ? `多音字: 可读${(actualTones as ToneClass[]).join('/')}` : '';
+          tooltip = `多音字: 可读${(actualTones as ToneClass[]).join('/')}`;
         } else {
           status = 'error';
           tooltip = `应${expectedTone === 'P' ? '平' : '仄'}，实${actualMain === 'P' ? '平' : '仄'}`;
@@ -127,20 +219,54 @@ export function checkJintiShi(
       return { char, status, expected, actual: actualMain, tooltip };
     });
 
+    // Add extra characters in the line as errors
+    if (line.length > pattern.length) {
+      for (let ci = pattern.length; ci < line.length; ci++) {
+        chars.push({
+          char: line[ci],
+          status: 'error',
+          expected: '?',
+          actual: getCanonicalTone(line[ci], rhymeBook),
+          tooltip: '多余字',
+        });
+      }
+    }
+
     return { lineIndex: lineIdx, chars };
   });
+
+  // Append extra lines if any
+  if (rawLines.length > template.length) {
+    for (let li = template.length; li < rawLines.length; li++) {
+      const line = rawLines[li] || '';
+      const cleanLine = line.replace(/[，。、；？！]/g, '').trim();
+      const chars: CharResult[] = Array.from(cleanLine).map(char => ({
+        char,
+        status: 'error',
+        expected: '?',
+        actual: getCanonicalTone(char, rhymeBook),
+        tooltip: '多余行',
+      }));
+      lines.push({ lineIndex: li, chars });
+    }
+  }
 
   const totalViolations = lines.reduce(
     (acc, l) => acc + l.chars.filter(c => c.status === 'error').length, 0
   );
 
+  // If there are fewer lines than required, add missing line counts to violationCount
+  const missingLinesCount = Math.max(0, template.length - rawLines.length);
+  const violationCount = totalViolations + missingLinesCount * template[0].length;
+
   return {
     lines,
-    summary: totalViolations === 0
+    summary: violationCount === 0
       ? '格律工整，合乎规范'
-      : `发现 ${totalViolations} 处出律，请参照点阵调整`,
-    isValid: totalViolations === 0,
-    violationCount: totalViolations,
+      : `发现 ${violationCount} 处出律，请参照点阵调整`,
+    isValid: violationCount === 0,
+    violationCount,
+    rhymeCheckStatus: 'unverified', // Heuristic offline default
   };
 }
 
@@ -152,7 +278,7 @@ export function checkCipai(
   cipai: CipaiData,
   rhymeBook: RhymeBook
 ): MeterCheckResult {
-  const rawLines = Array.isArray(content) ? content : content.split('\n');
+  const rawLines = (Array.isArray(content) ? content : content.split('\n')).filter(l => l.trim().length > 0);
   const fullPattern = [
     ...(cipai.upperPattern || []),
     ...(cipai.lowerPattern || []),
@@ -161,9 +287,7 @@ export function checkCipai(
   const lines: LineResult[] = fullPattern.map((linePatternStr, lineIdx) => {
     const linePattern = linePatternStr.split('');
     let line = rawLines[lineIdx] || '';
-    if (typeof content === 'string') {
-       line = line.replace(/[，。、；？！]/g, '').trim();
-    }
+    line = line.replace(/[，。、；？！]/g, '').trim();
     
     const chars: CharResult[] = linePattern.map((expected, charIdx) => {
       const char = line[charIdx];
@@ -171,14 +295,16 @@ export function checkCipai(
       let tooltip = '';
 
       if (!char || char === ' ') {
-        status = 'neutral';
-        return { char: '', status, expected, actual: '?', tooltip: '' };
+        return { char: '', status: 'error', expected, actual: '?', tooltip: '此处缺字' };
       }
 
       const actualMain = getCanonicalTone(char, rhymeBook);
       const multi = isMultiTone(char);
 
-      if (expected === 'X') {
+      if (actualMain === 'unknown') {
+        status = 'warn';
+        tooltip = '此字未收录于该韵书，平仄待考';
+      } else if (expected === 'X') {
         status = 'neutral';
       } else if (expected === 'R' || expected === 'r') {
         status = 'rhyme';
@@ -199,18 +325,51 @@ export function checkCipai(
       return { char, status, expected, actual: actualMain, tooltip };
     });
 
+    // Add extra characters in the line as errors
+    if (line.length > linePattern.length) {
+      for (let ci = linePattern.length; ci < line.length; ci++) {
+        chars.push({
+          char: line[ci],
+          status: 'error',
+          expected: '?',
+          actual: getCanonicalTone(line[ci], rhymeBook),
+          tooltip: '多余字',
+        });
+      }
+    }
+
     return { lineIndex: lineIdx, chars };
   });
+
+  // Append extra lines if any
+  if (rawLines.length > fullPattern.length) {
+    for (let li = fullPattern.length; li < rawLines.length; li++) {
+      const line = rawLines[li] || '';
+      const cleanLine = line.replace(/[，。、；？！]/g, '').trim();
+      const chars: CharResult[] = Array.from(cleanLine).map(char => ({
+        char,
+        status: 'error',
+        expected: '?',
+        actual: getCanonicalTone(char, rhymeBook),
+        tooltip: '多余行',
+      }));
+      lines.push({ lineIndex: li, chars });
+    }
+  }
 
   const totalViolations = lines.reduce(
     (acc, l) => acc + l.chars.filter(c => c.status === 'error').length, 0
   );
 
+  const missingLinesCount = Math.max(0, fullPattern.length - rawLines.length);
+  const violationCount = totalViolations + missingLinesCount * 5; // default 5 chars penalty
+
   return {
     lines,
-    summary: totalViolations === 0 ? `《${cipai.name}》格律合规` : `发现 ${totalViolations} 处出律`,
-    isValid: totalViolations === 0,
-    violationCount: totalViolations,
+    summary: violationCount === 0 ? `《${cipai.name}》格律合规` : `发现 ${violationCount} 处出律`,
+    isValid: violationCount === 0,
+    violationCount,
+    rhymeCheckStatus: 'unverified',
   };
 }
 
@@ -259,10 +418,12 @@ export function checkSonnet(
   else if (lineCount === 14) summary = '十四行已足，请检查韵脚';
   else summary = `超出14行 (${lineCount} 行)`;
 
+  const violationCount = lineCount === 14 ? 0 : Math.abs(14 - lineCount);
+
   return {
     lines,
     summary,
     isValid: lineCount === 14,
-    violationCount: lineCount === 14 ? 0 : Math.abs(14 - lineCount),
+    violationCount,
   };
 }

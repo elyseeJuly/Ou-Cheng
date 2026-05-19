@@ -31,8 +31,8 @@
   --radius-pill: 24px;
   
   /* 字体系统 */
-  --font-serif: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", serif;
-  --font-kaiti: "Ma Shan Zheng", "LXGW WenKai Lite", "STKaiti", "KaiTi", serif;
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "STSong", "SimSun", serif;
+  --font-kaiti: "Ma Shan Zheng", "LXGW WenKai Lite", "Kaiti TC", "STKaiti", "KaiTi", serif;
   --font-classic: "LXGW WenKai Lite", "Ma Shan Zheng", serif;
   --font-cursive: "Zhi Mang Xing", "Long Cang", cursive;
 }
@@ -73,11 +73,15 @@ h1, h2, h3, .heading-font {
 /* ============================================================
    Layout
    ============================================================ */
+.app-main {
+  margin-left: 80px;
+  min-height: 100vh;
+}
+
 .editor-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 100vh;
-  margin-left: 80px;
 }
 
 .editor-left {
@@ -391,6 +395,9 @@ h1, h2, h3, .heading-font {
 
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .app-main {
+    margin-left: 0;
+  }
   .editor-split {
     grid-template-columns: 1fr;
     margin-left: 0;

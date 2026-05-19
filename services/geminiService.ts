@@ -1,11 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage } from "../types";
+import { getSettings } from "./storageService";
 
 // Helper to ensure API key exists
 const getClient = () => {
-  const apiKey = process.env.API_KEY;
+  const settings = getSettings();
+  const apiKey = settings.apiKey || ((import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '') || '';
   if (!apiKey) throw new Error("API Key not found");
-  return new GoogleGenAI({ apiKey });
+  
+  const config: { apiKey: string; httpOptions?: { baseUrl?: string } } = { apiKey };
+  if (settings.apiBaseUrl) {
+    config.httpOptions = { baseUrl: settings.apiBaseUrl };
+  }
+  return new GoogleGenAI(config);
 };
 
 export const checkMeterAndComment = async (
@@ -35,7 +42,7 @@ export const chatWithPoet = async (history: ChatMessage[], newMessage: string): 
   const chat = ai.chats.create({
     model: 'gemini-2.5-flash-preview-04-17',
     config: {
-      systemInstruction: "你是一位博古通今的诗词大家。你的名字叫"偶成君"。请用优雅、简练、富有文学气息的中文回答用户关于诗词格律、历史背景或鉴赏的问题。不要过于啰嗦。",
+      systemInstruction: "你是一位博古通今的诗词大家。你的名字叫\"偶成君\"。请用优雅、简练、富有文学气息的中文回答用户关于诗词格律、历史背景或鉴赏的问题。不要过于啰嗦。",
     },
     history: history.map(h => ({
       role: h.role,

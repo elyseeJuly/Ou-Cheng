@@ -195,7 +195,7 @@ export async function exportPoem(
     // 触发下载
     const a = document.createElement('a');
     a.href = dataUrl;
-    a.download = `${poem.title || '偶成'}_${direction === 'vertical' ? '竖版' : '横版'}_${scale}x.${format}`;
+    a.download = `偶成_${poem.title || '无题'}_${poem.author || '佚名'}.${format}`;
     a.click();
   } finally {
     document.body.removeChild(container);

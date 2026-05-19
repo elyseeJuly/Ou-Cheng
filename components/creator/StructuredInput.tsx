@@ -87,6 +87,7 @@ const StructuredInput: React.FC<StructuredInputProps> = ({ patterns, lines, mete
           );
         }
 
+        const actualLineIndex = patterns.slice(0, ri).filter(r => r.length > 0).length;
         const isLastInStanza = (ri === patterns.length - 1) || (patterns[ri + 1].length === 0);
         const endsWithRhyme = row[row.length - 1] === 'R' || row[row.length - 1] === 'r';
         const punc = (endsWithRhyme || isLastInStanza) ? '。' : '，';
@@ -102,12 +103,12 @@ const StructuredInput: React.FC<StructuredInputProps> = ({ patterns, lines, mete
               <div style={{ display: 'flex', gap: '8px', marginBottom: '4px', paddingLeft: '28px' }}>
                 {row.map((tone, ci) => {
                   const info = TONE_LABELS[tone] || TONE_LABELS['X'];
-                  const charStatus = meterResult?.lines?.[ri]?.chars?.[ci]?.status || 'neutral';
+                  const charStatus = meterResult?.lines?.[actualLineIndex]?.chars?.[ci]?.status || 'neutral';
                   
                   let bgColor = info.bg;
                   let color = info.color;
                   let borderColor = `${info.color}22`;
-                  let additionalTooltip = meterResult?.lines?.[ri]?.chars?.[ci]?.tooltip || '';
+                  let additionalTooltip = meterResult?.lines?.[actualLineIndex]?.chars?.[ci]?.tooltip || '';
 
                   if (charStatus === 'ok' || charStatus === 'rhyme') {
                     bgColor = '#1a6b3a'; color = 'white'; borderColor = '#1a6b3a';

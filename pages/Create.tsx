@@ -5,9 +5,11 @@ import { savePoem, getSettings } from '../services/storageService';
 import { useNavigate } from 'react-router-dom';
 import PoemPreview from '../components/preview/PoemPreview';
 import CipaiSelector from '../components/creator/CipaiSelector';
-import MeterGrid, { JINTI_DISPLAY } from '../components/creator/MeterGrid';
+import MeterGrid from '../components/creator/MeterGrid';
 import StructuredInput from '../components/creator/StructuredInput';
+import { JINTI_TEMPLATES } from '../src/engine/meterChecker';
 import { MeterLegend } from '../components/creator/RhymeHighlighter';
+import { checkMeterAndComment } from '../services/geminiService';
 
 // ── Mock AI 点评（高质量文言库） ─────────────────────────
 const MOCK_COMMENTS = [
@@ -60,6 +62,8 @@ const Create: React.FC = () => {
   const [content, setContent] = useState('');
   const [heartNote, setHeartNote] = useState('');
   const [poemType, setPoemType] = useState<PoemType>('jueju_5');
+  const [jintiStart, setJintiStart] = useState<'ping' | 'ze'>('ze');
+  const [jintiRhyme, setJintiRhyme] = useState<'yes' | 'no'>('no');
   const [sonnetType, setSonnetType] = useState<SonnetType>('none');
   const [selectedCipai, setSelectedCipai] = useState<CipaiData | null>(null);
   const [rhymeBook, setRhymeBook] = useState<RhymeBook>(settings.rhymeBook);
@@ -75,17 +79,22 @@ const Create: React.FC = () => {
   const [aiComment, setAiComment] = useState('');
   const [showHeartNote, setShowHeartNote] = useState(false);
 
+  const derivedPoemType = React.useMemo(() => {
+    return `${poemType}_${jintiStart}_${jintiRhyme}`;
+  }, [poemType, jintiStart, jintiRhyme]);
+
   const currentPatterns = React.useMemo(() => {
     let pts: string[][] = [];
-    if (proTab === 'jinti' && JINTI_DISPLAY[poemType]) {
-      pts = JINTI_DISPLAY[poemType].patterns;
+    if (proTab === 'jinti') {
+      const templateKey = JINTI_TEMPLATES[derivedPoemType] ? derivedPoemType : (poemType === 'jueju_5' ? 'jueju_5_ze_no' : poemType === 'jueju_7' ? 'jueju_7_ze_yes' : poemType === 'lvshi_5' ? 'lvshi_5_ze_no' : poemType === 'lvshi_7' ? 'lvshi_7_ping_yes' : 'jueju_5_ze_no');
+      pts = JINTI_TEMPLATES[templateKey] || [];
     } else if (proTab === 'cipai' && selectedCipai) {
       const upper = selectedCipai.upperPattern.map(s => s.split(''));
       const lower = selectedCipai.lowerPattern?.map(s => s.split('')) || [];
       pts = [...upper, ...(lower.length ? [[], ...lower] : [])];
     }
     return pts;
-  }, [proTab, poemType, selectedCipai]);
+  }, [proTab, poemType, derivedPoemType, selectedCipai]);
 
   const activeContent = React.useMemo(() => {
     if (mode === 'free') return content;
@@ -94,7 +103,9 @@ const Create: React.FC = () => {
       const isLastInStanza = (ri === currentPatterns.length - 1) || (currentPatterns[ri + 1]?.length === 0);
       const endsWithRhyme = row[row.length - 1] === 'R' || row[row.length - 1] === 'r';
       const punc = (endsWithRhyme || isLastInStanza) ? '。' : '，';
-      return (proLines[ri] || '') + punc;
+      const lineText = proLines[ri] || '';
+      if (!lineText.trim()) return '';
+      return lineText + punc;
     }).filter(s => s !== '').join('\n');
   }, [mode, content, currentPatterns, proLines]);
 
@@ -122,7 +133,7 @@ const Create: React.FC = () => {
       try {
         let result: MeterCheckResult;
         if (proTab === 'jinti') {
-          result = checkJintiShi(activeContent, poemType, rhymeBook);
+          result = checkJintiShi(activeContent, derivedPoemType, rhymeBook);
         } else if (selectedCipai) {
           result = checkCipai(activeContent, selectedCipai, rhymeBook);
         } else return;
@@ -130,7 +141,7 @@ const Create: React.FC = () => {
       } catch (_) { /* ignore */ }
     }, 400);
     return () => clearTimeout(timer);
-  }, [activeContent, mode, proTab, poemType, selectedCipai, rhymeBook, sonnetType]);
+  }, [activeContent, mode, proTab, poemType, derivedPoemType, selectedCipai, rhymeBook, sonnetType]);
 
   // 自由模式十四行实时状态
   const [sonnetLineCount, setSonnetLineCount] = useState(0);
@@ -141,13 +152,50 @@ const Create: React.FC = () => {
   const handleAIReview = async () => {
     if (!activeContent.trim()) return;
     setAiLoading(true);
-    await new Promise(r => setTimeout(r, 900)); // 模拟网络
-    setAiComment(getMockComment());
-    setAiLoading(false);
+    try {
+      const typeLabel = mode === 'pro'
+        ? (proTab === 'cipai' ? `《${selectedCipai?.name || '词牌'}》` : (poemType === 'jueju_5' ? '五绝' : poemType === 'jueju_7' ? '七绝' : poemType === 'lvshi_5' ? '五律' : '七律'))
+        : (sonnetType !== 'none' ? '十四行诗' : '自由创作诗词');
+      const rhymeLabel = mode === 'pro'
+        ? (proTab === 'cipai' ? '词林正韵' : '平水韵')
+        : '平水韵';
+      const comment = await checkMeterAndComment(activeContent, typeLabel, rhymeLabel);
+      if (comment && comment !== "评价服务暂不可用。") {
+        setAiComment(comment);
+      } else {
+        setAiComment(getMockComment());
+      }
+    } catch (_) {
+      setAiComment(getMockComment());
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSave = () => {
     if (!activeContent.trim()) { alert('请先写下诗句'); return; }
+
+    if (mode === 'pro') {
+      const nonSeparatorPatterns = currentPatterns.filter(p => p.length > 0);
+      const typedLines = proLines.filter((l, idx) => currentPatterns[idx]?.length > 0 && l.trim().length > 0);
+      
+      if (typedLines.length < nonSeparatorPatterns.length) {
+        alert('结构不完整，保存前请完整填写所有诗词行！');
+        return;
+      }
+      
+      for (let ri = 0; ri < currentPatterns.length; ri++) {
+        if (currentPatterns[ri].length > 0) {
+          const expectedLen = currentPatterns[ri].length;
+          const actualLen = (proLines[ri] || '').trim().length;
+          if (actualLen < expectedLen) {
+            alert(`第 ${ri + 1} 行缺字！应为 ${expectedLen} 字，实为 ${actualLen} 字，请补全。`);
+            return;
+          }
+        }
+      }
+    }
+
     const autoTitle = title || activeContent.split('\n')[0].slice(0, 12).replace(/[，。]/g, '') || '无题';
     const poem: Poem = {
       id: Date.now().toString(),
@@ -157,7 +205,7 @@ const Create: React.FC = () => {
       heartNote,
       type: mode === 'free'
         ? (sonnetType !== 'none' ? 'sonnet' : 'free')
-        : (proTab === 'cipai' ? 'cipai' : poemType),
+        : (proTab === 'cipai' ? 'cipai' : derivedPoemType),
       sonnetType: sonnetType !== 'none' ? sonnetType : undefined,
       cipaiName: selectedCipai?.name,
       layout,
@@ -393,7 +441,45 @@ const Create: React.FC = () => {
                     </button>
                   ))}
                 </div>
-                {proInputMode === 'split' && <MeterGrid poemType={poemType} meterResult={meterResult} />}
+
+                <div style={{ display: 'flex', gap: '16px', margin: '8px 0 12px 0', alignItems: 'center', background: 'rgba(247,241,227,0.5)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(26,26,26,0.05)' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
+                    <span style={{ fontSize: '12px', color: '#999', fontFamily: 'monospace' }}>起调：</span>
+                    {(['ze', 'ping'] as const).map(s => (
+                      <button
+                        key={s}
+                        onClick={() => { setJintiStart(s); setProLines([]); }}
+                        style={{
+                          padding: '3px 10px', borderRadius: '10px', border: 'none',
+                          background: jintiStart === s ? 'var(--cinnabar-red)' : '#f0ede8',
+                          color: jintiStart === s ? '#fff' : '#888',
+                          cursor: 'pointer', fontSize: '11px', fontFamily: 'var(--font-kaiti)'
+                        }}
+                      >
+                        {s === 'ze' ? '仄起' : '平起'}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
+                    <span style={{ fontSize: '12px', color: '#999', fontFamily: 'monospace' }}>首句：</span>
+                    {(['no', 'yes'] as const).map(r => (
+                      <button
+                        key={r}
+                        onClick={() => { setJintiRhyme(r); setProLines([]); }}
+                        style={{
+                          padding: '3px 10px', borderRadius: '10px', border: 'none',
+                          background: jintiRhyme === r ? 'var(--cinnabar-red)' : '#f0ede8',
+                          color: jintiRhyme === r ? '#fff' : '#888',
+                          cursor: 'pointer', fontSize: '11px', fontFamily: 'var(--font-kaiti)'
+                        }}
+                      >
+                        {r === 'yes' ? '入韵' : '不入韵'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {proInputMode === 'split' && <MeterGrid poemType={derivedPoemType} meterResult={meterResult} />}
               </div>
             )}
 

@@ -20,7 +20,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {NAV_ITEMS.map(item => (
             <li key={item.path}>
               <Link to={item.path} className={location.pathname === item.path ? 'active' : ''}>
-                <img src={item.iconPath} className="sidebar-icon" alt={item.label} />
+                <img
+                  src={`${(import.meta as any).env.BASE_URL || ''}${item.iconPath.replace(/^\//, '')}`}
+                  className="sidebar-icon"
+                  alt={item.label}
+                />
                 {item.label}
               </Link>
             </li>
@@ -30,7 +34,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ marginLeft: '80px', minHeight: '100vh' }}>
+      <main className="app-main">
         {children}
       </main>
     </>

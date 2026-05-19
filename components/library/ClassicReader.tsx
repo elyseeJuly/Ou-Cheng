@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ClassicPoem, MeterCheckResult } from '../../types';
-import { checkJintiShi } from '../../src/engine/meterChecker';
+import { checkJintiShi, checkCipai } from '../../src/engine/meterChecker';
 import { getUpstreamIssueUrl, formatCorrectionJSON } from '../../services/contributionService';
 
 interface ClassicReaderProps {
@@ -13,37 +13,86 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
   const [flipDir, setFlipDir] = useState<'up' | 'down'>('up');
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [cipaiList, setCipaiList] = useState<any[]>([]);
   const [auditResult, setAuditResult] = useState<MeterCheckResult | null>(null);
   const [showContributionTip, setShowContributionTip] = useState(false);
+
+  // Correction Form States
+  const [correctedTitle, setCorrectedTitle] = useState('');
+  const [correctedAuthor, setCorrectedAuthor] = useState('');
+  const [correctedContent, setCorrectedContent] = useState('');
+  const [correctionNotes, setCorrectionNotes] = useState('');
+
   const poem = poems[currentIdx];
 
-  // 自动探测并审计格律 (简单启发式)
+  // Load Cipai list for Ci heuristics
+  useEffect(() => {
+    fetch(`${(import.meta as any).env.BASE_URL || ''}data/cipai.json`)
+      .then(r => r.json())
+      .then(data => setCipaiList(data))
+      .catch(() => {});
+  }, []);
+
+  // 自动探测并审计格律 (高度智能启发式：支持律绝与词牌)
   const performAudit = () => {
     if (!poem) return;
     const lines = poem.content?.split('\n').filter(Boolean) || [];
     const charCount = lines[0]?.replace(/[，。、；？！]/g, '').length || 0;
     const lineCount = lines.length;
 
-    let type = '';
-    if (poem.genre?.includes('诗')) {
-      if (lineCount === 4 && charCount === 5) type = 'jueju_5';
-      else if (lineCount === 4 && charCount === 7) type = 'jueju_7';
-      else if (lineCount === 8 && charCount === 5) type = 'lvshi_5';
-      else if (lineCount === 8 && charCount === 7) type = 'lvshi_7';
+    // 1. 律绝探测 (Genre 包含“诗”，或不包含“词/曲”的近体句式)
+    let shiType = '';
+    if (poem.genre?.includes('诗') || (!poem.genre && !poem.title.includes('·') && lineCount > 0)) {
+      if (lineCount === 4 && charCount === 5) shiType = 'jueju_5';
+      else if (lineCount === 4 && charCount === 7) shiType = 'jueju_7';
+      else if (lineCount === 8 && charCount === 5) shiType = 'lvshi_5';
+      else if (lineCount === 8 && charCount === 7) shiType = 'lvshi_7';
     }
 
-    if (type) {
-      const result = checkJintiShi(poem.content, type, 'ping_shui');
-      setAuditResult(result);
-    } else {
-      setAuditResult(null);
+    if (shiType) {
+      try {
+        const result = checkJintiShi(poem.content, shiType, 'ping_shui');
+        setAuditResult(result);
+        return;
+      } catch (_) {}
     }
+
+    // 2. 词牌探测 (Genre 包含“词”，或标题中含“·”，或无类型但含有已知词牌)
+    if (poem.genre?.includes('词') || poem.title.includes('·') || (!poem.genre && lineCount > 0)) {
+      const titleParts = poem.title.split(/[·\s]/);
+      const possibleNames = [poem.title, ...titleParts];
+      
+      const matchedCipai = cipaiList.find(c => 
+        possibleNames.some(name => name.includes(c.name) || c.name.includes(name))
+      );
+
+      if (matchedCipai) {
+        try {
+          const result = checkCipai(poem.content, matchedCipai, 'ci_lin');
+          setAuditResult(result);
+          return;
+        } catch (_) {}
+      }
+    }
+
+    // 3. 兜底无审计
+    setAuditResult(null);
   };
 
   useEffect(() => {
     setAuditResult(null); // 翻页时重置
     setShowContributionTip(false);
   }, [currentIdx]);
+
+  // Sync correction form states when correction dialog opens
+  useEffect(() => {
+    if (showContributionTip && poem) {
+      setCorrectedTitle(poem.title);
+      setCorrectedAuthor(poem.author || '佚名');
+      setCorrectedContent(poem.content);
+      setCorrectionNotes(auditResult?.summary || '');
+    }
+  }, [showContributionTip, poem, auditResult]);
 
   const goTo = (idx: number, dir: 'up' | 'down') => {
     if (isFlipping || idx < 0 || idx >= poems.length) return;
@@ -239,49 +288,94 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
            )}
         </div>
 
-        {/* 纠错弹窗 (简单 Tip) */}
+        {/* 纠错弹窗 (高保真交互表单) */}
         {showContributionTip && (
           <div style={{
-            position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.96)',
-            zIndex: 100, padding: '40px', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', borderRadius: '8px', border: '2px solid var(--cinnabar-red)',
+            position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.98)',
+            zIndex: 100, padding: '24px 32px', display: 'flex', flexDirection: 'column',
+            justifyContent: 'flex-start', borderRadius: '8px', border: '2px solid var(--cinnabar-red)',
+            overflowY: 'auto',
           }}>
-             <h3 style={{ fontFamily: 'var(--font-kaiti)', color: 'var(--cinnabar-red)', marginBottom: '16px' }}>回馈开源社区</h3>
-             <p style={{ fontSize: '14px', color: '#666', lineHeight: 1.6, marginBottom: '20px' }}>
-               经 AI 格律审计，此篇作品在数字录入过程中可能存在偏差。由于数据源自 <strong>chinese-poetry</strong> 开源项目，建议您将纠错信息回传至上游。
-             </p>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <button
-                  onClick={() => {
-                    const json = formatCorrectionJSON({
-                      original: poem,
-                      corrected: poem, // 演示目的，实际应支持用户手动修改
-                      notes: auditResult?.summary || '',
-                      timestamp: Date.now()
-                    });
-                    navigator.clipboard.writeText(json);
-                    alert('已复制纠错 JSON 格式数据！正在跳转 GitHub Issue 页面...');
-                    window.open(getUpstreamIssueUrl(poem.title), '_blank');
-                  }}
-                  style={{
-                    background: '#1a1a1a', color: 'white', border: 'none',
-                    padding: '10px', borderRadius: '4px', cursor: 'pointer',
-                    fontFamily: 'var(--font-kaiti)', fontSize: '14px',
-                  }}
-                >
-                  复制 JSON 并跳转 GitHub 纠错
-                </button>
-                <button
-                  onClick={() => setShowContributionTip(false)}
-                  style={{
-                    background: 'none', border: '1px solid #ddd',
-                    padding: '8px', borderRadius: '4px', cursor: 'pointer',
-                    color: '#999', fontSize: '12px',
-                  }}
-                >
-                  暂不纠错
-                </button>
-             </div>
+            <h3 style={{ fontFamily: 'var(--font-kaiti)', color: 'var(--cinnabar-red)', marginBottom: '12px', fontSize: '18px', textAlign: 'center' }}>
+              · 经典纠错回馈社区 ·
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>标题</label>
+                  <input
+                    type="text"
+                    value={correctedTitle}
+                    onChange={e => setCorrectedTitle(e.target.value)}
+                    style={{ width: '100%', padding: '4px 8px', border: '1px solid #ddd', borderRadius: '4px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>作者</label>
+                  <input
+                    type="text"
+                    value={correctedAuthor}
+                    onChange={e => setCorrectedAuthor(e.target.value)}
+                    style={{ width: '100%', padding: '4px 8px', border: '1px solid #ddd', borderRadius: '4px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>正文内容</label>
+                <textarea
+                  value={correctedContent}
+                  onChange={e => setCorrectedContent(e.target.value)}
+                  style={{ width: '100%', flex: 1, padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px', resize: 'none', fontFamily: 'var(--font-kaiti)', fontSize: '15px', lineHeight: 1.6, background: 'transparent' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>纠错说明 / 考证参考</label>
+                <input
+                  type="text"
+                  value={correctionNotes}
+                  onChange={e => setCorrectionNotes(e.target.value)}
+                  placeholder="如：据宋本《东坡乐府》此处应为某字"
+                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  const json = formatCorrectionJSON({
+                    original: poem,
+                    corrected: { ...poem, title: correctedTitle, author: correctedAuthor, content: correctedContent },
+                    notes: correctionNotes,
+                    timestamp: Date.now()
+                  });
+                  navigator.clipboard.writeText(json);
+                  alert('已复制高保真纠错 JSON 数据！正在为您打开上游 GitHub 纠错 Issue 页面...');
+                  window.open(getUpstreamIssueUrl(correctedTitle), '_blank');
+                }}
+                style={{
+                  flex: 2, background: 'var(--cinnabar-red)', color: 'white', border: 'none',
+                  padding: '10px', borderRadius: '4px', cursor: 'pointer',
+                  fontFamily: 'var(--font-kaiti)', fontSize: '14px',
+                  boxShadow: '0 2px 4px rgba(178,34,34,0.2)',
+                }}
+              >
+                生成 JSON 并回馈社区
+              </button>
+              <button
+                onClick={() => setShowContributionTip(false)}
+                style={{
+                  flex: 1, background: 'none', border: '1px solid #ddd',
+                  padding: '10px', borderRadius: '4px', cursor: 'pointer',
+                  color: '#999', fontSize: '13px',
+                }}
+              >
+                取消
+              </button>
+            </div>
           </div>
         )}
       </div>

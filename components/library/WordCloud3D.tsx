@@ -104,15 +104,17 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
     group.add(new THREE.Points(particleGeo, particleMat));
 
     // 频率归一化
-    const maxFreq = Math.max(...imageryItems.map(i => i.frequency));
-    const minFreq = Math.min(...imageryItems.map(i => i.frequency));
+    const frequencies = imageryItems.map(i => i.frequency);
+    const maxFreq = frequencies.length > 0 ? Math.max(...frequencies) : 1;
+    const minFreq = frequencies.length > 0 ? Math.min(...frequencies) : 0;
+    const range = maxFreq - minFreq;
 
     // 添加词语 Sprites
     const totalItems = imageryItems.length;
     const meshes: Array<{ mesh: THREE.Mesh; word: string }> = [];
 
     imageryItems.forEach((item, idx) => {
-      const normFreq = (item.frequency - minFreq) / (maxFreq - minFreq);
+      const normFreq = range > 0 ? (item.frequency - minFreq) / range : 0.5;
       const fontSize = Math.round(28 + normFreq * 40); // 28-68px
       const alpha = 0.55 + normFreq * 0.45;
 

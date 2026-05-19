@@ -106,6 +106,7 @@ export interface MeterCheckResult {
   summary: string;
   isValid: boolean;
   violationCount: number;
+  rhymeCheckStatus?: 'ok' | 'fail' | 'unverified';
 }
 
 // ============================================================
