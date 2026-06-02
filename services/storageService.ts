@@ -51,6 +51,40 @@ export const deletePoem = (id: string): void => {
 export const getPoemById = (id: string): Poem | undefined =>
   getPoems().find(p => p.id === id);
 
+export const exportAllPoems = (): string => {
+  const poems = getPoems();
+  return JSON.stringify({ version: 'v5.0', timestamp: Date.now(), poems }, null, 2);
+};
+
+export const importPoems = (jsonStr: string): number => {
+  if (typeof localStorage === 'undefined') return 0;
+  try {
+    const data = JSON.parse(jsonStr);
+    const newPoems: Poem[] = Array.isArray(data) ? data : (data.poems || []);
+    if (!Array.isArray(newPoems)) return 0;
+    
+    const existing = getPoems();
+    const existingIds = new Set(existing.map(p => p.id));
+    let addedCount = 0;
+    
+    newPoems.forEach(p => {
+      if (!existingIds.has(p.id)) {
+        existing.push(p);
+        existingIds.add(p.id);
+        addedCount++;
+      }
+    });
+    
+    // Sort by createdAt descending
+    existing.sort((a, b) => b.createdAt - a.createdAt);
+    localStorage.setItem(POEMS_KEY, JSON.stringify(existing));
+    return addedCount;
+  } catch (e) {
+    console.error("Failed to import poems", e);
+    return 0;
+  }
+};
+
 // ── Settings ──────────────────────────────────────────────
 const DEFAULT_SETTINGS: UserSettings = {
   penNames: ['偶成君', '居士', '散人'],

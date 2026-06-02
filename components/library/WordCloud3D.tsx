@@ -14,7 +14,8 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const groupRef = useRef<THREE.Group | null>(null);
-  const meshesRef = useRef<Array<{ mesh: THREE.Mesh; word: string }>>([]);
+  const linesGroupRef = useRef<THREE.Group | null>(null);
+  const meshesRef = useRef<Array<{ mesh: THREE.Mesh; sprite: THREE.Sprite; word: string }>>([]);
   const isDraggingRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
   const rotVelRef = useRef({ x: 0, y: 0 });
@@ -93,6 +94,10 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
     scene.add(group);
     groupRef.current = group;
 
+    const linesGroup = new THREE.Group();
+    group.add(linesGroup);
+    linesGroupRef.current = linesGroup;
+
     // 添加粒子球背景
     const particleGeo = new THREE.SphereGeometry(3.2, 32, 32);
     const particleMat = new THREE.PointsMaterial({
@@ -111,7 +116,7 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
 
     // 添加词语 Sprites
     const totalItems = imageryItems.length;
-    const meshes: Array<{ mesh: THREE.Mesh; word: string }> = [];
+    const meshes: Array<{ mesh: THREE.Mesh; sprite: THREE.Sprite; word: string }> = [];
 
     imageryItems.forEach((item, idx) => {
       const normFreq = range > 0 ? (item.frequency - minFreq) / range : 0.5;
@@ -138,7 +143,11 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
       const hitMesh = new THREE.Mesh(hitGeo, hitMat);
       hitMesh.position.copy(pos);
       group.add(hitMesh);
-      meshes.push({ mesh: hitMesh, word: item.word });
+      
+      (sprite as any).__originalOpacity = alpha;
+      (sprite as any).__originalScale = sprite.scale.clone();
+      
+      meshes.push({ mesh: hitMesh, sprite, word: item.word });
     });
 
     meshesRef.current = meshes;
@@ -185,6 +194,75 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
   }, [imageryItems, createTextSprite]);
+
+  // ── 意象连线效果 ──────────────────────────────────────
+  useEffect(() => {
+    if (!linesGroupRef.current || !groupRef.current) return;
+    const linesGroup = linesGroupRef.current;
+    
+    // 清理旧连线
+    while(linesGroup.children.length > 0){ 
+      const child = linesGroup.children[0] as any;
+      linesGroup.remove(child); 
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    }
+
+    if (!selectedWord) {
+      // 恢复所有词云节点样式
+      meshesRef.current.forEach(m => {
+        m.sprite.material.opacity = (m.sprite as any).__originalOpacity || 1;
+        m.sprite.scale.copy((m.sprite as any).__originalScale || new THREE.Vector3(1,1,1));
+      });
+      return;
+    }
+
+    const item = imageryItems.find(i => i.word === selectedWord);
+    const related = item?.relatedWords || [];
+    const relatedWords = related.map(r => r.word);
+    
+    const centerMesh = meshesRef.current.find(m => m.word === selectedWord);
+    if (!centerMesh) return;
+
+    // 更新各节点样式（高亮选中词与关联词，其余减淡）
+    meshesRef.current.forEach(m => {
+      const isCenter = m.word === selectedWord;
+      const isRelated = relatedWords.includes(m.word);
+      
+      if (isCenter) {
+        m.sprite.material.opacity = 1;
+        m.sprite.scale.copy((m.sprite as any).__originalScale).multiplyScalar(1.3);
+      } else if (isRelated) {
+        m.sprite.material.opacity = 0.95;
+        m.sprite.scale.copy((m.sprite as any).__originalScale).multiplyScalar(1.1);
+      } else {
+        m.sprite.material.opacity = 0.15;
+        m.sprite.scale.copy((m.sprite as any).__originalScale);
+      }
+    });
+
+    // 绘制联想弧线
+    const startPos = centerMesh.mesh.position;
+    related.forEach(rel => {
+      const targetMesh = meshesRef.current.find(m => m.word === rel.word);
+      if (targetMesh) {
+        const endPos = targetMesh.mesh.position;
+        // 贝塞尔曲线控制点（向外凸起形成弧线）
+        const mid = startPos.clone().add(endPos).multiplyScalar(0.5).normalize().multiplyScalar(3.4);
+        const curve = new THREE.QuadraticBezierCurve3(startPos, mid, endPos);
+        const points = curve.getPoints(24);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({ 
+          color: 0xd4af37, 
+          transparent: true, 
+          opacity: 0.2 + (rel.strength * 0.6)
+        });
+        const curveObject = new THREE.Line(geometry, material);
+        linesGroup.add(curveObject);
+      }
+    });
+
+  }, [selectedWord, imageryItems]);
 
   // ── 鼠标/触摸交互 ──────────────────────────────────────
   const handlePointerDown = (e: React.PointerEvent) => {

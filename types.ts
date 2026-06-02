@@ -37,6 +37,7 @@ export interface Poem {
   aiComment?: string;
   backgroundImage?: string; // 保留旧字段兼容
   fontStyle?: FontStyle;
+  jintiVariant?: string;   // 近体诗/十四行诗的细分变体（如 "ze_no" 等）
 }
 
 // ============================================================
@@ -117,6 +118,7 @@ export interface ImageryItem {
   frequency: number;   // 历史词频（用于字号）
   dynasty?: string;    // 主要出现朝代
   samplePoems?: string[]; // 含该意象的诗词 ID 或标题
+  relatedWords?: { word: string; strength: number }[]; // 关联意象及共现强度
 }
 
 // ============================================================

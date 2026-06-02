@@ -32,6 +32,10 @@
 | **`EXEC_`** | [EXEC_20260520_PLAN.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_PLAN.md) | 本地项目文档规范化重组与同步实施方案书（本会话启动）。 | 2026-05-20 |
 | **`EXEC_`** | [EXEC_20260520_TASK.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_TASK.md) | 本地项目文档规范化与同步进度清单。追踪 TODO 待办任务流。 | 2026-05-20 |
 | **`EXEC_`** | [EXEC_20260520_WALKTHROUGH.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_WALKTHROUGH.md) | 交付验证汇报与 GitHub 远端同步历史记录。证明代码与文档的稳定性。 | 2026-05-20 |
+| **`AUDIT_`** | [AUDIT_20260602_FULL_SYSTEM_AUDIT.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/AUDIT_20260602_FULL_SYSTEM_AUDIT.md) | v4.0 全系统深度审计报告。覆盖 2 项致命缺陷、5 项重大缺陷、6 项一般缺陷、5 项死代码、4 项功能缺失和 5 项优化建议。 | 2026-06-02 |
+| **`EXEC_`** | [EXEC_20260602_PLAN.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260602_PLAN.md) | v5.0 文稿导入·意象连线·文集增强实施方案书。包含 5 阶段技术方案与验证计划。 | 2026-06-02 |
+| **`EXEC_`** | [EXEC_20260602_TASK.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260602_TASK.md) | v5.0 导入、词云与文集增强开发任务进度清单。 | 2026-06-02 |
+| **`EXEC_`** | [EXEC_20260602_WALKTHROUGH.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260602_WALKTHROUGH.md) | v5.0 开发交付验证汇报，包含数据重构、导入组件、意象交互与文集链路增强。 | 2026-06-02 |
 
 ---
 

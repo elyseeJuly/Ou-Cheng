@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Poem, PoemType, SonnetType, RhymeBook, PaperStyle, LayoutMode, FontStyle, CipaiData, MeterCheckResult } from '../types';
 import { checkJintiShi, checkCipai, checkSonnet } from '../src/engine/meterChecker';
-import { savePoem, getSettings } from '../services/storageService';
-import { useNavigate } from 'react-router-dom';
+import { savePoem, getSettings, getPoemById } from '../services/storageService';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PoemPreview from '../components/preview/PoemPreview';
+import ImportModal from '../components/creator/ImportModal';
 import CipaiSelector from '../components/creator/CipaiSelector';
 import MeterGrid from '../components/creator/MeterGrid';
 import StructuredInput from '../components/creator/StructuredInput';
@@ -48,7 +49,11 @@ const RHYME_BOOKS: { value: RhymeBook; label: string }[] = [
 
 const Create: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const settings = getSettings();
+
+  const [editId, setEditId] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   // ── 模式 ──────────────────────────────────────────────
   const [mode, setMode] = useState<'free' | 'pro'>('free');
@@ -78,6 +83,49 @@ const Create: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState('');
   const [showHeartNote, setShowHeartNote] = useState(false);
+
+  // 初始化编辑状态
+  useEffect(() => {
+    const eid = searchParams.get('edit');
+    if (eid) {
+      const p = getPoemById(eid);
+      if (p) {
+        setEditId(p.id);
+        setTitle(p.title || '');
+        setAuthor(p.author || '');
+        setHeartNote(p.heartNote || '');
+        setLayout(p.layout || settings.defaultLayout);
+        setPaperStyle(p.paperStyle || settings.defaultPaperStyle);
+        setFontStyle(p.fontStyle || 'none');
+        setRhymeBook(p.rhymeBook || settings.rhymeBook);
+        setAiComment(p.aiComment || '');
+        
+        const linesWithoutPunc = (p.content || '').split('\n').map(l => l.replace(/[，。、；？！]/g, '').trim()).filter(Boolean);
+        
+        if (p.type === 'free' || p.type === 'sonnet') {
+          setMode('free');
+          setContent(p.content || '');
+          if (p.type === 'sonnet' && p.sonnetType) setSonnetType(p.sonnetType);
+        } else {
+          setMode('pro');
+          setProLines(linesWithoutPunc);
+          if (p.type === 'cipai') {
+            setProTab('cipai');
+          } else {
+            setProTab('jinti');
+            setPoemType(p.type as PoemType);
+            if (p.jintiVariant) {
+               const parts = p.jintiVariant.split('_');
+               if (parts.length >= 4) {
+                 setJintiStart(parts[2] as 'ping'|'ze');
+                 setJintiRhyme(parts[3] as 'yes'|'no');
+               }
+            }
+          }
+        }
+      }
+    }
+  }, [searchParams, settings]);
 
   const derivedPoemType = React.useMemo(() => {
     return `${poemType}_${jintiStart}_${jintiRhyme}`;
@@ -156,9 +204,7 @@ const Create: React.FC = () => {
       const typeLabel = mode === 'pro'
         ? (proTab === 'cipai' ? `《${selectedCipai?.name || '词牌'}》` : (poemType === 'jueju_5' ? '五绝' : poemType === 'jueju_7' ? '七绝' : poemType === 'lvshi_5' ? '五律' : '七律'))
         : (sonnetType !== 'none' ? '十四行诗' : '自由创作诗词');
-      const rhymeLabel = mode === 'pro'
-        ? (proTab === 'cipai' ? '词林正韵' : '平水韵')
-        : '平水韵';
+      const rhymeLabel = rhymeBook === 'ci_lin' ? '词林正韵' : rhymeBook === 'ping_shui' ? '平水韵' : '中华新韵';
       const comment = await checkMeterAndComment(activeContent, typeLabel, rhymeLabel);
       if (comment && comment !== "评价服务暂不可用。") {
         setAiComment(comment);
@@ -198,15 +244,16 @@ const Create: React.FC = () => {
 
     const autoTitle = title || activeContent.split('\n')[0].slice(0, 12).replace(/[，。]/g, '') || '无题';
     const poem: Poem = {
-      id: Date.now().toString(),
+      id: editId || Date.now().toString(),
       title: autoTitle,
       author: author || '佚名',
       content: activeContent,
       heartNote,
       type: mode === 'free'
         ? (sonnetType !== 'none' ? 'sonnet' : 'free')
-        : (proTab === 'cipai' ? 'cipai' : derivedPoemType),
+        : (proTab === 'cipai' ? 'cipai' : poemType),
       sonnetType: sonnetType !== 'none' ? sonnetType : undefined,
+      jintiVariant: mode === 'pro' && proTab === 'jinti' ? derivedPoemType : undefined,
       cipaiName: selectedCipai?.name,
       layout,
       paperStyle,
@@ -254,6 +301,9 @@ const Create: React.FC = () => {
               {m === 'free' ? '自由挥毫' : '专业格律'}
             </button>
           ))}
+          <button onClick={() => setShowImport(true)} style={{ marginLeft: 'auto', background: 'none', border: '1px solid #d9c9b2', color: '#8b5a2b', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)' }}>
+            + 导入文稿
+          </button>
         </div>
 
         {/* ── 自由挥毫 ── */}
@@ -554,7 +604,7 @@ const Create: React.FC = () => {
             >
               {aiLoading ? '✦ 思量中...' : '✦ AI 点评'}
             </button>
-            <button className="action-btn clear-btn" onClick={() => { setContent(''); setAiComment(''); setMeterResult(null); }}>清空</button>
+            <button className="action-btn clear-btn" onClick={() => { setContent(''); setProLines([]); setAiComment(''); setMeterResult(null); }}>清空</button>
           </div>
           {aiComment && (
             <div style={{
@@ -578,6 +628,37 @@ const Create: React.FC = () => {
           onFontChange={setFontStyle}
         />
       </div>
+      {/* 导入文稿弹窗 */}
+      {showImport && (
+        <ImportModal 
+          onClose={() => setShowImport(false)} 
+          onImport={(p) => {
+            setEditId(null);
+            setTitle(p.title || '');
+            setAuthor(p.author || '');
+            setMode('free');
+            setContent(p.content || '');
+            if (p.type === 'sonnet') setSonnetType(p.sonnetType || 'none');
+            else if (p.type !== 'free') {
+              setMode('pro');
+              setProLines((p.content || '').split('\n').map(l => l.replace(/[，。、；？！]/g, '').trim()).filter(Boolean));
+              if (p.type === 'cipai') setProTab('cipai');
+              else {
+                setProTab('jinti');
+                setPoemType(p.type as PoemType);
+                if (p.jintiVariant) {
+                  const parts = p.jintiVariant.split('_');
+                  if (parts.length >= 4) {
+                    setJintiStart(parts[2] as 'ping'|'ze');
+                    setJintiRhyme(parts[3] as 'yes'|'no');
+                  }
+                }
+              }
+            }
+            setShowImport(false);
+          }} 
+        />
+      )}
     </div>
   );
 };

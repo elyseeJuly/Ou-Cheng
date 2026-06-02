@@ -1,22 +1,4582 @@
 [
-  {"word":"明月","frequency":1823,"dynasty":"tang","samplePoems":["静夜思","水调歌头","春江花月夜"]},
-  {"word":"东风","frequency":1456,"dynasty":"song","samplePoems":["春望","春日","钗头凤"]},
-  {"word":"孤舟","frequency":987,"dynasty":"tang","samplePoems":["江雪","登岳阳楼","旅夜书怀"]},
-  {"word":"春风","frequency":1678,"dynasty":"tang","samplePoems":["春晓","江南春","赋得古原草送别"]},
-  {"word":"落花","frequency":1234,"dynasty":"song","samplePoems":["蝶恋花","浪淘沙","无题"]},
-  {"word":"相思","frequency":1102,"dynasty":"tang","samplePoems":["相思","锦瑟","无题"]},
-  {"word":"黄叶","frequency":756,"dynasty":"tang","samplePoems":["山居秋暝","暮秋山行","秋风引"]},
-  {"word":"江水","frequency":1089,"dynasty":"song","samplePoems":["念奴娇","水调歌头","沁园春"]},
-  {"word":"白鹭","frequency":634,"dynasty":"tang","samplePoems":["绝句","春江花月夜","江雪"]},
-  {"word":"残阳","frequency":823,"dynasty":"tang","samplePoems":["乐游原","登高","送元二使安西"]},
-  {"word":"古道","frequency":712,"dynasty":"song","samplePoems":["天净沙·秋思","送别","渭城曲"]},
-  {"word":"芳草","frequency":945,"dynasty":"song","samplePoems":["蝶恋花","青玉案","摸鱼儿"]},
-  {"word":"霜冷","frequency":567,"dynasty":"tang","samplePoems":["枫桥夜泊","秋夕","暮江吟"]},
-  {"word":"寒鸦","frequency":489,"dynasty":"song","samplePoems":["天净沙","乌夜啼","虞美人"]},
-  {"word":"烟雨","frequency":878,"dynasty":"song","samplePoems":["青玉案","雨霖铃","望海潮"]},
-  {"word":"离愁","frequency":934,"dynasty":"song","samplePoems":["雨霖铃","蝶恋花","踏莎行"]},
-  {"word":"长亭","frequency":698,"dynasty":"song","samplePoems":["雨霖铃","长亭怨慢","送别"]},
-  {"word":"梅花","frequency":1123,"dynasty":"song","samplePoems":["卜算子","暗香","疏影"]},
-  {"word":"西楼","frequency":612,"dynasty":"song","samplePoems":["虞美人","相见欢","蝶恋花"]},
-  {"word":"斜阳","frequency":789,"dynasty":"song","samplePoems":["声声慢","摸鱼儿","永遇乐"]}
+  {
+    "word": "相思",
+    "frequency": 60,
+    "dynasty": "song",
+    "samplePoems": [
+      "琵琶",
+      "相思令・相思儿令",
+      "生查子",
+      "生查子",
+      "苏幕遮"
+    ],
+    "relatedWords": [
+      {
+        "word": "鸳鸯",
+        "strength": 1
+      },
+      {
+        "word": "琵琶",
+        "strength": 0.67
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "落花",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      },
+      {
+        "word": "离愁",
+        "strength": 0.5
+      },
+      {
+        "word": "菊花",
+        "strength": 0.33
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "梧桐",
+    "frequency": 54,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "嘲陸暢",
+      "击梧桐",
+      "倾杯・倾杯乐",
+      "破阵子",
+      "清平乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "凄凉",
+        "strength": 1
+      },
+      {
+        "word": "燕子",
+        "strength": 0.67
+      },
+      {
+        "word": "画堂",
+        "strength": 0.67
+      },
+      {
+        "word": "春风",
+        "strength": 0.67
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.67
+      },
+      {
+        "word": "黄叶",
+        "strength": 0.33
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "玉楼",
+    "frequency": 45,
+    "dynasty": "song",
+    "samplePoems": [
+      "木兰花・玉楼春",
+      "玉楼春",
+      "御街行",
+      "玉楼春",
+      "玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.67
+      },
+      {
+        "word": "珠帘",
+        "strength": 0.67
+      },
+      {
+        "word": "落花",
+        "strength": 0.67
+      },
+      {
+        "word": "西湖",
+        "strength": 0.67
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.67
+      },
+      {
+        "word": "相思",
+        "strength": 0.67
+      }
+    ]
+  },
+  {
+    "word": "少年",
+    "frequency": 42,
+    "dynasty": "song",
+    "samplePoems": [
+      "十二时・忆少年",
+      "少年游",
+      "剔银灯",
+      "迎新春",
+      "惜春郎"
+    ],
+    "relatedWords": [
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.5
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      },
+      {
+        "word": "东风",
+        "strength": 0.5
+      },
+      {
+        "word": "江南",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "东风",
+    "frequency": 30,
+    "dynasty": "song",
+    "samplePoems": [
+      "点绛唇",
+      "夜度娘",
+      "两同心",
+      "临江仙引",
+      "木兰花・玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "海棠",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 1
+      },
+      {
+        "word": "珠帘",
+        "strength": 0.67
+      },
+      {
+        "word": "美人",
+        "strength": 0.67
+      },
+      {
+        "word": "画阁",
+        "strength": 0.67
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.67
+      },
+      {
+        "word": "少年",
+        "strength": 0.67
+      }
+    ]
+  },
+  {
+    "word": "芳草",
+    "frequency": 30,
+    "dynasty": "song",
+    "samplePoems": [
+      "甘草子",
+      "踏莎行",
+      "江南春・秋风清",
+      "木兰花・玉楼春",
+      "苏幕遮"
+    ],
+    "relatedWords": [
+      {
+        "word": "孤村",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "桃花",
+        "strength": 0.67
+      },
+      {
+        "word": "画堂",
+        "strength": 0.67
+      },
+      {
+        "word": "江南",
+        "strength": 0.67
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.67
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.67
+      },
+      {
+        "word": "天涯",
+        "strength": 0.67
+      }
+    ]
+  },
+  {
+    "word": "江南",
+    "frequency": 28,
+    "dynasty": "song",
+    "samplePoems": [
+      "題涇縣水西寺",
+      "綵書怨",
+      "渡中江望石城泣下",
+      "点绛唇",
+      "江南春・秋风清"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "风雨",
+        "strength": 1
+      },
+      {
+        "word": "孤城",
+        "strength": 1
+      },
+      {
+        "word": "洞庭",
+        "strength": 0.5
+      },
+      {
+        "word": "孤村",
+        "strength": 0.5
+      },
+      {
+        "word": "杏花",
+        "strength": 0.5
+      },
+      {
+        "word": "秋风",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "鸳鸯",
+    "frequency": 27,
+    "dynasty": "song",
+    "samplePoems": [
+      "甘草子",
+      "御街行",
+      "凤栖梧・蝶恋花",
+      "浪淘沙",
+      "少年游"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 0.33
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.33
+      },
+      {
+        "word": "凄凉",
+        "strength": 0.33
+      },
+      {
+        "word": "落花",
+        "strength": 0.33
+      },
+      {
+        "word": "天涯",
+        "strength": 0.17
+      },
+      {
+        "word": "佳人",
+        "strength": 0.17
+      },
+      {
+        "word": "夜雨",
+        "strength": 0.17
+      }
+    ]
+  },
+  {
+    "word": "佳人",
+    "frequency": 27,
+    "dynasty": "song",
+    "samplePoems": [
+      "初入秦川路逢寒食",
+      "賦得北方有佳人",
+      "遊後湖賞蓮花",
+      "玉女摇仙佩",
+      "尾犯"
+    ],
+    "relatedWords": [
+      {
+        "word": "夜雨",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "天涯",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "桃花",
+        "strength": 0.5
+      },
+      {
+        "word": "画堂",
+        "strength": 0.5
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.5
+      },
+      {
+        "word": "愁云",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "芙蓉",
+    "frequency": 25,
+    "dynasty": "song",
+    "samplePoems": [
+      "儀鸞殿早秋",
+      "采芙蓉",
+      "遊九龍潭",
+      "感懷 二",
+      "尉迟杯"
+    ],
+    "relatedWords": [
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 0.75
+      },
+      {
+        "word": "美人",
+        "strength": 0.75
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.5
+      },
+      {
+        "word": "东风",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "江水",
+        "strength": 0.5
+      },
+      {
+        "word": "洞庭",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "明月",
+    "frequency": 24,
+    "dynasty": "song",
+    "samplePoems": [
+      "帝京篇十首 三",
+      "詠弓",
+      "軒遊宮十五夜",
+      "遊長寧公主流杯池二十五首 十一",
+      "避暑摩訶池上作"
+    ],
+    "relatedWords": [
+      {
+        "word": "流星",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      },
+      {
+        "word": "燕子",
+        "strength": 1
+      },
+      {
+        "word": "天涯",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "风雨",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "西风",
+    "frequency": 24,
+    "dynasty": "song",
+    "samplePoems": [
+      "引驾行",
+      "玉蝴蝶",
+      "塞孤",
+      "十二时・忆少年",
+      "菩萨蛮"
+    ],
+    "relatedWords": [
+      {
+        "word": "天涯",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "燕子",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.75
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.75
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "黄叶",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "画堂",
+    "frequency": 22,
+    "dynasty": "song",
+    "samplePoems": [
+      "踏莎行",
+      "多丽",
+      "玉女摇仙佩",
+      "看花回",
+      "促拍满路花"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "青梅",
+        "strength": 0.5
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "白发",
+        "strength": 0.5
+      },
+      {
+        "word": "红颜",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "芳菲",
+    "frequency": 22,
+    "dynasty": "song",
+    "samplePoems": [
+      "春日登陝州城樓俯眺原野迴丹碧綴煙霞密翠斑紅芳菲花柳即目川岫聊以命篇",
+      "秋日即目",
+      "薔薇詩一首十八韻呈東海侍郎徐鉉",
+      "小镇西犯",
+      "山亭宴慢・山亭宴"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.67
+      },
+      {
+        "word": "梨花",
+        "strength": 0.67
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.67
+      },
+      {
+        "word": "美人",
+        "strength": 0.67
+      },
+      {
+        "word": "青春",
+        "strength": 0.33
+      },
+      {
+        "word": "落花",
+        "strength": 0.33
+      },
+      {
+        "word": "蓬莱",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "杨柳",
+    "frequency": 20,
+    "dynasty": "song",
+    "samplePoems": [
+      "阳关引",
+      "早梅芳・喜迁莺",
+      "雨霖铃",
+      "凤栖梧・蝶恋花",
+      "诉衷情"
+    ],
+    "relatedWords": [
+      {
+        "word": "晓风",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.67
+      },
+      {
+        "word": "东风",
+        "strength": 0.67
+      },
+      {
+        "word": "海棠",
+        "strength": 0.67
+      },
+      {
+        "word": "明月",
+        "strength": 0.33
+      },
+      {
+        "word": "故人",
+        "strength": 0.33
+      },
+      {
+        "word": "阳关",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "南山",
+    "frequency": 20,
+    "dynasty": "tang",
+    "samplePoems": [
+      "望終南山",
+      "春日出苑遊矚",
+      "同二相已下羣官樂遊園宴",
+      "幸鳳泉湯",
+      "长相思"
+    ],
+    "relatedWords": [
+      {
+        "word": "梅花",
+        "strength": 1
+      },
+      {
+        "word": "北斗",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "长亭",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "风雨",
+        "strength": 1
+      },
+      {
+        "word": "清酒",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "春风",
+    "frequency": 19,
+    "dynasty": "song",
+    "samplePoems": [
+      "越江吟",
+      "笛家弄・笛家",
+      "踏莎行",
+      "诉衷情",
+      "少年游"
+    ],
+    "relatedWords": [
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "燕子",
+        "strength": 1
+      },
+      {
+        "word": "海棠",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "画阁",
+        "strength": 0.5
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      },
+      {
+        "word": "相思",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "落花",
+    "frequency": 19,
+    "dynasty": "song",
+    "samplePoems": [
+      "雪梅香",
+      "促拍满路花",
+      "山亭宴慢・山亭宴",
+      "醉桃源・阮郎归",
+      "木兰花・玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.67
+      },
+      {
+        "word": "海棠",
+        "strength": 0.67
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.67
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.33
+      },
+      {
+        "word": "画堂",
+        "strength": 0.33
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "桃花",
+    "frequency": 19,
+    "dynasty": "song",
+    "samplePoems": [
+      "春遊曲",
+      "賦得北方有佳人",
+      "甘草子",
+      "凤栖梧・蝶恋花",
+      "昼夜乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "香尘",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "蓬莱",
+        "strength": 0.5
+      },
+      {
+        "word": "凄凉",
+        "strength": 0.5
+      },
+      {
+        "word": "晓星",
+        "strength": 0.5
+      },
+      {
+        "word": "关河",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "美人",
+    "frequency": 19,
+    "dynasty": "tang",
+    "samplePoems": [
+      "賦得櫻桃",
+      "玉蝴蝶",
+      "木兰花・玉楼春",
+      "更漏子",
+      "虞美人"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "东风",
+        "strength": 0.67
+      },
+      {
+        "word": "故人",
+        "strength": 0.67
+      },
+      {
+        "word": "明月",
+        "strength": 0.67
+      },
+      {
+        "word": "芳草",
+        "strength": 0.67
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.67
+      },
+      {
+        "word": "蝴蝶",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "天涯",
+    "frequency": 18,
+    "dynasty": "song",
+    "samplePoems": [
+      "三學山夜看聖燈",
+      "浪淘沙",
+      "诉衷情近",
+      "引驾行",
+      "倾杯・倾杯乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "燕子",
+        "strength": 0.5
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.25
+      },
+      {
+        "word": "夜雨",
+        "strength": 0.25
+      },
+      {
+        "word": "孤村",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "泰山",
+    "frequency": 16,
+    "dynasty": "tang",
+    "samplePoems": [
+      "郊廟歌辭 封泰山樂章 豫和 一",
+      "郊廟歌辭 封泰山樂章 豫和 二",
+      "郊廟歌辭 封泰山樂章 豫和 三",
+      "郊廟歌辭 封泰山樂章 豫和 四",
+      "郊廟歌辭 封泰山樂章 豫和 五"
+    ],
+    "relatedWords": [
+      {
+        "word": "蓬莱",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "秋风",
+    "frequency": 16,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "江南春・秋风清",
+      "少年游",
+      "凤衔杯",
+      "诉衷情",
+      "湘夫人"
+    ],
+    "relatedWords": [
+      {
+        "word": "古道",
+        "strength": 1
+      },
+      {
+        "word": "洞庭",
+        "strength": 1
+      },
+      {
+        "word": "芭蕉",
+        "strength": 1
+      },
+      {
+        "word": "秦淮",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "江南",
+        "strength": 0.5
+      },
+      {
+        "word": "孤村",
+        "strength": 0.5
+      },
+      {
+        "word": "杏花",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "凄凉",
+    "frequency": 15,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "满朝欢",
+      "少年游",
+      "轮台子",
+      "彩云归",
+      "临江仙引"
+    ],
+    "relatedWords": [
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.67
+      },
+      {
+        "word": "芳草",
+        "strength": 0.33
+      },
+      {
+        "word": "桃花",
+        "strength": 0.33
+      },
+      {
+        "word": "香尘",
+        "strength": 0.33
+      },
+      {
+        "word": "少年",
+        "strength": 0.33
+      },
+      {
+        "word": "长安",
+        "strength": 0.33
+      },
+      {
+        "word": "孤村",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "离愁",
+    "frequency": 14,
+    "dynasty": "song",
+    "samplePoems": [
+      "剔银灯",
+      "宣清",
+      "望远行",
+      "倾杯・倾杯乐",
+      "梁州令"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "故人",
+        "strength": 0.67
+      },
+      {
+        "word": "长安",
+        "strength": 0.33
+      },
+      {
+        "word": "残月",
+        "strength": 0.33
+      },
+      {
+        "word": "羌笛",
+        "strength": 0.33
+      },
+      {
+        "word": "天涯",
+        "strength": 0.33
+      },
+      {
+        "word": "东风",
+        "strength": 0.33
+      },
+      {
+        "word": "画阁",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "蓬莱",
+    "frequency": 14,
+    "dynasty": "song",
+    "samplePoems": [
+      "凤栖梧・蝶恋花",
+      "巫山一段云",
+      "破阵乐",
+      "醉蓬莱",
+      "玉蝴蝶"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "巫山",
+        "strength": 1
+      },
+      {
+        "word": "蝴蝶",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "泰山",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "斜阳",
+    "frequency": 13,
+    "dynasty": "song",
+    "samplePoems": [
+      "苏幕遮",
+      "雪梅香",
+      "巫山一段云",
+      "巫山一段云",
+      "双声子"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "巫山",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "黄叶",
+        "strength": 0.5
+      },
+      {
+        "word": "落花",
+        "strength": 0.5
+      },
+      {
+        "word": "姑苏",
+        "strength": 0.5
+      },
+      {
+        "word": "蝴蝶",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "燕子",
+    "frequency": 13,
+    "dynasty": "song",
+    "samplePoems": [
+      "相思儿令",
+      "蝶恋花",
+      "偷声木兰花",
+      "渔家傲",
+      "破阵子"
+    ],
+    "relatedWords": [
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.5
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      },
+      {
+        "word": "细雨",
+        "strength": 0.5
+      },
+      {
+        "word": "相思",
+        "strength": 0.25
+      },
+      {
+        "word": "婵娟",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "残月",
+    "frequency": 13,
+    "dynasty": "song",
+    "samplePoems": [
+      "滴滴金",
+      "雨霖铃",
+      "归朝欢",
+      "宣清",
+      "轮台子"
+    ],
+    "relatedWords": [
+      {
+        "word": "晓风",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.75
+      },
+      {
+        "word": "长亭",
+        "strength": 0.25
+      },
+      {
+        "word": "骤雨",
+        "strength": 0.25
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.25
+      },
+      {
+        "word": "愁云",
+        "strength": 0.25
+      },
+      {
+        "word": "离愁",
+        "strength": 0.25
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "风雨",
+    "frequency": 13,
+    "dynasty": "song",
+    "samplePoems": [
+      "少年游",
+      "祭天神",
+      "归去来",
+      "凤栖梧・蝶恋花",
+      "倾杯・倾杯乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "狂风",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "相思",
+        "strength": 0.5
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      },
+      {
+        "word": "孤城",
+        "strength": 0.5
+      },
+      {
+        "word": "琼楼",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "梅花",
+    "frequency": 12,
+    "dynasty": "tang",
+    "samplePoems": [
+      "春日出苑遊矚",
+      "保大五年元日大雪同太弟景遂汪王景逷齊王景逵進士李建勳中書徐鉉勤政殿學士張義方登樓賦",
+      "梅花",
+      "梅花",
+      "霜天晓角"
+    ],
+    "relatedWords": [
+      {
+        "word": "南山",
+        "strength": 1
+      },
+      {
+        "word": "珠帘",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "杨花",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "梨花",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "栏杆",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "故人",
+    "frequency": 12,
+    "dynasty": "song",
+    "samplePoems": [
+      "阳关引",
+      "诉衷情近",
+      "尾犯",
+      "玉蝴蝶",
+      "竹马子・竹马儿"
+    ],
+    "relatedWords": [
+      {
+        "word": "阳关",
+        "strength": 1
+      },
+      {
+        "word": "残阳",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "长安",
+    "frequency": 11,
+    "dynasty": "song",
+    "samplePoems": [
+      "剔银灯",
+      "少年游",
+      "轮台子",
+      "引驾行",
+      "望远行"
+    ],
+    "relatedWords": [
+      {
+        "word": "古道",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "秋风",
+        "strength": 0.5
+      },
+      {
+        "word": "孤村",
+        "strength": 0.5
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      },
+      {
+        "word": "凄凉",
+        "strength": 0.5
+      },
+      {
+        "word": "长亭",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "琵琶",
+    "frequency": 11,
+    "dynasty": "song",
+    "samplePoems": [
+      "琵琶",
+      "弔白居易",
+      "書琵琶背",
+      "生查子",
+      "隔帘听"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.5
+      },
+      {
+        "word": "飞絮",
+        "strength": 0.25
+      },
+      {
+        "word": "江水",
+        "strength": 0.25
+      },
+      {
+        "word": "东风",
+        "strength": 0.25
+      },
+      {
+        "word": "天涯",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "海棠",
+    "frequency": 11,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "南歌子",
+      "木兰花・玉楼春",
+      "木兰花・玉楼春",
+      "诉衷情",
+      "黄钟・侍香金童"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.67
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.67
+      },
+      {
+        "word": "春风",
+        "strength": 0.67
+      },
+      {
+        "word": "落花",
+        "strength": 0.67
+      },
+      {
+        "word": "杜鹃",
+        "strength": 0.33
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.33
+      },
+      {
+        "word": "柳絮",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "暮云",
+    "frequency": 11,
+    "dynasty": "song",
+    "samplePoems": [
+      "倾杯乐",
+      "两同心",
+      "诉衷情近",
+      "诉衷情近",
+      "轮台子"
+    ],
+    "relatedWords": [
+      {
+        "word": "孤村",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.67
+      },
+      {
+        "word": "少年",
+        "strength": 0.67
+      },
+      {
+        "word": "东风",
+        "strength": 0.33
+      },
+      {
+        "word": "琼楼",
+        "strength": 0.33
+      },
+      {
+        "word": "残阳",
+        "strength": 0.33
+      },
+      {
+        "word": "故人",
+        "strength": 0.33
+      },
+      {
+        "word": "天涯",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "青春",
+    "frequency": 10,
+    "dynasty": "song",
+    "samplePoems": [
+      "惜花吟",
+      "小镇西犯",
+      "鹤冲天",
+      "倾杯乐",
+      "木兰花・玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 1
+      },
+      {
+        "word": "西湖",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "飞絮",
+        "strength": 1
+      },
+      {
+        "word": "桂树",
+        "strength": 1
+      },
+      {
+        "word": "寒山",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "菊花",
+    "frequency": 9,
+    "dynasty": "song",
+    "samplePoems": [
+      "儀鸞殿早秋",
+      "九月九日上幸慈恩寺登浮圖羣臣上菊花壽酒",
+      "生查子",
+      "菊花新",
+      "菊花新"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "细雨",
+    "frequency": 9,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "八宝装・八宝妆",
+      "山亭宴",
+      "诈妮子调风月・五煞",
+      "双调・大德歌（四首）春",
+      "南吕・醉太平寄情"
+    ],
+    "relatedWords": [
+      {
+        "word": "燕子",
+        "strength": 1
+      },
+      {
+        "word": "芭蕉",
+        "strength": 1
+      },
+      {
+        "word": "柳絮",
+        "strength": 1
+      },
+      {
+        "word": "和风",
+        "strength": 0.5
+      },
+      {
+        "word": "幽兰",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      },
+      {
+        "word": "秋风",
+        "strength": 0.5
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "江水",
+    "frequency": 8,
+    "dynasty": "song",
+    "samplePoems": [
+      "酒泉子",
+      "八声甘州",
+      "少年游",
+      "木兰花・玉楼春",
+      "卜算子"
+    ],
+    "relatedWords": [
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "寒鸦",
+        "strength": 0.5
+      },
+      {
+        "word": "关河",
+        "strength": 0.5
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "琵琶",
+        "strength": 0.5
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.5
+      },
+      {
+        "word": "洞庭",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "牡丹",
+    "frequency": 8,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "翦牡丹",
+      "碧牡丹",
+      "浣溪沙",
+      "中吕・古调石榴花闺思",
+      "收江南・好风吹绽牡丹花，半合儿揉损绛裙纱。冷丁丁舌尖上送香茶，都"
+    ],
+    "relatedWords": [
+      {
+        "word": "芭蕉",
+        "strength": 1
+      },
+      {
+        "word": "暮云",
+        "strength": 1
+      },
+      {
+        "word": "和风",
+        "strength": 1
+      },
+      {
+        "word": "杜鹃",
+        "strength": 1
+      },
+      {
+        "word": "柳絮",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "东风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "梨花",
+    "frequency": 8,
+    "dynasty": "song",
+    "samplePoems": [
+      "倾杯・倾杯乐",
+      "菩萨蛮",
+      "破阵乐",
+      "武陵春",
+      "采桑子"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "西湖",
+        "strength": 0.5
+      },
+      {
+        "word": "繁星",
+        "strength": 0.5
+      },
+      {
+        "word": "和煦",
+        "strength": 0.5
+      },
+      {
+        "word": "梅花",
+        "strength": 0.5
+      },
+      {
+        "word": "燕子",
+        "strength": 0.5
+      },
+      {
+        "word": "桃花",
+        "strength": 0.5
+      },
+      {
+        "word": "柴门",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "杨花",
+    "frequency": 8,
+    "dynasty": "song",
+    "samplePoems": [
+      "清平乐",
+      "减字木兰花",
+      "木兰花・玉楼春",
+      "浪淘沙",
+      "南吕・四块玉别情"
+    ],
+    "relatedWords": [
+      {
+        "word": "梅花",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "天涯",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "飞絮",
+    "frequency": 8,
+    "dynasty": "song",
+    "samplePoems": [
+      "西江月",
+      "谢池春慢",
+      "一丛花令・一丛花",
+      "凤衔杯",
+      "仙吕・赏花时"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "孤舟",
+        "strength": 1
+      },
+      {
+        "word": "琵琶",
+        "strength": 0.5
+      },
+      {
+        "word": "东风",
+        "strength": 0.5
+      },
+      {
+        "word": "离愁",
+        "strength": 0.5
+      },
+      {
+        "word": "画阁",
+        "strength": 0.5
+      },
+      {
+        "word": "青春",
+        "strength": 0.5
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "画阁",
+    "frequency": 7,
+    "dynasty": "song",
+    "samplePoems": [
+      "笛家弄・笛家",
+      "一丛花令・一丛花",
+      "恨春迟",
+      "卜算子慢",
+      "采桑子"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      },
+      {
+        "word": "离愁",
+        "strength": 0.5
+      },
+      {
+        "word": "飞絮",
+        "strength": 0.5
+      },
+      {
+        "word": "婵娟",
+        "strength": 0.5
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "珠帘",
+    "frequency": 7,
+    "dynasty": "song",
+    "samplePoems": [
+      "点绛唇",
+      "踏莎行",
+      "霜天晓角",
+      "御街行",
+      "蝶恋花"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "梅花",
+        "strength": 0.5
+      },
+      {
+        "word": "银河",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.5
+      },
+      {
+        "word": "秦淮",
+        "strength": 0.5
+      },
+      {
+        "word": "秋风",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "阳关",
+    "frequency": 7,
+    "dynasty": "song",
+    "samplePoems": [
+      "阳关引",
+      "少年游",
+      "玉联环・解连环",
+      "蝶恋花",
+      "醉桃源・阮郎归"
+    ],
+    "relatedWords": [
+      {
+        "word": "故人",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "离愁",
+        "strength": 0.5
+      },
+      {
+        "word": "杏花",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "桂树",
+    "frequency": 7,
+    "dynasty": "tang",
+    "samplePoems": [
+      "远游",
+      "大招",
+      "招隐士",
+      "自悲",
+      "惜贤"
+    ],
+    "relatedWords": [
+      {
+        "word": "寂寥",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "朝霞",
+        "strength": 0.5
+      },
+      {
+        "word": "萧条",
+        "strength": 0.5
+      },
+      {
+        "word": "寒山",
+        "strength": 0.5
+      },
+      {
+        "word": "青春",
+        "strength": 0.5
+      },
+      {
+        "word": "故人",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "孤村",
+    "frequency": 7,
+    "dynasty": "song",
+    "samplePoems": [
+      "江南春・秋风清",
+      "诉衷情近",
+      "轮台子",
+      "轮台子",
+      "相公爱・晚宿在孤村闷怎生眠，伴人离愁月当轩。月圆，人几时圆？不似"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "暮云",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 0.33
+      },
+      {
+        "word": "杏花",
+        "strength": 0.33
+      },
+      {
+        "word": "秋风",
+        "strength": 0.33
+      },
+      {
+        "word": "天涯",
+        "strength": 0.33
+      },
+      {
+        "word": "少年",
+        "strength": 0.33
+      },
+      {
+        "word": "长安",
+        "strength": 0.33
+      }
+    ]
+  },
+  {
+    "word": "寂寥",
+    "frequency": 7,
+    "dynasty": "tang",
+    "samplePoems": [
+      "謝賜珍珠",
+      "小镇西・小镇西犯",
+      "浣溪沙",
+      "九辩",
+      "大招"
+    ],
+    "relatedWords": [
+      {
+        "word": "桂树",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 0.5
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "流星",
+        "strength": 0.5
+      },
+      {
+        "word": "萧瑟",
+        "strength": 0.5
+      },
+      {
+        "word": "风雨",
+        "strength": 0.5
+      },
+      {
+        "word": "寒山",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "和风",
+    "frequency": 7,
+    "dynasty": "song",
+    "samplePoems": [
+      "西平乐",
+      "洞仙歌",
+      "甘州令",
+      "八宝装・八宝妆",
+      "浣溪沙"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "关河",
+        "strength": 1
+      },
+      {
+        "word": "细雨",
+        "strength": 1
+      },
+      {
+        "word": "牡丹",
+        "strength": 1
+      },
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 1
+      },
+      {
+        "word": "杜鹃",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "芭蕉",
+    "frequency": 6,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "碧牡丹",
+      "双调・大德歌（四首）春",
+      "尾・整乌云欲把金莲さ，纽回身再说些儿话：“你明夜个早些儿来，我专",
+      "南吕・醉太平寄情",
+      "李云英风送梧桐叶・煞尾"
+    ],
+    "relatedWords": [
+      {
+        "word": "细雨",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "牡丹",
+        "strength": 0.5
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      },
+      {
+        "word": "柳絮",
+        "strength": 0.5
+      },
+      {
+        "word": "春风",
+        "strength": 0.5
+      },
+      {
+        "word": "落花",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "鸿雁",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "清平乐",
+      "诉衷情",
+      "小雅·鸿雁",
+      "却东西门行",
+      "步出夏门行 冬十月"
+    ],
+    "relatedWords": [
+      {
+        "word": "西楼",
+        "strength": 1
+      },
+      {
+        "word": "斜阳",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "北风",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "蝴蝶",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "玉蝴蝶",
+      "玉蝴蝶",
+      "玉蝴蝶",
+      "玉蝴蝶",
+      "玉蝴蝶"
+    ],
+    "relatedWords": [
+      {
+        "word": "斜阳",
+        "strength": 1
+      },
+      {
+        "word": "故人",
+        "strength": 1
+      },
+      {
+        "word": "蓬莱",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "婵娟",
+        "strength": 1
+      },
+      {
+        "word": "东篱",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "洞庭",
+    "frequency": 6,
+    "dynasty": "tang",
+    "samplePoems": [
+      "度秋",
+      "綵書怨",
+      "湘君",
+      "湘夫人",
+      "哀郢"
+    ],
+    "relatedWords": [
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 0.5
+      },
+      {
+        "word": "江水",
+        "strength": 0.5
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "瑶台",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "望远行",
+      "瑞鹧鸪",
+      "望江南・忆江南",
+      "浣溪沙",
+      "离骚"
+    ],
+    "relatedWords": [
+      {
+        "word": "幽兰",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "长安",
+        "strength": 0.5
+      },
+      {
+        "word": "江南",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      },
+      {
+        "word": "美人",
+        "strength": 0.5
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "婵娟",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "戚氏",
+      "玉蝴蝶",
+      "透碧霄",
+      "相思儿令",
+      "采桑子"
+    ],
+    "relatedWords": [
+      {
+        "word": "蝴蝶",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "燕子",
+        "strength": 1
+      },
+      {
+        "word": "画阁",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 1
+      },
+      {
+        "word": "孤村",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "西湖",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "酒泉子",
+      "酒泉子",
+      "木兰花・玉楼春",
+      "木兰花・玉楼春",
+      "破阵乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 0.5
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.5
+      },
+      {
+        "word": "青春",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      },
+      {
+        "word": "梨花",
+        "strength": 0.5
+      },
+      {
+        "word": "繁星",
+        "strength": 0.5
+      },
+      {
+        "word": "和煦",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "柳絮",
+    "frequency": 6,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "双调・大德歌（四首）春",
+      "黄钟・侍香金童",
+      "中吕・古调石榴花闺思",
+      "双调・新水令",
+      "不是路・万种风流，今日番成一段愁。泪盈眸，云山满目恨悠悠。谩追求，"
+    ],
+    "relatedWords": [
+      {
+        "word": "细雨",
+        "strength": 1
+      },
+      {
+        "word": "芭蕉",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      },
+      {
+        "word": "秋风",
+        "strength": 0.5
+      },
+      {
+        "word": "落花",
+        "strength": 0.5
+      },
+      {
+        "word": "东风",
+        "strength": 0.5
+      },
+      {
+        "word": "海棠",
+        "strength": 0.5
+      },
+      {
+        "word": "杜鹃",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "狂风",
+    "frequency": 6,
+    "dynasty": "song",
+    "samplePoems": [
+      "倾杯・倾杯乐",
+      "归去来",
+      "庆佳节",
+      "采桑子",
+      "双调・新水令"
+    ],
+    "relatedWords": [
+      {
+        "word": "风雨",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      },
+      {
+        "word": "柳絮",
+        "strength": 0.5
+      },
+      {
+        "word": "梅花",
+        "strength": 0.5
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.5
+      },
+      {
+        "word": "栏杆",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "黄叶",
+    "frequency": 5,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "苏幕遮",
+      "清平乐",
+      "草桥店梦莺莺(第四本)・脱布衫",
+      "草桥店梦莺莺(第四本)・双调/新水令",
+      "草桥店梦莺莺(第四本)・幺篇"
+    ],
+    "relatedWords": [
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "相思",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "斜阳",
+        "strength": 0.5
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.5
+      },
+      {
+        "word": "燕子",
+        "strength": 0.5
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "残阳",
+    "frequency": 5,
+    "dynasty": "song",
+    "samplePoems": [
+      "卜算子",
+      "诉衷情近",
+      "竹马子・竹马儿",
+      "玉山枕",
+      "木兰花・玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "故人",
+        "strength": 1
+      },
+      {
+        "word": "暮云",
+        "strength": 0.5
+      },
+      {
+        "word": "竹马",
+        "strength": 0.5
+      },
+      {
+        "word": "骤雨",
+        "strength": 0.5
+      },
+      {
+        "word": "东风",
+        "strength": 0.5
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.5
+      },
+      {
+        "word": "美人",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "古道",
+    "frequency": 5,
+    "dynasty": "song",
+    "samplePoems": [
+      "句",
+      "少年游",
+      "临江仙引",
+      "草桥店梦莺莺(第四本)・四煞",
+      "草桥店梦莺莺(第四本)・一煞"
+    ],
+    "relatedWords": [
+      {
+        "word": "长安",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "朝霞",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      },
+      {
+        "word": "相思",
+        "strength": 0.5
+      },
+      {
+        "word": "西楼",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "栏杆",
+    "frequency": 5,
+    "dynasty": "tang",
+    "samplePoems": [
+      "李云英风送梧桐叶・梅花酒",
+      "摊破浣溪沙·菡萏香销翠叶残",
+      "玉楼春·晚妆初了明肌雪",
+      "谢新恩·秦楼不见吹箫女",
+      "捣练子·云鬓乱"
+    ],
+    "relatedWords": [
+      {
+        "word": "梅花",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "狂风",
+        "strength": 1
+      },
+      {
+        "word": "菡萏",
+        "strength": 1
+      },
+      {
+        "word": "细雨",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "东风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "关山",
+    "frequency": 5,
+    "dynasty": "tang",
+    "samplePoems": [
+      "燕归梁",
+      "度关山",
+      "秋胡行 其一",
+      "草桥店梦莺莺(第四本)・折桂令",
+      "李云英风送梧桐叶・醉春风"
+    ],
+    "relatedWords": [
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "春风",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "关河",
+    "frequency": 5,
+    "dynasty": "song",
+    "samplePoems": [
+      "曲玉管",
+      "洞仙歌",
+      "八声甘州",
+      "幺・柔肠脉脉，新愁千万叠。偶记年前人乍别，秦台玉萧声断绝。雁底关",
+      "尾・腰肢困摆垂杨软，舌尖笑吐丁香喘。绣帐里无人，并枕低言。畅道美"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "和风",
+        "strength": 1
+      },
+      {
+        "word": "江水",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 1
+      },
+      {
+        "word": "丁香",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "巫山",
+    "frequency": 5,
+    "dynasty": "song",
+    "samplePoems": [
+      "巫山一段云",
+      "巫山一段云",
+      "巫山一段云",
+      "巫山一段云",
+      "巫山一段云"
+    ],
+    "relatedWords": [
+      {
+        "word": "斜阳",
+        "strength": 1
+      },
+      {
+        "word": "蓬莱",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "香尘",
+    "frequency": 5,
+    "dynasty": "song",
+    "samplePoems": [
+      "满朝欢",
+      "柳初新",
+      "浪淘沙令",
+      "临江仙",
+      "长寿乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "凄凉",
+        "strength": 0.5
+      },
+      {
+        "word": "晓星",
+        "strength": 0.5
+      },
+      {
+        "word": "少年",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "晓风",
+    "frequency": 5,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "雨霖铃",
+      "古倾杯・倾杯乐",
+      "草桥店梦莺莺(第四本)・清江引",
+      "庞涓夜走马陵道・滚绣球",
+      "庞涓夜走马陵道・幺篇"
+    ],
+    "relatedWords": [
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 0.75
+      },
+      {
+        "word": "长亭",
+        "strength": 0.25
+      },
+      {
+        "word": "骤雨",
+        "strength": 0.25
+      },
+      {
+        "word": "芳草",
+        "strength": 0.25
+      }
+    ]
+  },
+  {
+    "word": "长亭",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "点绛唇",
+      "长相思",
+      "雨霖铃",
+      "引驾行"
+    ],
+    "relatedWords": [
+      {
+        "word": "烟雨",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "南山",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 1
+      },
+      {
+        "word": "晓风",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "骤雨",
+        "strength": 1
+      },
+      {
+        "word": "斜阳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "孤城",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "渔家傲",
+      "祭天神",
+      "迷神引",
+      "倾杯・倾杯乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "浊酒",
+        "strength": 0.5
+      },
+      {
+        "word": "白发",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "楚江",
+        "strength": 0.5
+      },
+      {
+        "word": "佳人",
+        "strength": 0.5
+      },
+      {
+        "word": "琼楼",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "羌笛",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "飲馬長城窟行",
+      "轮台子",
+      "倾杯・倾杯乐",
+      "谢新恩·庭空客散人归後"
+    ],
+    "relatedWords": [
+      {
+        "word": "塞外",
+        "strength": 1
+      },
+      {
+        "word": "烽火",
+        "strength": 1
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 1
+      },
+      {
+        "word": "孤村",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 1
+      },
+      {
+        "word": "天涯",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "银河",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "御街行",
+      "女冠子",
+      "二郎神",
+      "更漏子"
+    ],
+    "relatedWords": [
+      {
+        "word": "珠帘",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "北斗",
+    "frequency": 4,
+    "dynasty": "tang",
+    "samplePoems": [
+      "同二相已下羣官樂遊園宴",
+      "左丞相說右丞相璟太子少傅乾曜同日上官命宴東堂賜詩",
+      "东君",
+      "远逝"
+    ],
+    "relatedWords": [
+      {
+        "word": "南山",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "东篱",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "受恩深",
+      "应天长",
+      "玉蝴蝶",
+      "破阵子"
+    ],
+    "relatedWords": [
+      {
+        "word": "凄清",
+        "strength": 1
+      },
+      {
+        "word": "蝴蝶",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "白发",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "渔家傲",
+      "剔银灯",
+      "看花回",
+      "碧玉箫・乌兔相催，日月走东西。人生别离，白发故人稀。不停闲岁月疾，"
+    ],
+    "relatedWords": [
+      {
+        "word": "孤城",
+        "strength": 1
+      },
+      {
+        "word": "浊酒",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      },
+      {
+        "word": "红颜",
+        "strength": 1
+      },
+      {
+        "word": "故人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "英雄",
+    "frequency": 4,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "觀拔河俗戲",
+      "双调・蟾宫曲怀古",
+      "庞涓夜走马陵道・仙吕/点绛唇",
+      "一・杀五侯虽惧怯，奈只身枉战争，自知此地绝天命。壮怀已丧英雄气，"
+    ],
+    "relatedWords": [
+      {
+        "word": "江水",
+        "strength": 1
+      },
+      {
+        "word": "秦淮",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "丁香",
+    "frequency": 4,
+    "dynasty": "tang",
+    "samplePoems": [
+      "西施",
+      "尾・腰肢困摆垂杨软，舌尖笑吐丁香喘。绣帐里无人，并枕低言。畅道美",
+      "摊破浣溪沙·手卷真珠上玉钩",
+      "一斛珠·晓妆初过"
+    ],
+    "relatedWords": [
+      {
+        "word": "关河",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "杏花",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "江南春・秋风清",
+      "少年游",
+      "更漏子",
+      "庞涓夜走马陵道・幺篇"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "孤村",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 1
+      },
+      {
+        "word": "故人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "流星",
+    "frequency": 4,
+    "dynasty": "tang",
+    "samplePoems": [
+      "詠弓",
+      "九辩",
+      "昭世",
+      "遭厄"
+    ],
+    "relatedWords": [
+      {
+        "word": "明月",
+        "strength": 1
+      },
+      {
+        "word": "寂寥",
+        "strength": 0.5
+      },
+      {
+        "word": "萧瑟",
+        "strength": 0.5
+      },
+      {
+        "word": "风雨",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "朝霞",
+    "frequency": 4,
+    "dynasty": "tang",
+    "samplePoems": [
+      "句",
+      "木兰花・玉楼春",
+      "远游",
+      "哀时命"
+    ],
+    "relatedWords": [
+      {
+        "word": "古道",
+        "strength": 1
+      },
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "桂树",
+        "strength": 1
+      },
+      {
+        "word": "萧条",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "萧条",
+    "frequency": 4,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "临江仙",
+      "远游",
+      "同前换头",
+      "李云英风送梧桐叶・中吕/粉蝶儿"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "桂树",
+        "strength": 1
+      },
+      {
+        "word": "朝霞",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "北风",
+    "frequency": 4,
+    "dynasty": "tang",
+    "samplePoems": [
+      "国风·北风",
+      "哀岁",
+      "苦寒行",
+      "步出夏门行 冬十月"
+    ],
+    "relatedWords": [
+      {
+        "word": "萧瑟",
+        "strength": 1
+      },
+      {
+        "word": "鸿雁",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "夜雨",
+    "frequency": 4,
+    "dynasty": "song",
+    "samplePoems": [
+      "尾犯",
+      "浪淘沙",
+      "撼庭秋",
+      "中吕・阳春曲别情"
+    ],
+    "relatedWords": [
+      {
+        "word": "佳人",
+        "strength": 1
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 0.5
+      },
+      {
+        "word": "天涯",
+        "strength": 0.5
+      },
+      {
+        "word": "梧桐",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "孤舟",
+    "frequency": 3,
+    "dynasty": "tang",
+    "samplePoems": [
+      "餞中書侍郎來濟",
+      "钱大尹智宠谢天香・耍孩儿",
+      "望江梅·闲梦远"
+    ],
+    "relatedWords": [
+      {
+        "word": "飞絮",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "烟雨",
+    "frequency": 3,
+    "dynasty": "song",
+    "samplePoems": [
+      "点绛唇",
+      "夜半乐",
+      "正宫・鹦鹉曲"
+    ],
+    "relatedWords": [
+      {
+        "word": "长亭",
+        "strength": 1
+      },
+      {
+        "word": "斜阳",
+        "strength": 1
+      },
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "西楼",
+    "frequency": 3,
+    "dynasty": "song",
+    "samplePoems": [
+      "清平乐",
+      "草桥店梦莺莺(第四本)・四煞",
+      "相见欢·无言独上西楼"
+    ],
+    "relatedWords": [
+      {
+        "word": "斜阳",
+        "strength": 1
+      },
+      {
+        "word": "鸿雁",
+        "strength": 1
+      },
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "古道",
+        "strength": 1
+      },
+      {
+        "word": "离愁",
+        "strength": 1
+      },
+      {
+        "word": "梧桐",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "洛阳",
+    "frequency": 3,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "木兰花・玉楼春",
+      "诈妮子调风月・小桃红",
+      "尾・我是个蒸不烂、煮不熟、捶不匾、炒不爆响当当一粒铜豌豆，恁子弟"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "杜鹃",
+    "frequency": 3,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "南歌子",
+      "中吕・古调石榴花闺思",
+      "小桃红・一帘红雨落花飞，酝酿蜂儿蜜。跨蹇携壶醒还醉，草凄凄，融融"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "海棠",
+        "strength": 1
+      },
+      {
+        "word": "牡丹",
+        "strength": 1
+      },
+      {
+        "word": "柳絮",
+        "strength": 1
+      },
+      {
+        "word": "落花",
+        "strength": 1
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 1
+      },
+      {
+        "word": "和风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "清酒",
+    "frequency": 3,
+    "dynasty": "tang",
+    "samplePoems": [
+      "小雅·信南山",
+      "大雅·旱麓",
+      "大雅·韩奕"
+    ],
+    "relatedWords": [
+      {
+        "word": "南山",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "烽火",
+    "frequency": 3,
+    "dynasty": "tang",
+    "samplePoems": [
+      "飲馬長城窟行",
+      "登蒲州逍遙樓",
+      "平胡"
+    ],
+    "relatedWords": [
+      {
+        "word": "塞外",
+        "strength": 1
+      },
+      {
+        "word": "羌笛",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "沧海",
+    "frequency": 3,
+    "dynasty": "song",
+    "samplePoems": [
+      "酒泉子",
+      "疾世",
+      "观沧海"
+    ],
+    "relatedWords": [
+      {
+        "word": "萧瑟",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "幽兰",
+    "frequency": 3,
+    "dynasty": "song",
+    "samplePoems": [
+      "望远行",
+      "山亭宴",
+      "离骚"
+    ],
+    "relatedWords": [
+      {
+        "word": "瑶台",
+        "strength": 1
+      },
+      {
+        "word": "明月",
+        "strength": 0.5
+      },
+      {
+        "word": "长安",
+        "strength": 0.5
+      },
+      {
+        "word": "细雨",
+        "strength": 0.5
+      },
+      {
+        "word": "芳草",
+        "strength": 0.5
+      },
+      {
+        "word": "芳菲",
+        "strength": 0.5
+      },
+      {
+        "word": "美人",
+        "strength": 0.5
+      },
+      {
+        "word": "芙蓉",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "水仙",
+    "frequency": 3,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "临江仙引",
+      "诈妮子调风月・水仙子",
+      "催拍子・爱共寝花间锦鸠，恨孤眠水上白鸥。月宵花昼，大筵排回雪韦娘，"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "萧瑟",
+    "frequency": 3,
+    "dynasty": "tang",
+    "samplePoems": [
+      "九辩",
+      "观沧海",
+      "苦寒行"
+    ],
+    "relatedWords": [
+      {
+        "word": "明月",
+        "strength": 1
+      },
+      {
+        "word": "流星",
+        "strength": 1
+      },
+      {
+        "word": "寂寥",
+        "strength": 1
+      },
+      {
+        "word": "风雨",
+        "strength": 1
+      },
+      {
+        "word": "沧海",
+        "strength": 1
+      },
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "北风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "骤雨",
+    "frequency": 3,
+    "dynasty": "song",
+    "samplePoems": [
+      "雨霖铃",
+      "定风波",
+      "玉山枕"
+    ],
+    "relatedWords": [
+      {
+        "word": "长亭",
+        "strength": 1
+      },
+      {
+        "word": "杨柳",
+        "strength": 1
+      },
+      {
+        "word": "晓风",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "残阳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "樽前",
+    "frequency": 2,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "酥枣儿・一自相逢，将人来萦系。樽前席上，眼约心期。比及道是配合了，",
+      "胡十八・天配合俏姻眷，分拆开并头莲。思量席上与樽前，天生的自然，"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "绿蚁",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "抛球乐",
+      "如鱼水"
+    ],
+    "relatedWords": [
+      {
+        "word": "少年",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "青梅",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "踏莎行",
+      "诉衷情"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "画堂",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "峨眉",
+    "frequency": 2,
+    "dynasty": "tang",
+    "samplePoems": [
+      "秋日二首 一",
+      "幸秦川上梓潼山"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "玉兔",
+    "frequency": 2,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "同前换头",
+      "汉钟离度脱蓝采和・梁州"
+    ],
+    "relatedWords": [
+      {
+        "word": "孤村",
+        "strength": 1
+      },
+      {
+        "word": "暮云",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "姑苏",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "双声子",
+      "西施"
+    ],
+    "relatedWords": [
+      {
+        "word": "斜阳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "秦淮",
+    "frequency": 2,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "双调・蟾宫曲怀古",
+      "浪淘沙·往事只堪哀"
+    ],
+    "relatedWords": [
+      {
+        "word": "秋风",
+        "strength": 1
+      },
+      {
+        "word": "江水",
+        "strength": 0.5
+      },
+      {
+        "word": "英雄",
+        "strength": 0.5
+      },
+      {
+        "word": "西风",
+        "strength": 0.5
+      },
+      {
+        "word": "珠帘",
+        "strength": 0.5
+      },
+      {
+        "word": "玉楼",
+        "strength": 0.5
+      }
+    ]
+  },
+  {
+    "word": "琼楼",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "两同心",
+      "倾杯・倾杯乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "暮云",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "孤城",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "风雨",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "芳华",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "百媚娘",
+      "思美人"
+    ],
+    "relatedWords": [
+      {
+        "word": "东风",
+        "strength": 1
+      },
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "美人",
+        "strength": 1
+      },
+      {
+        "word": "芙蓉",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "倾国",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "柳腰轻",
+      "双调・折桂令赠千金奴"
+    ],
+    "relatedWords": [
+      {
+        "word": "杨柳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "菡萏",
+    "frequency": 2,
+    "dynasty": "tang",
+    "samplePoems": [
+      "国风·泽陂",
+      "摊破浣溪沙·菡萏香销翠叶残"
+    ],
+    "relatedWords": [
+      {
+        "word": "栏杆",
+        "strength": 1
+      },
+      {
+        "word": "细雨",
+        "strength": 1
+      },
+      {
+        "word": "西风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "落红",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "天仙子",
+      "采桑子"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "繁星",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "玉楼春",
+      "破阵乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "西湖",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "梨花",
+        "strength": 1
+      },
+      {
+        "word": "和煦",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "愁云",
+    "frequency": 2,
+    "dynasty": "song",
+    "samplePoems": [
+      "归朝欢",
+      "凤归云"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "寒鸦",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "酒泉子"
+    ],
+    "relatedWords": [
+      {
+        "word": "江水",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "塞外",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "飲馬長城窟行"
+    ],
+    "relatedWords": [
+      {
+        "word": "羌笛",
+        "strength": 1
+      },
+      {
+        "word": "烽火",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "莲花",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "诈妮子调风月・醉春风"
+    ],
+    "relatedWords": [
+      {
+        "word": "春风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "画舫",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "如鱼水"
+    ],
+    "relatedWords": [
+      {
+        "word": "鸳鸯",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "瑶琴",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "董秀英花月东墙记・三煞"
+    ],
+    "relatedWords": [
+      {
+        "word": "相思",
+        "strength": 1
+      },
+      {
+        "word": "鸳鸯",
+        "strength": 1
+      },
+      {
+        "word": "凄凉",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "浊酒",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "渔家傲"
+    ],
+    "relatedWords": [
+      {
+        "word": "孤城",
+        "strength": 1
+      },
+      {
+        "word": "白发",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "竹马",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "竹马子・竹马儿"
+    ],
+    "relatedWords": [
+      {
+        "word": "残阳",
+        "strength": 1
+      },
+      {
+        "word": "故人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "铁马",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "董秀英花月东墙记・四煞"
+    ],
+    "relatedWords": [
+      {
+        "word": "佳人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "冰河",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "入潼關"
+    ],
+    "relatedWords": [
+      {
+        "word": "古木",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "楚江",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "迷神引"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳草",
+        "strength": 1
+      },
+      {
+        "word": "江南",
+        "strength": 1
+      },
+      {
+        "word": "孤城",
+        "strength": 1
+      },
+      {
+        "word": "佳人",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "广寒",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "李云英风送梧桐叶・驻马听"
+    ],
+    "relatedWords": [
+      {
+        "word": "梧桐",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "寒山",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "大招"
+    ],
+    "relatedWords": [
+      {
+        "word": "桂树",
+        "strength": 1
+      },
+      {
+        "word": "青春",
+        "strength": 1
+      },
+      {
+        "word": "寂寥",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "金陵",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "越调・柳营曲金陵故址"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "柴门",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "双调・大德歌（六首）"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "梨花",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "荒村",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "草桥店梦莺莺(第四本)・五煞"
+    ],
+    "relatedWords": [
+      {
+        "word": "秋风",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "古木",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "入潼關"
+    ],
+    "relatedWords": [
+      {
+        "word": "冰河",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "修竹",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "初放"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "红颜",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "看花回"
+    ],
+    "relatedWords": [
+      {
+        "word": "画堂",
+        "strength": 1
+      },
+      {
+        "word": "白发",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "青丝",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "得胜令・担不得翠弯眉黛远山青，红馥馥桃脸褪朱唇。细袅袅杨柳腰肢瘦，"
+    ],
+    "relatedWords": [
+      {
+        "word": "杨柳",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "暮年",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "龟虽寿"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "浮萍",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "尊嘉"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "残红",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "千秋岁"
+    ],
+    "relatedWords": [
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "残月",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "晓星",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "柳初新"
+    ],
+    "relatedWords": [
+      {
+        "word": "桃花",
+        "strength": 1
+      },
+      {
+        "word": "香尘",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "晚霞",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "初晴落景"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "哀怨",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "鲍老儿・当初指望成家计，谁想琼簪碎；当初指望无抛弃，谁想银瓶坠。"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "凄清",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "应天长"
+    ],
+    "relatedWords": [
+      {
+        "word": "东篱",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "和煦",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "破阵乐"
+    ],
+    "relatedWords": [
+      {
+        "word": "西湖",
+        "strength": 1
+      },
+      {
+        "word": "芳菲",
+        "strength": 1
+      },
+      {
+        "word": "梨花",
+        "strength": 1
+      },
+      {
+        "word": "繁星",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "冰雪",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "幺・自清晓彻终日，从黄昏睚五更。趁水泽身难到，夺樵路力不能。旋消"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "雷电",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "天问"
+    ],
+    "relatedWords": []
+  },
+  {
+    "word": "微风",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "董秀英花月东墙记・油葫芦"
+    ],
+    "relatedWords": [
+      {
+        "word": "柳絮",
+        "strength": 1
+      },
+      {
+        "word": "细雨",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "暖风",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "酒泉子"
+    ],
+    "relatedWords": [
+      {
+        "word": "长安",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "南风",
+    "frequency": 1,
+    "dynasty": "song",
+    "samplePoems": [
+      "玉楼春"
+    ],
+    "relatedWords": [
+      {
+        "word": "玉楼",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "秋雨",
+    "frequency": 1,
+    "dynasty": "yuan",
+    "samplePoems": [
+      "浆水令・采莲泾红芳尽死，越来溪吴歌惨凄。宫中鹿走草萋萋，黍离故墟，"
+    ],
+    "relatedWords": [
+      {
+        "word": "梧桐",
+        "strength": 1
+      }
+    ]
+  },
+  {
+    "word": "梅雨",
+    "frequency": 1,
+    "dynasty": "tang",
+    "samplePoems": [
+      "詠雨"
+    ],
+    "relatedWords": []
+  }
 ]

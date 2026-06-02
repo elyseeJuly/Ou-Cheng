@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Poem } from '../types';
-import { getPoems, deletePoem } from '../services/storageService';
+import { getPoems, deletePoem, exportAllPoems, importPoems, savePoem } from '../services/storageService';
 import PoemPreview from '../components/preview/PoemPreview';
 import ExportModal from '../components/ExportModal';
+import ImportModal from '../components/creator/ImportModal';
 import { useNavigate } from 'react-router-dom';
 
 const Works: React.FC = () => {
@@ -12,6 +13,10 @@ const Works: React.FC = () => {
   const [selectedPoem, setSelectedPoem] = useState<Poem | null>(null);
   const [exportPoem, setExportPoem] = useState<Poem | null>(null);
   const [showBackupAlert, setShowBackupAlert] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [showImport, setShowImport] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
     const ps = getPoems();
@@ -24,20 +29,47 @@ const Works: React.FC = () => {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (confirm('确定删除此墨迹吗？删除后不可恢复。')) {
-      deletePoem(id);
-      refresh();
-      if (selectedPoem?.id === id) setSelectedPoem(null);
-    }
+  const handleDelete = (id: string) => {
+    deletePoem(id);
+    refresh();
+    if (selectedPoem?.id === id) setSelectedPoem(null);
+    setConfirmDeleteId(null);
   };
 
-  const filtered = poems.filter(p =>
+  const handleExportAll = () => {
+    const json = exportAllPoems();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `oucheng_backup_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const added = importPoems(event.target?.result as string);
+      alert(`成功导入 ${added} 首墨迹！`);
+      refresh();
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  let filtered = poems.filter(p =>
     p.title?.includes(searchTerm) ||
     p.content?.includes(searchTerm) ||
     p.author?.includes(searchTerm)
   );
+
+  filtered = filtered.sort((a, b) => {
+    if (sortOrder === 'desc') return b.createdAt - a.createdAt;
+    return a.createdAt - b.createdAt;
+  });
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -63,21 +95,36 @@ const Works: React.FC = () => {
         </p>
       </div>
 
-      {/* 搜索栏 */}
-      <div style={{ maxWidth: '560px', margin: '0 auto 36px' }}>
+      {/* 工具栏：搜索与操作 */}
+      <div style={{ maxWidth: '640px', margin: '0 auto 36px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <input
           type="text"
           placeholder="搜索诗题、作者或佳句..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           style={{
-            width: '100%', padding: '12px 20px',
+            flex: 1, minWidth: '200px', padding: '12px 20px',
             border: '1px solid #e0e0e0', borderRadius: '24px',
-            background: 'white', fontSize: '16px',
-            fontFamily: 'var(--font-kaiti)', boxSizing: 'border-box',
+            background: 'white', fontSize: '15px',
+            fontFamily: 'var(--font-kaiti)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         />
+        <select value={sortOrder} onChange={e => setSortOrder(e.target.value as any)}
+          style={{ padding: '0 16px', borderRadius: '24px', border: '1px solid #e0e0e0', background: 'white', fontFamily: 'var(--font-kaiti)' }}>
+          <option value="desc">最新创作</option>
+          <option value="asc">最早创作</option>
+        </select>
+        <button onClick={() => setShowImport(true)} style={{ background: '#fdfbf7', border: '1px solid #d9c9b2', borderRadius: '24px', padding: '0 16px', color: '#8b5a2b', cursor: 'pointer', fontFamily: 'var(--font-kaiti)' }}>
+          + 导入文稿
+        </button>
+        <button onClick={handleExportAll} style={{ background: '#fdfbf7', border: '1px solid #e0e0e0', borderRadius: '24px', padding: '0 16px', color: '#666', cursor: 'pointer', fontFamily: 'var(--font-kaiti)' }}>
+          导出备份
+        </button>
+        <button onClick={() => fileInputRef.current?.click()} style={{ background: '#fdfbf7', border: '1px solid #e0e0e0', borderRadius: '24px', padding: '0 16px', color: '#666', cursor: 'pointer', fontFamily: 'var(--font-kaiti)' }}>
+          导入备份
+        </button>
+        <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImportJson} />
       </div>
 
       {/* ≥30首备份提示 */}
@@ -183,7 +230,7 @@ const Works: React.FC = () => {
                     导出海报
                   </button>
                   <button
-                    onClick={(e) => handleDelete(e, poem.id)}
+                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(poem.id); }}
                     style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: '12px', fontFamily: 'monospace' }}
                   >
                     删除
@@ -211,6 +258,10 @@ const Works: React.FC = () => {
                   {selectedPoem.title || '无题'}
                 </h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => navigate(`/?edit=${selectedPoem.id}`)}
+                    style={{ background: '#fdfbf7', border: '1px solid #d9c9b2', color: '#8b5a2b', borderRadius: '20px', padding: '6px 16px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)', fontSize: '14px' }}>
+                    编辑修改
+                  </button>
                   <button onClick={() => { setExportPoem(selectedPoem); setSelectedPoem(null); }}
                     style={{ background: 'var(--cinnabar-red)', color: 'white', border: 'none', borderRadius: '20px', padding: '6px 16px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)', fontSize: '14px' }}>
                     导出海报
@@ -241,6 +292,28 @@ const Works: React.FC = () => {
 
       {/* 导出海报弹窗 */}
       {exportPoem && <ExportModal poem={exportPoem} onClose={() => setExportPoem(null)} />}
+      
+      {/* 导入文稿弹窗 */}
+      {showImport && (
+        <ImportModal 
+          onClose={() => setShowImport(false)} 
+          onImport={(p) => { savePoem(p); refresh(); setShowImport(false); }} 
+        />
+      )}
+
+      {/* 自定义确认删除弹窗 */}
+      {confirmDeleteId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="fade-in-down" style={{ background: 'var(--paper-white)', padding: '24px 32px', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(178,34,34,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-kaiti)', color: 'var(--cinnabar-red)', marginBottom: '16px', fontSize: '20px' }}>确认删除此墨迹？</h3>
+            <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>删除后将无法恢复，请谨慎操作。</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button onClick={() => handleDelete(confirmDeleteId)} style={{ background: 'var(--cinnabar-red)', color: 'white', border: 'none', padding: '8px 24px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)' }}>确认删除</button>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'transparent', border: '1px solid #ddd', padding: '8px 24px', borderRadius: '6px', cursor: 'pointer', color: '#666' }}>取消</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
