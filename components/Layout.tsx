@@ -30,7 +30,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </li>
           ))}
         </ul>
-        <div className="sidebar-bottom">v4.0</div>
+        <div className="sidebar-bottom">v5.0</div>
       </aside>
 
       {/* Main Content */}
