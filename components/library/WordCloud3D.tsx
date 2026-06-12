@@ -374,10 +374,14 @@ const WordCloud3D: React.FC<WordCloud3DProps> = ({ imageryItems, allPoems, onWor
               <div key={i} style={{
                 fontSize: '13px', fontFamily: '"Ma Shan Zheng", serif',
                 color: '#5a3a1a', background: 'rgba(178,34,34,0.08)',
-                padding: '3px 10px', borderRadius: '12px',
+                padding: '4px 12px', borderRadius: '16px',
                 border: '1px solid rgba(178,34,34,0.2)',
                 cursor: 'pointer', whiteSpace: 'nowrap',
-              }}>
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--cinnabar-red)'; e.currentTarget.style.color = 'white'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(178,34,34,0.08)'; e.currentTarget.style.color = '#5a3a1a'; }}
+              >
                 《{p.title}》{p.author && `· ${p.author}`}
               </div>
             ))}

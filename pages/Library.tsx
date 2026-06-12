@@ -121,7 +121,7 @@ const Library: React.FC = () => {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                 {wordPoems.slice(0, 9).map((p, i) => (
-                  <div key={i} onClick={() => { setView('read'); }}
+                  <div key={i} onClick={() => { setView('read'); setSearchTerm(p.title); }}
                     style={{
                       background: '#fdfbf7', padding: '20px',
                       borderLeft: '3px solid var(--cinnabar-red)',
@@ -181,7 +181,14 @@ const Library: React.FC = () => {
               未找到相关卷帙
             </div>
           ) : (
-            <ClassicReader poems={filtered.slice(0, 500)} />
+            <ClassicReader 
+              poems={filtered.slice(0, 500)} 
+              imageryItems={imageryItems}
+              onImageryClick={(word) => {
+                setView('cloud');
+                handleWordSelect(word, allPoems.filter(p => p.content?.includes(word) || p.title?.includes(word)));
+              }}
+            />
           )}
         </div>
       )}

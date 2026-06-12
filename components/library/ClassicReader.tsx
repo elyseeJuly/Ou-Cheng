@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ClassicPoem, MeterCheckResult } from '../../types';
+import { ClassicPoem, MeterCheckResult, ImageryItem } from '../../types';
 import { checkJintiShi, checkCipai } from '../../src/engine/meterChecker';
 import { getUpstreamIssueUrl, formatCorrectionJSON } from '../../services/contributionService';
 
 interface ClassicReaderProps {
   poems: ClassicPoem[];
+  imageryItems?: ImageryItem[];
+  onImageryClick?: (word: string) => void;
 }
 
-const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
+const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onImageryClick }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDir, setFlipDir] = useState<'up' | 'down'>('up');
@@ -235,6 +237,34 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems }) => {
             </p>
           ))}
         </div>
+
+        {/* 意象标签 */}
+        {imageryItems && poem && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center',
+            marginTop: '36px',
+            borderTop: '1px dashed rgba(178,34,34,0.15)', paddingTop: '20px'
+          }}>
+            {imageryItems
+              .filter(item => poem.content?.includes(item.word) || poem.title?.includes(item.word))
+              .map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => onImageryClick?.(item.word)}
+                  style={{
+                    background: 'rgba(178,34,34,0.06)', border: '1px solid rgba(178,34,34,0.15)',
+                    color: 'var(--cinnabar-red)', padding: '4px 14px', borderRadius: '16px',
+                    fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)',
+                    transition: 'all 0.2s', letterSpacing: '2px'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--cinnabar-red)'; e.currentTarget.style.color = 'white'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(178,34,34,0.06)'; e.currentTarget.style.color = 'var(--cinnabar-red)'; }}
+                >
+                  {item.word}
+                </button>
+              ))}
+          </div>
+        )}
 
         {/* 页码 */}
         <div style={{
