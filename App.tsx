@@ -5,6 +5,7 @@ import Library from './pages/Library';
 import Create from './pages/Create';
 import Works from './pages/Works';
 import Settings from './pages/Settings';
+import UpdatePrompt from './components/UpdatePrompt';
 
 const App: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App: React.FC = () => {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
+      <UpdatePrompt />
     </Router>
   );
 };
