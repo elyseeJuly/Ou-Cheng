@@ -1,6 +1,6 @@
 import React from 'react';
 import { CipaiData, MeterCheckResult } from '../../types';
-import { JINTI_TEMPLATES } from '../../src/engine/meterChecker';
+import { JINTI_TEMPLATES } from '../../engine/meterChecker';
 
 interface MeterGridProps {
   cipai?: CipaiData;

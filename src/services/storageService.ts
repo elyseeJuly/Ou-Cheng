@@ -20,6 +20,75 @@ const safeParse = <T>(key: string, fallback: T): T => {
   }
 };
 
+// ── IndexedDB Mirror Setup ──────────────────────────────
+const dbPromise = new Promise<IDBDatabase | null>((resolve) => {
+  if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') {
+    resolve(null);
+    return;
+  }
+  const request = window.indexedDB.open('oucheng_vault', 1);
+  request.onupgradeneeded = () => {
+    const db = request.result;
+    if (!db.objectStoreNames.contains('backup_store')) {
+      db.createObjectStore('backup_store');
+    }
+  };
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => resolve(null);
+});
+
+const backupToDB = async (key: string, value: any): Promise<void> => {
+  try {
+    const db = await dbPromise;
+    if (!db) return;
+    const tx = db.transaction('backup_store', 'readwrite');
+    const store = tx.objectStore('backup_store');
+    store.put(JSON.parse(JSON.stringify(value)), key); // clone to avoid structured clone issues with proxy
+  } catch (e) {
+    console.warn('IndexedDB backup failed:', e);
+  }
+};
+
+const getFromDB = async <T>(key: string): Promise<T | null> => {
+  try {
+    const db = await dbPromise;
+    if (!db) return null;
+    return new Promise<T | null>((resolve) => {
+      const tx = db.transaction('backup_store', 'readonly');
+      const store = tx.objectStore('backup_store');
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result as T || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    return null;
+  }
+};
+
+export const rehydrateStorage = async (): Promise<void> => {
+  if (typeof localStorage === 'undefined') return;
+  const keys = [POEMS_KEY, SETTINGS_KEY, SEALS_KEY];
+  for (const key of keys) {
+    const localVal = localStorage.getItem(key);
+    let isCorrupted = false;
+    if (localVal) {
+      try {
+        JSON.parse(localVal);
+      } catch (_) {
+        isCorrupted = true;
+      }
+    }
+    
+    if (!localVal || isCorrupted) {
+      const backup = await getFromDB<any>(key);
+      if (backup) {
+        localStorage.setItem(key, JSON.stringify(backup));
+        console.log(`Successfully recovered ${key} from IndexedDB backup ${isCorrupted ? '(repaired corruption)' : ''}.`);
+      }
+    }
+  }
+};
+
 // ── Legacy migration ──────────────────────────────────────
 function migrateLegacy() {
   if (typeof localStorage === 'undefined') return;
@@ -40,12 +109,14 @@ export const savePoem = (poem: Poem): void => {
   if (idx >= 0) poems[idx] = poem;
   else poems.unshift(poem);
   localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
+  backupToDB(POEMS_KEY, poems);
 };
 
 export const deletePoem = (id: string): void => {
   if (typeof localStorage === 'undefined') return;
   const poems = getPoems().filter(p => p.id !== id);
   localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
+  backupToDB(POEMS_KEY, poems);
 };
 
 export const getPoemById = (id: string): Poem | undefined =>
@@ -78,6 +149,7 @@ export const importPoems = (jsonStr: string): number => {
     // Sort by createdAt descending
     existing.sort((a, b) => b.createdAt - a.createdAt);
     localStorage.setItem(POEMS_KEY, JSON.stringify(existing));
+    backupToDB(POEMS_KEY, existing);
     return addedCount;
   } catch (e) {
     console.error("Failed to import poems", e);
@@ -103,6 +175,7 @@ export const getSettings = (): UserSettings => {
 export const saveSettings = (settings: UserSettings): void => {
   if (typeof localStorage === 'undefined') return;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  backupToDB(SETTINGS_KEY, settings);
 };
 
 // ── Seals ─────────────────────────────────────────────────
@@ -115,12 +188,14 @@ export const saveSeal = (seal: Seal): void => {
   if (idx >= 0) seals[idx] = seal;
   else seals.push(seal);
   localStorage.setItem(SEALS_KEY, JSON.stringify(seals));
+  backupToDB(SEALS_KEY, seals);
 };
 
 export const deleteSeal = (id: string): void => {
   if (typeof localStorage === 'undefined') return;
   const seals = getSeals().filter(s => s.id !== id);
   localStorage.setItem(SEALS_KEY, JSON.stringify(seals));
+  backupToDB(SEALS_KEY, seals);
 
   // If the deleted seal was the default, clean up settings (Item 16)
   const settings = getSettings();

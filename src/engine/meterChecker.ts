@@ -2,7 +2,7 @@
 // 偶成 v4.0 — 格律双指针校验引擎（精细纠错版）
 // ============================================================
 import { getTone, getCanonicalTone, isMultiTone, ToneClass } from './rhymeData';
-import { MeterCheckResult, LineResult, CharResult, CharStatus, RhymeBook, CipaiData, SonnetType } from '../../types';
+import { MeterCheckResult, LineResult, CharResult, CharStatus, RhymeBook, CipaiData, SonnetType } from '../types';
 
 // ============================================================
 // 近体诗格律模板（平仄起、首韵支持）

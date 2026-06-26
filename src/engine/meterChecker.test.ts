@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { checkJintiShi, checkCipai, checkSonnet } from './meterChecker';
 import { getTone, getCanonicalTone } from './rhymeData';
-import { getPoems, savePoem, deletePoem, getSettings, deleteSeal, setDefaultSeal, getSeals, saveSeal } from '../../services/storageService';
+import { getPoems, savePoem, deletePoem, getSettings, deleteSeal, setDefaultSeal, getSeals, saveSeal } from '../services/storageService';
 
 describe('Rhyme & Tone Engine', () => {
   it('should convert traditional characters to simplified first', () => {
