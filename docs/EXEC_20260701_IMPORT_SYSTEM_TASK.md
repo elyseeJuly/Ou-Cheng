@@ -1,0 +1,10 @@
+- [x] 安装 pinyin-pro 依赖并升级 package.json
+- [x] 升级 types.ts，支持 collectionName 及 apiModel 字段
+- [x] 升级 storageService.ts，实现文集（Collection）的增、删、改、查
+- [x] 升级 rhymeData.ts，引入 pinyin-pro 并增加常用入声字例外词典，重构平仄判定
+- [x] 升级 geminiService.ts，实现对 OpenAI 兼容接口的支持与大模型自定义名称选择，添加 splitAndClassifyManuscript API
+- [x] 升级 Settings.tsx，允许用户配置自定义 API 模型名称
+- [x] 升级 ImportModal.tsx，实现向导式多首诗歌分块、起律自动比对、文集指定、卡片预览与细粒度微调
+- [x] 升级 Works.tsx，加入左侧文集管理侧边栏、重命名与级联/非级联删除、卡片文集标签显示
+- [x] 升级 Create/index.tsx，适配 ImportModal 并打通编辑器导入闭环
+- [x] 编写测试脚本 importParser.test.ts 验证解析与平仄例外库，运行并修复所有 lints 和测试
