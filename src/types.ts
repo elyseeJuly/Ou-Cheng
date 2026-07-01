@@ -38,6 +38,7 @@ export interface Poem {
   backgroundImage?: string; // 保留旧字段兼容
   fontStyle?: FontStyle;
   jintiVariant?: string;   // 近体诗/十四行诗的细分变体（如 "ze_no" 等）
+  collectionName?: string; // 所属文集
 }
 
 // ============================================================
@@ -52,6 +53,7 @@ export interface UserSettings {
   defaultSealId?: string;
   apiKey?: string;         // 私有大模型 API Key（本地加密存储）
   apiBaseUrl?: string;     // 自定义 API 地址
+  apiModel?: string;       // 自定义大模型名称
   globalFont?: FontStyle;
 }
 

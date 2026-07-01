@@ -6,6 +6,7 @@ import ProPanel from './ProPanel';
 import ActionBottomBar from './ActionBottomBar';
 import PoemPreview from '../../components/preview/PoemPreview';
 import ImportModal from '../../components/creator/ImportModal';
+import { savePoem } from '../../services/storageService';
 
 const CreateLayout: React.FC = () => {
   const {
@@ -55,25 +56,30 @@ const CreateLayout: React.FC = () => {
       {showImport && (
         <ImportModal 
           onClose={() => setShowImport(false)} 
-          onImport={(p) => {
-            setEditId(null);
-            setTitle(p.title || '');
-            setAuthor(p.author || '');
-            setMode('free');
-            setContent(p.content || '');
-            if (p.type === 'sonnet') setSonnetType(p.sonnetType || 'none');
-            else if (p.type !== 'free') {
-              setMode('pro');
-              setProLines((p.content || '').split('\n').map(l => l.replace(/[，。、；？！]/g, '').trim()).filter(Boolean));
-              if (p.type === 'cipai') setProTab('cipai');
-              else {
-                setProTab('jinti');
-                setPoemType(p.type as any);
-                if (p.jintiVariant) {
-                  const parts = p.jintiVariant.split('_');
-                  if (parts.length >= 4) {
-                    setJintiStart(parts[2] as 'ping'|'ze');
-                    setJintiRhyme(parts[3] as 'yes'|'no');
+          onImport={(pList) => {
+            const list = Array.isArray(pList) ? pList : [pList];
+            if (list.length > 0) {
+              list.forEach(p => savePoem(p));
+              const p = list[0];
+              setEditId(p.id);
+              setTitle(p.title || '');
+              setAuthor(p.author || '');
+              setMode('free');
+              setContent(p.content || '');
+              if (p.type === 'sonnet') setSonnetType(p.sonnetType || 'none');
+              else if (p.type !== 'free') {
+                setMode('pro');
+                setProLines((p.content || '').split('\n').map(l => l.replace(/[，。、；？！]/g, '').trim()).filter(Boolean));
+                if (p.type === 'cipai') setProTab('cipai');
+                else {
+                  setProTab('jinti');
+                  setPoemType(p.type as any);
+                  if (p.jintiVariant) {
+                    const parts = p.jintiVariant.split('_');
+                    if (parts.length >= 4) {
+                      setJintiStart(parts[2] as 'ping'|'ze');
+                      setJintiRhyme(parts[3] as 'yes'|'no');
+                    }
                   }
                 }
               }

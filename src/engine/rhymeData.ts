@@ -2,6 +2,8 @@
 // 偶成 v4.0 — 韵书数据层（繁简支持与去重版）
 // ============================================================
 
+import { pinyin } from 'pinyin-pro';
+
 export type ToneClass = 'P' | 'Z';
 
 // 繁体字到简体字的快速映射表
@@ -137,7 +139,7 @@ const XIN_YUN_MAP: Record<string, ToneClass | ToneClass[]> = {
   '廉': 'P', '耻': 'Z', '勇': 'Z', '拼': 'P', '搏': 'Z', '节': 'Z', '极': 'Z',
 };
 
-// 平水韵入声字（在新韵中有些入声字归平声，平水韵中均为仄）
+// 平水韵入声字及例外字映射表（包含了入声字以及古今音变字）
 const PING_SHUI_EXTRA: Record<string, ToneClass> = {
   '国': 'Z', '百': 'Z', '发': 'Z', '得': 'Z', '十': 'Z',
   '七': 'Z', '八': 'Z', '日': 'Z', '一': 'Z', '入': 'Z',
@@ -154,17 +156,64 @@ const PING_SHUI_EXTRA: Record<string, ToneClass> = {
   '肉': 'Z', '哭': 'Z', '谷': 'Z', '菊': 'Z', '竹': 'Z', '曲': 'Z',
   '局': 'Z', '白': 'Z', '节': 'Z', '力': 'Z', '客': 'Z', '阁': 'Z',
   '宿': 'Z', '角': 'Z',
+  '洁': 'Z', '杰': 'Z', '结': 'Z', '劫': 'Z', '捷': 'Z', '截': 'Z',
+  '骨': 'Z', '忽': 'Z', '突': 'Z', '凸': 'Z', '勃': 'Z', '博': 'Z',
+  '搏': 'Z', '薄': 'Z', '泊': 'Z', '驳': 'Z', '拨': 'Z', '夺': 'Z',
+  '茁': 'Z', '桌': 'Z', '琢': 'Z', '捉': 'Z', '酌': 'Z', '昨': 'Z',
+  '葛': 'Z', '蛤': 'Z', '杂': 'Z', '凿': 'Z', '札': 'Z', '闸': 'Z',
+  '栅': 'Z', '铡': 'Z', '执': 'Z', '职': 'Z', '侄': 'Z', '直': 'Z',
+  '植': 'Z', '殖': 'Z', '筑': 'Z', '熟': 'Z', '淑': 'Z', '赎': 'Z',
+  '孰': 'Z', '塾': 'Z', '刷': 'Z', '湿': 'Z', '拾': 'Z', '什': 'Z',
+  '食': 'Z', '蚀': 'Z', '实': 'Z', '辖': 'Z', '狭': 'Z', '峡': 'Z',
+  '瞎': 'Z', '协': 'Z', '胁': 'Z', '叶': 'Z', '歇': 'Z', '蝎': 'Z',
+  '穴': 'Z', '血': 'Z', '薛': 'Z', '削': 'Z', '芍': 'Z',
+  '雀': 'Z', '鹊': 'Z', '约': 'Z', '缚': 'Z', '剥': 'Z', '瀑': 'Z',
+  '昔': 'Z', '惜': 'Z', '熄': 'Z', '膝': 'Z', '释': 'Z',
+  '适': 'Z', '饰': 'Z', '迹': 'Z', '绩': 'Z', '织': 'Z', '急': 'Z',
+  '疾': 'Z', '脊': 'Z', '笛': 'Z', '涤': 'Z', '舌': 'Z', '涉': 'Z',
+  '敌': 'Z', '帖': 'Z', '贴': 'Z', '铁': 'Z', '叠': 'Z', '碟': 'Z',
+  '叔': 'Z', '腹': 'Z', '伏': 'Z', '拂': 'Z', '洽': 'Z',
+  '缉': 'Z', '读': 'Z', '毒': 'Z', '独': 'Z',
 };
+
+// 使用 pinyin-pro 动态获取汉字平仄
+function getTonesFromPinyin(char: string): ToneClass[] {
+  try {
+    const pinyins = pinyin(char, { multiple: true, toneType: 'num', type: 'array' });
+    const tones = new Set<ToneClass>();
+    pinyins.forEach(py => {
+      const match = py.match(/[1-4]/);
+      if (match) {
+        const toneNum = match[0];
+        if (toneNum === '1' || toneNum === '2') {
+          tones.add('P');
+        } else if (toneNum === '3' || toneNum === '4') {
+          tones.add('Z');
+        }
+      }
+    });
+    return Array.from(tones);
+  } catch (e) {
+    return [];
+  }
+}
 
 // ── 查询接口 ───────────────────────────────────────────────
 export function getTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui' | 'xin_yun'): ToneClass | ToneClass[] | 'unknown' {
   const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
-  if (rhymeBook === 'ping_shui') {
+  
+  if (rhymeBook === 'ping_shui' || rhymeBook === 'ci_lin') {
     if (PING_SHUI_EXTRA[c] !== undefined) return PING_SHUI_EXTRA[c];
   }
-  const result = XIN_YUN_MAP[c];
-  if (!result) return 'unknown';
-  return result;
+  
+  const derived = getTonesFromPinyin(c);
+  if (derived.length === 1) return derived[0];
+  if (derived.length > 1) return derived;
+  
+  const manual = XIN_YUN_MAP[c];
+  if (manual) return manual;
+  
+  return 'unknown';
 }
 
 export function getCanonicalTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui' | 'xin_yun'): ToneClass | 'unknown' {
@@ -176,5 +225,8 @@ export function getCanonicalTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui'
 
 export function isMultiTone(char: string): boolean {
   const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
-  return Array.isArray(XIN_YUN_MAP[c]);
+  const manual = XIN_YUN_MAP[c];
+  if (manual) return Array.isArray(manual);
+  const derived = getTonesFromPinyin(c);
+  return derived.length > 1;
 }

@@ -194,7 +194,7 @@ export function checkJintiShi(
 
       const actualTones = getTone(char, rhymeBook);
       const actualMain = getCanonicalTone(char, rhymeBook);
-      const multi = isMultiTone(char);
+      const multi = Array.isArray(actualTones);
 
       if (actualMain === 'unknown') {
         status = 'warn';

@@ -6,8 +6,9 @@ import { getPoems, savePoem, deletePoem, getSettings, deleteSeal, setDefaultSeal
 
 describe('Rhyme & Tone Engine', () => {
   it('should convert traditional characters to simplified first', () => {
-    // "國" is traditional for "国". "国" in XIN_YUN_MAP is 'Z' (仄)
-    expect(getCanonicalTone('國', 'xin_yun')).toBe('Z');
+    // "國" is traditional for "国". "国" in xin_yun is 'P' (guó), in ping_shui is 'Z'
+    expect(getCanonicalTone('國', 'xin_yun')).toBe('P');
+    expect(getCanonicalTone('國', 'ping_shui')).toBe('Z');
     expect(getCanonicalTone('萬', 'xin_yun')).toBe('Z'); // 万 -> Z
     expect(getCanonicalTone('飛', 'xin_yun')).toBe('P'); // 飞 -> P
   });
@@ -19,9 +20,8 @@ describe('Rhyme & Tone Engine', () => {
   });
 
   it('should respect Ping Shui Yun rules for enter tones (入声)', () => {
-    // "月" is flat in Pinyin (yuè, which is Zek anyway, but let's check a standard entering tone)
-    // "白" in new rhyme is 'Z', let's verify
-    expect(getCanonicalTone('白', 'xin_yun')).toBe('Z');
+    // "白" in new rhyme is 'P' (bái), let's verify
+    expect(getCanonicalTone('白', 'xin_yun')).toBe('P');
     expect(getCanonicalTone('白', 'ping_shui')).toBe('Z');
   });
 });

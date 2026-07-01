@@ -210,3 +210,47 @@ export const setDefaultSeal = (id: string): void => {
   settings.defaultSealId = id;
   saveSettings(settings);
 };
+
+// ── Collections ───────────────────────────────────────────
+export const getCollections = (): string[] => {
+  const poems = getPoems();
+  const collections = new Set<string>();
+  poems.forEach(p => {
+    if (p.collectionName && p.collectionName.trim()) {
+      collections.add(p.collectionName.trim());
+    }
+  });
+  return Array.from(collections).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+};
+
+export const renameCollection = (oldName: string, newName: string): void => {
+  if (typeof localStorage === 'undefined') return;
+  const poems = getPoems();
+  let updated = false;
+  poems.forEach(p => {
+    if (p.collectionName === oldName) {
+      p.collectionName = newName;
+      updated = true;
+    }
+  });
+  if (updated) {
+    localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
+    backupToDB(POEMS_KEY, poems);
+  }
+};
+
+export const deleteCollection = (name: string, deletePoems: boolean): void => {
+  if (typeof localStorage === 'undefined') return;
+  let poems = getPoems();
+  if (deletePoems) {
+    poems = poems.filter(p => p.collectionName !== name);
+  } else {
+    poems.forEach(p => {
+      if (p.collectionName === name) {
+        delete p.collectionName;
+      }
+    });
+  }
+  localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
+  backupToDB(POEMS_KEY, poems);
+};

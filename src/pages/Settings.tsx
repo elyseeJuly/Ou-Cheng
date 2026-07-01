@@ -168,6 +168,16 @@ const Settings: React.FC = () => {
                 style={{ width: '100%', border: 'none', borderBottom: '1px solid #e0e0e0', background: 'transparent', fontSize: '16px', padding: '8px 0', fontFamily: 'monospace', boxSizing: 'border-box' }}
               />
             </div>
+            <div>
+              <label style={{ fontSize: '12px', color: '#999', letterSpacing: '3px', fontFamily: 'monospace', display: 'block', marginBottom: '8px' }}>模型名称（可选，如 deepseek-chat 或 gemini-2.5-flash）</label>
+              <input
+                type="text"
+                placeholder="gemini-2.5-flash-preview-04-17"
+                value={settings.apiModel || ''}
+                onChange={e => setSettings(s => ({ ...s, apiModel: e.target.value }))}
+                style={{ width: '100%', border: 'none', borderBottom: '1px solid #e0e0e0', background: 'transparent', fontSize: '16px', padding: '8px 0', fontFamily: 'monospace', boxSizing: 'border-box' }}
+              />
+            </div>
           </div>
         )}
 
