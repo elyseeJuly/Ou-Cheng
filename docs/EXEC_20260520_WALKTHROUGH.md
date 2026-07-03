@@ -18,7 +18,7 @@
 
 ### 2. 📝 三位一体执行归档持久化
 完成了今日会话（2026-05-20）所有实施资产的本地持久化，阻断后续协作的上下文断层：
-- **实施方案书**：[EXEC_20260520_PLAN.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_PLAN.md)
+- **实施方案书**：[PLAN_20260520.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/PLAN_20260520.md)
 - **任务进度清单**：[EXEC_20260520_TASK.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_TASK.md)
 - **交付验证汇报**：[EXEC_20260520_WALKTHROUGH.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260520_WALKTHROUGH.md) *(本文件)*
 
