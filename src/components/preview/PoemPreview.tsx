@@ -18,6 +18,8 @@ const PoemPreview: React.FC<PoemPreviewProps> = ({
   poem, onLayoutChange, onPaperChange, onFontChange, compact = false,
 }) => {
   const [hSubMode, setHSubMode] = useState<HorizontalSubMode>(poem.horizontalSubMode || 'modern');
+  const [template, setTemplate] = useState<'plain' | 'wusilan'>('plain');
+  const [stripPunct, setStripPunct] = useState<boolean>(false);
 
   const seals = getSeals();
   const settings = getSettings();
@@ -26,102 +28,125 @@ const PoemPreview: React.FC<PoemPreviewProps> = ({
 
   const aspectRatio = poem.layout === 'vertical' ? '3/4' : '4/3';
 
-  const handleSetGlobalFont = () => {
-    const s = getSettings();
-    s.globalFont = poem.fontStyle || 'none';
-    saveSettings(s);
-    window.location.reload(); // Quick way to apply global font across app immediately
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
-      {/* 工具栏 */}
+    <div className={`poem-preview ${compact ? 'is-compact' : ''}`}>
+      {/* 工具栏 - 改用去胶囊 opt-item */}
       {!compact && (
-        <div style={{
-          display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap',
-          padding: '0 0 10px 0',
+        <>
+        <div className="preview-page-title">预览（观）</div>
+        <div className="preview-toolbar" style={{
           borderBottom: '1px solid rgba(26,26,26,0.06)',
+          paddingBottom: '10px',
         }}>
           {/* 排版切换 */}
-          <div style={{ display: 'flex', gap: '4px', background: '#f0ede8', borderRadius: '20px', padding: '3px' }}>
+          <div className="opt-group">
             {(['vertical', 'horizontal'] as LayoutMode[]).map(l => (
               <button
                 key={l}
                 onClick={() => onLayoutChange?.(l)}
-                style={{
-                  padding: '4px 14px', borderRadius: '16px', border: 'none',
-                  background: poem.layout === l ? '#1a1a1a' : 'transparent',
-                  color: poem.layout === l ? '#fff' : '#888',
-                  fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
-                  fontFamily: 'var(--font-kaiti)', letterSpacing: '1px',
-                }}
+                className={`opt-item ${poem.layout === l ? 'active' : ''}`}
+                style={{ fontSize: '13px' }}
               >
-                {l === 'vertical' ? '↕ 竖排' : '↔ 横排'}
+                {l === 'vertical' ? '竖排' : '横排'}
               </button>
             ))}
           </div>
 
-          {/* 横排子模式 */}
-          {poem.layout === 'horizontal' && (
-            <div style={{ display: 'flex', gap: '4px', background: '#f0ede8', borderRadius: '20px', padding: '3px' }}>
-              {(['modern', 'letter'] as HorizontalSubMode[]).map(m => (
-                <button
-                  key={m}
-                  onClick={() => setHSubMode(m)}
-                  style={{
-                    padding: '4px 12px', borderRadius: '16px', border: 'none',
-                    background: hSubMode === m ? '#555' : 'transparent',
-                    color: hSubMode === m ? '#fff' : '#888',
-                    fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s',
-                  }}
-                >
-                  {m === 'modern' ? '现代' : '书信'}
-                </button>
-              ))}
-            </div>
+          <i className="tb-sep" />
+
+          {/* 横排子模式 / 乌丝栏 */}
+          {poem.layout === 'horizontal' ? (
+            <>
+              <div className="opt-group">
+                {(['modern', 'letter'] as HorizontalSubMode[]).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setHSubMode(m)}
+                    className={`opt-item ${hSubMode === m ? 'active' : ''}`}
+                    style={{ fontSize: '12px' }}
+                  >
+                    {m === 'modern' ? '现代' : '书信'}
+                  </button>
+                ))}
+              </div>
+              <i className="tb-sep" />
+            </>
+          ) : (
+            <>
+              <div className="opt-group">
+                {(['plain', 'wusilan'] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setTemplate(t)}
+                    className={`opt-item ${template === t ? 'active' : ''}`}
+                    style={{ fontSize: '13px' }}
+                  >
+                    {t === 'plain' ? '素笺' : '乌丝栏'}
+                  </button>
+                ))}
+              </div>
+              <i className="tb-sep" />
+            </>
           )}
+
+          {/* 句读切换 */}
+          <div className="opt-group">
+            {([false, true] as const).map(sp => (
+              <button
+                key={sp ? 'no-punc' : 'punc'}
+                onClick={() => setStripPunct(sp)}
+                className={`opt-item ${stripPunct === sp ? 'active' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                {sp ? '无句读' : '保留句读'}
+              </button>
+            ))}
+          </div>
+
+          <i className="tb-sep" />
 
           {/* 花笺纸 */}
           <PaperStyleSelector value={poem.paperStyle} onChange={p => onPaperChange?.(p)} />
 
-          {/* 字体选择 */}
+          <i className="tb-sep" />
+
+          {/* 字体选择 - 去胶囊圆角 */}
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <select
               value={poem.fontStyle || 'none'}
               onChange={e => onFontChange?.(e.target.value as FontStyle)}
               style={{
-                padding: '4px 12px', borderRadius: '16px', border: '1px solid #d5cfc4',
-                background: 'white', color: '#333', fontSize: '13px',
-                fontFamily: 'var(--font-kaiti)', cursor: 'pointer', outline: 'none'
+                border: 'none',
+                borderBottom: '1px solid var(--border-strong)',
+                background: 'transparent',
+                color: 'var(--ink-zhong)',
+                fontSize: '13px',
+                fontFamily: 'var(--font-kai)',
+                cursor: 'pointer',
+                outline: 'none',
+                padding: '4px 6px',
+                borderRadius: 0,
               }}
             >
               {Object.entries(FONT_STYLES).map(([key, val]) => (
-                <option key={key} value={key}>{val.label}</option>
+                <option key={key} value={key} style={{ background: 'var(--paper-1)', color: 'var(--ink-nong)' }}>
+                  {val.label}
+                </option>
               ))}
             </select>
-            <button
-              onClick={handleSetGlobalFont}
-              style={{
-                padding: '4px 10px', borderRadius: '16px', border: 'none',
-                background: 'var(--cinnabar-red)', color: 'white', fontSize: '12px',
-                fontFamily: 'var(--font-kaiti)', cursor: 'pointer'
-              }}
-              title="将当前选中的字体应用到整个软件界面"
-            >
-              设为全局
-            </button>
           </div>
         </div>
+        </>
       )}
 
-      {/* 预览画布（固定比例） */}
-      <div style={{
+      {/* 预览画布 */}
+      <div data-theme="day" className="preview-canvas" style={{
         flex: compact ? undefined : 1,
         aspectRatio: compact ? aspectRatio : undefined,
         position: 'relative',
         borderRadius: '4px',
         overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.05)',
+        boxShadow: 'var(--shadow-lift)',
         fontFamily: FONT_STYLES[poem.fontStyle || 'none'].family
       }}>
         <PaperBackground style={poem.paperStyle}>
@@ -133,6 +158,8 @@ const PoemPreview: React.FC<PoemPreviewProps> = ({
                 content={poem.content || '在此输入佳句...'}
                 createdAt={poem.createdAt}
                 sealDataUrl={sealDataUrl}
+                template={template}
+                stripPunct={stripPunct}
               />
             )
             : (

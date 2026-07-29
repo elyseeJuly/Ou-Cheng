@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Poem, PoemType, SonnetType } from '../../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Poem, PoemBase, PoemType, SonnetType, CipaiData, RhymeBook } from '../../types';
 import { getSettings, getCollections } from '../../services/storageService';
-import { localParseManuscript } from '../../engine/importParser';
-import { splitAndClassifyManuscript } from '../../services/geminiService';
+import {
+  autoDetectJintiVariant,
+  localParseManuscript,
+  resolveCipaiVariant,
+} from '../../engine/importParser';
 
 interface ImportModalProps {
   onClose: () => void;
@@ -17,11 +20,16 @@ interface TempPoem {
   content: string;
   type: PoemType;
   cipaiName?: string;
+  cipaiVariantId?: string;
   sonnetType?: SonnetType;
   jintiVariant?: string;
+  rhymeBook: RhymeBook;
+  matchStatus?: 'exact' | 'ambiguous' | 'unmatched';
+  candidateIds?: string[];
 }
 
 const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const settings = getSettings();
   const existingCollections = getCollections();
 
@@ -34,8 +42,42 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
   const [newCollectionName, setNewCollectionName] = useState('');
 
   // Parsing & Review States
-  const [loading, setLoading] = useState(false);
   const [parsedPoems, setParsedPoems] = useState<TempPoem[]>([]);
+  const [cipais, setCipais] = useState<CipaiData[]>([]);
+
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const getFocusable = () => dialogRef.current?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    getFocusable()?.[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [onClose]);
 
   const TYPE_OPTIONS: { value: PoemType; label: string }[] = [
     { value: 'free', label: '自由创作 / 现代诗' },
@@ -62,7 +104,60 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
     return collectionSelect || undefined;
   };
 
-  const handleLocalParse = () => {
+  const ensureCipais = async (): Promise<CipaiData[]> => {
+    if (cipais.length) return cipais;
+    try {
+      const data = await fetch(`${import.meta.env.BASE_URL || ''}data/cipai.json`).then(response => {
+        if (!response.ok) throw new Error('cipai load failed');
+        return response.json();
+      });
+      const list = Array.isArray(data) ? data : [];
+      setCipais(list);
+      return list;
+    } catch (_) {
+      return [];
+    }
+  };
+
+  const resolveTempPoem = (
+    poem: Omit<TempPoem, 'matchStatus' | 'candidateIds'>,
+    data: CipaiData[],
+    allowAutoCipai = false
+  ): TempPoem => {
+    const rhymeBook = poem.rhymeBook || settings.rhymeBook;
+    const resolution = resolveCipaiVariant(
+      poem.content,
+      `${poem.cipaiName || ''} ${poem.title}`.trim(),
+      data,
+      rhymeBook
+    );
+    const resolvedAsCipai = poem.type === 'cipai' || (allowAutoCipai && resolution.status === 'exact');
+    let jintiVariant = poem.jintiVariant;
+    if (poem.type.startsWith('jueju') || poem.type.startsWith('lvshi')) {
+      jintiVariant = autoDetectJintiVariant(poem.content, poem.type as 'jueju_5' | 'jueju_7' | 'lvshi_5' | 'lvshi_7', rhymeBook);
+    }
+    return {
+      ...poem,
+      type: resolvedAsCipai && resolution.status === 'exact' ? 'cipai' : poem.type,
+      cipaiName: resolvedAsCipai ? (resolution.cipaiName || poem.cipaiName) : undefined,
+      cipaiVariantId: resolvedAsCipai ? resolution.variantId : undefined,
+      jintiVariant,
+      rhymeBook,
+      matchStatus: resolvedAsCipai ? resolution.status : undefined,
+      candidateIds: resolvedAsCipai ? resolution.candidateIds : undefined,
+    };
+  };
+
+  const updateParsedPoem = (index: number, patch: Partial<TempPoem>, rerunResolution = false) => {
+    setParsedPoems(current => current.map((poem, poemIndex) => {
+      if (poemIndex !== index) return poem;
+      const updated = { ...poem, ...patch };
+      if (!rerunResolution) return updated;
+      return resolveTempPoem(updated, cipais);
+    }));
+  };
+
+  const handleLocalParse = async () => {
     if (!inputText.trim()) {
       alert('请填入文稿内容');
       return;
@@ -72,56 +167,25 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
       alert('未识别到有效的诗词，请检查输入格式');
       return;
     }
-    setParsedPoems(localParsed.map(p => ({
-      ...p,
-      checked: true,
-      sonnetType: p.sonnetType || 'none'
-    })));
-    setStep(2);
-  };
-
-  const handleAIParse = async () => {
-    if (!inputText.trim()) {
-      alert('请填入文稿内容');
-      return;
-    }
-    if (!settings.apiKey) {
-      alert('未配置 API Key。请先前往「印匣」完成大模型 API 接入。');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const aiParsed = await splitAndClassifyManuscript(inputText);
-      if (aiParsed.length === 0) {
-        alert('AI 未能拆分识别出任何作品，已为您退回本地解析。');
-        handleLocalParse();
-        return;
-      }
-      setParsedPoems(aiParsed.map((p, idx) => ({
-        id: `ai_${idx}_${Date.now()}`,
+    const cipaiData = await ensureCipais();
+    setParsedPoems(localParsed.map(p => resolveTempPoem({
+        ...p,
         checked: true,
-        title: p.title || '无题',
-        author: p.author || defaultAuthor,
-        content: p.content,
-        type: p.type || 'free',
-        cipaiName: p.cipaiName,
         sonnetType: p.sonnetType || 'none',
-      })));
-      setStep(2);
-    } catch (e) {
-      console.error(e);
-      alert('AI 解析服务出现错误，已为您自动切换至本地快速解析。');
-      handleLocalParse();
-    } finally {
-      setLoading(false);
-    }
+        rhymeBook: settings.rhymeBook,
+      }, cipaiData, true)));
+    setStep(2);
   };
 
   const handleImportSubmit = () => {
     const selected = parsedPoems.filter(p => p.checked);
     if (selected.length === 0) {
       alert('请至少选择一首诗词进行导入');
+      return;
+    }
+    const unresolvedCipai = selected.find(p => p.type === 'cipai' && !p.cipaiVariantId);
+    if (unresolvedCipai) {
+      alert(`《${unresolvedCipai.title || '无题'}》尚未确定具体词牌变体，请在复核页选择后再导入。`);
       return;
     }
 
@@ -140,69 +204,68 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
         jintiVariant = variants[p.type];
       }
 
-      return {
+      const base: PoemBase = {
         id: `${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 5)}`,
         title: p.title || '无题',
         author: p.author || defaultAuthor || '无名氏',
         content: p.content,
         heartNote: '',
-        type: p.type,
-        sonnetType: p.type === 'sonnet' ? p.sonnetType : undefined,
-        cipaiName: p.type === 'cipai' ? p.cipaiName : undefined,
-        jintiVariant,
         layout: settings.defaultLayout,
         paperStyle: settings.defaultPaperStyle,
-        rhymeBook: settings.rhymeBook,
+        rhymeBook: p.rhymeBook,
         collectionName: finalCollection,
         createdAt: Date.now() - (selected.length - idx) * 1000, // ensure ordering
       };
+
+      if (p.type === 'cipai' && p.cipaiName && p.cipaiVariantId) {
+        return { ...base, type: 'cipai', cipaiName: p.cipaiName, cipaiVariantId: p.cipaiVariantId };
+      }
+      if (p.type === 'sonnet' && p.sonnetType && p.sonnetType !== 'none') {
+        return { ...base, type: 'sonnet', sonnetType: p.sonnetType };
+      }
+      if (p.type === 'jueju_5' || p.type === 'jueju_7' || p.type === 'lvshi_5' || p.type === 'lvshi_7') {
+        return { ...base, type: p.type, jintiVariant };
+      }
+      return { ...base, type: 'free' };
     });
 
     onImport(finalPoems);
   };
 
   return (
-    <div style={{
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="导入文稿" style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', 
       zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div className="fade-in-down" style={{
-        background: '#fff', borderRadius: '12px', width: '90%', maxWidth: step === 1 ? '600px' : '800px',
+        background: 'var(--paper-2)', borderRadius: '12px', width: '90%', maxWidth: step === 1 ? '600px' : '800px',
         padding: '30px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', display: 'flex', flexDirection: 'column'
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
-          <h2 style={{ fontFamily: 'var(--font-kaiti)', fontSize: '24px', color: '#1a1a1a', margin: 0, letterSpacing: '2px' }}>
-            📥 {step === 1 ? '导入文稿' : '预览与确认导入'}
+          <h2 style={{ fontFamily: 'var(--font-kai)', fontSize: '24px', color: 'var(--ink-jiao)', margin: 0, letterSpacing: '2px' }}>
+            {step === 1 ? '导入文稿' : '预览与确认导入'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}>×</button>
+          <button aria-label="关闭导入文稿" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}>×</button>
         </div>
 
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: '20px' }}>
-            <div className="spinner" style={{
-              width: '40px', height: '40px', border: '3px solid rgba(178,34,34,0.1)', 
-              borderTop: '3px solid var(--cinnabar-red)', borderRadius: '50%', animation: 'spin 1s linear infinite'
-            }} />
-            <p style={{ fontFamily: 'var(--font-kaiti)', color: '#666', fontSize: '16px' }}>🤖 偶成君正在为您拆分并识别文稿题材，请稍候...</p>
-          </div>
-        ) : step === 1 ? (
+        {step === 1 ? (
           /* Step 1: Input Raw Text */
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', gap: '16px' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '6px' }}>默认作者笔名</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-zhong)', marginBottom: '6px' }}>默认作者笔名</label>
                 <input type="text" value={defaultAuthor} onChange={e => setDefaultAuthor(e.target.value)} placeholder="笔名..."
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)' }} />
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--ink-qing)', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kai)' }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '6px' }}>放置到文集</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-zhong)', marginBottom: '6px' }}>放置到文集</label>
                 <select value={collectionSelect} onChange={e => setCollectionSelect(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)', background: '#fff' }}>
-                  <option value="">📁 不归入文集（未分类）</option>
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--ink-qing)', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kai)', background: 'var(--paper-2)' }}>
+                  <option value="">不归入文集（未分类）</option>
                   <option value="__new__">＋ 新建文集...</option>
                   {existingCollections.map(c => (
-                    <option key={c} value={c}>📓 {c}</option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
@@ -210,35 +273,24 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
 
             {collectionSelect === '__new__' && (
               <div className="fade-in">
-                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '6px' }}>新建文集名称</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-zhong)', marginBottom: '6px' }}>新建文集名称</label>
                 <input type="text" value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)} placeholder="请输入文集名称（如：行客集）"
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)' }} />
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--ink-qing)', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kai)' }} />
               </div>
             )}
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '6px' }}>正文 (支持粘贴多首诗，多首诗词之间用空行分隔)</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-zhong)', marginBottom: '6px' }}>正文 (支持粘贴多首诗，多首诗词之间用空行分隔)</label>
               <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="在此粘贴诗词文本...&#10;例如：&#10;《春晓》&#10;春眠不觉晓，处处闻啼鸟。&#10;夜来风雨声，花落知多少。&#10;&#10;《送友人》&#10;青山横北郭，白水绕东城。&#10;此地一为别，孤蓬万里征。"
-                style={{ width: '100%', height: '220px', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)', resize: 'none', lineHeight: 1.6 }} />
+                style={{ width: '100%', height: '220px', padding: '12px', border: '1px solid var(--ink-qing)', borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kai)', resize: 'none', lineHeight: 1.6 }} />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', marginTop: '10px' }}>
               <button onClick={handleLocalParse} style={{
-                flex: 1, background: '#fdfbf7', border: '1px solid #d9c9b2', color: '#8b5a2b', padding: '12px',
-                borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                width: '100%', background: 'var(--accent-cta)', border: 'none', color: '#F9F3E6', padding: '12px',
+                borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kai)', cursor: 'pointer'
               }}>
-                ⚡ 本地快速解析
-              </button>
-              <button 
-                onClick={handleAIParse}
-                style={{
-                  flex: 1, background: 'var(--cinnabar-red)', color: 'white', border: 'none', padding: '12px',
-                  borderRadius: '6px', fontSize: '15px', fontFamily: 'var(--font-kaiti)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  opacity: settings.apiKey ? 1 : 0.6
-                }}
-              >
-                🤖 AI 智能解析 {settings.apiKey ? '' : '(需配Key)'}
+                本地解析并复核
               </button>
             </div>
           </div>
@@ -246,20 +298,20 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
           /* Step 2: Review & Edit Parsed Poems */
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             {getFinalCollection() && (
-              <div style={{ background: '#fdfbf7', border: '1px solid #d9c9b2', color: '#8b5a2b', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', marginBottom: '16px', fontFamily: 'var(--font-kaiti)' }}>
-                📓 准备导入至文集：<strong>{getFinalCollection()}</strong>
+              <div style={{ background: 'var(--paper-1)', border: '1px solid var(--ink-qing)', color: 'var(--ink-zhong)', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', marginBottom: '16px', fontFamily: 'var(--font-kai)' }}>
+                准备导入至文集：<strong>{getFinalCollection()}</strong>
               </div>
             )}
             
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {parsedPoems.map((poem, index) => (
                 <div key={poem.id} style={{
-                  border: '1px solid #eee', borderRadius: '8px', padding: '20px', background: poem.checked ? '#fff' : '#fcfcfc',
+                  border: '1px solid #eee', borderRadius: '8px', padding: '20px', background: poem.checked ? 'var(--paper-2)' : '#fcfcfc',
                   boxShadow: poem.checked ? '0 4px 12px rgba(0,0,0,0.04)' : 'none', opacity: poem.checked ? 1 : 0.6,
-                  transition: 'all 0.2s', borderLeft: poem.checked ? '4px solid var(--cinnabar-red)' : '4px solid #ccc'
+                  transition: 'all 0.2s', borderLeft: poem.checked ? '4px solid var(--accent-active)' : '4px solid var(--ink-qing)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'var(--font-kaiti)', fontSize: '16px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'var(--font-kai)', fontSize: '16px' }}>
                       <input type="checkbox" checked={poem.checked} 
                         onChange={e => {
                           const updated = [...parsedPoems];
@@ -278,12 +330,8 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                         <div style={{ flex: 2 }}>
                           <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>标题</label>
                           <input type="text" value={poem.title} 
-                            onChange={e => {
-                              const updated = [...parsedPoems];
-                              updated[index].title = e.target.value;
-                              setParsedPoems(updated);
-                            }} 
-                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)' }} 
+                            onChange={e => updateParsedPoem(index, { title: e.target.value }, poem.type === 'cipai')}
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)' }} 
                           />
                         </div>
                         <div style={{ flex: 1 }}>
@@ -294,7 +342,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                               updated[index].author = e.target.value;
                               setParsedPoems(updated);
                             }} 
-                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)' }} 
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)' }} 
                           />
                         </div>
                       </div>
@@ -304,11 +352,20 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                           <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>体裁判定</label>
                           <select value={poem.type} 
                             onChange={e => {
-                              const updated = [...parsedPoems];
-                              updated[index].type = e.target.value as PoemType;
-                              setParsedPoems(updated);
+                              const type = e.target.value as PoemType;
+                              if (type === 'cipai') {
+                                updateParsedPoem(index, { type, cipaiVariantId: undefined }, true);
+                                return;
+                              }
+                              const jintiVariant = type.startsWith('jueju') || type.startsWith('lvshi')
+                                ? autoDetectJintiVariant(poem.content, type as 'jueju_5' | 'jueju_7' | 'lvshi_5' | 'lvshi_7', poem.rhymeBook)
+                                : undefined;
+                              updateParsedPoem(index, {
+                                type, jintiVariant, cipaiName: undefined, cipaiVariantId: undefined,
+                                matchStatus: undefined, candidateIds: undefined,
+                              });
                             }} 
-                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)', background: '#fff' }}
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)', background: 'var(--paper-2)' }}
                           >
                             {TYPE_OPTIONS.map(opt => (
                               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -320,12 +377,10 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                           <div style={{ flex: 1 }} className="fade-in">
                             <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>词牌名称</label>
                             <input type="text" value={poem.cipaiName || ''} placeholder="例如：浣溪沙"
-                              onChange={e => {
-                                const updated = [...parsedPoems];
-                                updated[index].cipaiName = e.target.value;
-                                setParsedPoems(updated);
-                              }} 
-                              style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)' }} 
+                              onChange={e => updateParsedPoem(index, {
+                                cipaiName: e.target.value, cipaiVariantId: undefined,
+                              }, true)}
+                              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)' }} 
                             />
                           </div>
                         )}
@@ -339,7 +394,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                                 updated[index].sonnetType = e.target.value as SonnetType;
                                 setParsedPoems(updated);
                               }} 
-                              style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)', background: '#fff' }}
+                              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)', background: 'var(--paper-2)' }}
                             >
                               {SONNET_OPTIONS.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -349,15 +404,81 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
                         )}
                       </div>
 
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>本次校验韵书</label>
+                          <select
+                            value={poem.rhymeBook}
+                            onChange={e => {
+                              const rhymeBook = e.target.value as RhymeBook;
+                              if (poem.type === 'cipai') {
+                                updateParsedPoem(index, { rhymeBook, cipaiVariantId: undefined }, true);
+                                return;
+                              }
+                              const jintiVariant = poem.type.startsWith('jueju') || poem.type.startsWith('lvshi')
+                                ? autoDetectJintiVariant(poem.content, poem.type as 'jueju_5' | 'jueju_7' | 'lvshi_5' | 'lvshi_7', rhymeBook)
+                                : poem.jintiVariant;
+                              updateParsedPoem(index, { rhymeBook, jintiVariant });
+                            }}
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)', background: 'var(--paper-2)' }}
+                          >
+                            <option value="ci_lin">词林正韵</option>
+                            <option value="ping_shui">平水韵</option>
+                            <option value="xin_yun">中华新韵</option>
+                          </select>
+                        </div>
+
+                        {poem.type === 'cipai' && (
+                          <div style={{ flex: 2 }}>
+                            <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>具体词牌变体</label>
+                            <select
+                              value={poem.cipaiVariantId || ''}
+                              onChange={e => {
+                                const variant = cipais.find(cipai => cipai.id === e.target.value);
+                                if (!variant) {
+                                  updateParsedPoem(index, { cipaiVariantId: undefined, matchStatus: 'unmatched' });
+                                  return;
+                                }
+                                updateParsedPoem(index, {
+                                  cipaiName: variant.name,
+                                  cipaiVariantId: variant.id,
+                                  matchStatus: 'exact',
+                                  candidateIds: variant.id ? [variant.id] : [],
+                                });
+                              }}
+                              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)', background: 'var(--paper-2)' }}
+                            >
+                              <option value="">{poem.matchStatus === 'ambiguous' ? '请选择匹配体' : '尚未确定具体格体'}</option>
+                              {cipais.filter(cipai =>
+                                cipai.name === poem.cipaiName || poem.candidateIds?.includes(cipai.id || '')
+                              ).map((cipai, variantIndex) => (
+                                <option key={cipai.id || `${cipai.name}-${variantIndex}`} value={cipai.id || ''}>
+                                  {cipai.name} · {cipai.variantLabel || '正体'} · {cipai.charCount} 字 · {cipai.sourceAuthor || '佚名'}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {poem.type === 'cipai' && (
+                        <div style={{ fontSize: '12px', color: poem.cipaiVariantId ? 'var(--meter-ping)' : 'var(--meter-warn)' }}>
+                          {poem.cipaiVariantId
+                            ? '已确定本地词谱变体，导入后将使用同一韵书继续校验。'
+                            : poem.matchStatus === 'ambiguous'
+                              ? '存在多个同分候选，请明确选择具体变体。'
+                              : '正文与本地词谱尚未形成唯一匹配，请核对正文、词牌名或手动选择。'}
+                        </div>
+                      )}
+
                       <div>
                         <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '4px' }}>正文内容</label>
                         <textarea value={poem.content} 
-                          onChange={e => {
-                            const updated = [...parsedPoems];
-                            updated[index].content = e.target.value;
-                            setParsedPoems(updated);
-                          }} 
-                          style={{ width: '100%', height: '100px', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kaiti)', resize: 'none', lineHeight: 1.5 }} 
+                          onChange={e => updateParsedPoem(index, {
+                            content: e.target.value,
+                            cipaiVariantId: poem.type === 'cipai' ? undefined : poem.cipaiVariantId,
+                          }, poem.type === 'cipai')}
+                          style={{ width: '100%', height: '100px', padding: '8px 10px', border: '1px solid var(--ink-qing)', borderRadius: '4px', fontSize: '14px', fontFamily: 'var(--font-kai)', resize: 'none', lineHeight: 1.5 }} 
                         />
                       </div>
                     </div>
@@ -368,13 +489,13 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
 
             <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
               <button onClick={handleImportSubmit} style={{
-                flex: 2, background: 'var(--cinnabar-red)', color: 'white', border: 'none', padding: '12px',
-                borderRadius: '6px', fontSize: '16px', fontFamily: 'var(--font-kaiti)', cursor: 'pointer', letterSpacing: '2px'
+                flex: 2, background: 'var(--accent-cta)', color: '#F9F3E6', border: 'none', padding: '12px',
+                borderRadius: '6px', fontSize: '16px', fontFamily: 'var(--font-kai)', cursor: 'pointer', letterSpacing: '2px'
               }}>
                 确认导入 (已选择 {parsedPoems.filter(p => p.checked).length} 首)
               </button>
               <button onClick={() => setStep(1)} style={{
-                flex: 1, background: 'white', color: '#666', border: '1px solid #ddd', padding: '12px',
+                flex: 1, background: 'white', color: 'var(--ink-zhong)', border: '1px solid var(--ink-qing)', padding: '12px',
                 borderRadius: '6px', fontSize: '15px', cursor: 'pointer'
               }}>
                 返回重新输入
@@ -383,12 +504,6 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
           </div>
         )}
       </div>
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

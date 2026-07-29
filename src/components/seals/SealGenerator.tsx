@@ -8,6 +8,32 @@ interface SealGeneratorProps {
   onGenerated?: (dataUrl: string) => void;
 }
 
+// ── 印泥侵蚀：模拟印泥不均与纸面纤维 ────────────────────
+function applySealErosion(ctx: CanvasRenderingContext2D, size: number) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  // 1. 全域细小蚀点（印泥颗粒感）
+  const dots = Math.floor(size * size * 0.006);
+  for (let i = 0; i < dots; i++) {
+    ctx.fillStyle = `rgba(0,0,0,${0.25 + Math.random() * 0.45})`;
+    ctx.beginPath();
+    ctx.arc(Math.random() * size, Math.random() * size, Math.random() * 1.3 + 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 2. 边缘重点侵蚀（钤印时边框受力不均，古印精髓）
+  const edgeDots = Math.floor(size * 0.9);
+  for (let i = 0; i < edgeDots; i++) {
+    const onVertical = Math.random() > 0.5;
+    const x = onVertical ? (Math.random() > 0.5 ? size * (0.04 + Math.random() * 0.08) : size * (0.88 + Math.random() * 0.08)) : Math.random() * size;
+    const y = onVertical ? Math.random() * size : (Math.random() > 0.5 ? size * (0.04 + Math.random() * 0.08) : size * (0.88 + Math.random() * 0.08));
+    ctx.fillStyle = `rgba(0,0,0,${0.35 + Math.random() * 0.4})`;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.random() * 2 + 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 // ── 生成篆书风格印章 ────────────────────────────────────
 export function generateSealDataUrl(penName: string, style: SealStyle, size = 120): string {
   const canvas = document.createElement('canvas');
@@ -26,16 +52,14 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
 
   switch (style) {
     case 'yang_yuan': {
-      // 阳文圆形朱文：白底红边红字
-      ctx.fillStyle = '#fff';
+      // 阳文圆形朱文：只有朱色线条，底为透明（纸本色）
+      ctx.strokeStyle = '#A63A2B';
+      ctx.lineWidth = size * 0.05;
       ctx.beginPath();
       ctx.arc(cx + jitter(), cy + jitter(), r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#b22222';
-      ctx.lineWidth = size * 0.05;
       ctx.stroke();
       // 文字
-      ctx.fillStyle = '#b22222';
+      ctx.fillStyle = '#A63A2B';
       ctx.font = `bold ${size * 0.36}px "Ma Shan Zheng", "LXGW WenKai Lite", "Noto Serif SC", serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -50,7 +74,7 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
     case 'yin_fang': {
       // 阴文方形白文：红底白字
       const pad = size * 0.06;
-      ctx.fillStyle = '#b22222';
+      ctx.fillStyle = '#A63A2B';
       ctx.beginPath();
       ctx.roundRect(pad + jitter(), pad + jitter(), size - pad * 2, size - pad * 2, 4);
       ctx.fill();
@@ -72,24 +96,22 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
       break;
     }
     case 'jiudie': {
-      // 九叠篆方形：白底红字，叠纹边框
+      // 九叠篆方形：保留叠纹边框，不画底色（透明底）
       const p = size * 0.07;
-      ctx.fillStyle = '#fff8f0';
-      ctx.fillRect(p, p, size - p * 2, size - p * 2);
       // 叠纹边框（简化：多层矩形描边）
       for (let i = 0; i < 3; i++) {
-        ctx.strokeStyle = `rgba(178,34,34,${0.4 - i * 0.12})`;
+        ctx.strokeStyle = `rgba(166,58,43,${0.4 - i * 0.12})`;
         ctx.lineWidth = 1;
         ctx.strokeRect(p + i * 3, p + i * 3, size - p * 2 - i * 6, size - p * 2 - i * 6);
       }
       // 横格纹（九叠特征）
-      ctx.strokeStyle = 'rgba(178,34,34,0.1)';
+      ctx.strokeStyle = 'rgba(166,58,43,0.1)';
       ctx.lineWidth = 0.5;
       for (let y = p * 2; y < size - p * 2; y += size * 0.12) {
         ctx.beginPath(); ctx.moveTo(p, y); ctx.lineTo(size - p, y); ctx.stroke();
       }
       // 字
-      ctx.fillStyle = '#b22222';
+      ctx.fillStyle = '#A63A2B';
       ctx.font = `bold ${size * 0.36}px "Ma Shan Zheng", "LXGW WenKai Lite", "Noto Serif SC", serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if (chars.length === 1) {
@@ -102,7 +124,7 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
     }
     case 'niaochen': {
       // 鸟虫篆椭圆：深红底白字，椭圆形
-      ctx.fillStyle = '#8b0000';
+      ctx.fillStyle = '#8B2F23';
       ctx.beginPath();
       ctx.ellipse(cx + jitter(), cy + jitter(), r * 1.15, r * 0.85, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -135,19 +157,14 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
       ctx.beginPath();
       ctx.roundRect(pad2 + jitter(), pad2 + jitter(), size - pad2 * 2, size - pad2 * 2, radius);
       ctx.fill();
-      ctx.strokeStyle = '#b22222';
+      ctx.strokeStyle = '#A63A2B';
       ctx.lineWidth = size * 0.04;
       ctx.beginPath();
       ctx.roundRect(pad2, pad2, size - pad2 * 2, size - pad2 * 2, radius);
       ctx.stroke();
-      // 做旧纹理：随机噪点
-      for (let i = 0; i < 60; i++) {
-        const nx = Math.random() * size, ny = Math.random() * size;
-        ctx.fillStyle = `rgba(150,100,60,${Math.random() * 0.08})`;
-        ctx.fillRect(nx, ny, 1, 1);
-      }
+      // 旧噪点被统一 erosion 取代
       // 字
-      ctx.fillStyle = '#922b21';
+      ctx.fillStyle = '#8B2F23';
       ctx.font = `bold ${size * 0.37}px "Ma Shan Zheng", "LXGW WenKai Lite", "Noto Serif SC", serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if (chars.length === 1) {
@@ -159,6 +176,9 @@ export function generateSealDataUrl(penName: string, style: SealStyle, size = 12
       break;
     }
   }
+
+  // Apply erosion after drawing everything
+  applySealErosion(ctx, size);
 
   return canvas.toDataURL('image/png');
 }

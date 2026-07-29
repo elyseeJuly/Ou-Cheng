@@ -1,8 +1,16 @@
 import React from 'react';
-import { useCreate } from './CreateContext';
+import { useCreateDocument, useCreateForm, useCreateWorkflow } from './CreateContext';
 
 const ModeToggle: React.FC = () => {
-  const { mode, setMode, setShowImport } = useCreate();
+  const { activeContent } = useCreateDocument();
+  const { mode, setMode } = useCreateForm();
+  const { setShowImport } = useCreateWorkflow();
+
+  const handleModeChange = (nextMode: 'free' | 'pro') => {
+    if (nextMode === mode) return;
+    if (activeContent.trim() && !confirm('切换创作模式会重新解释当前结构，正文草稿仍会保留。是否继续？')) return;
+    setMode(nextMode);
+  };
 
   return (
     <div className="mode-toggle">
@@ -10,29 +18,19 @@ const ModeToggle: React.FC = () => {
         <button
           key={m}
           className={`mode-btn ${mode === m ? 'active' : ''}`}
-          onClick={() => setMode(m)}
+          onClick={() => handleModeChange(m)}
         >
           {m === 'free' ? '自由挥毫' : '专业格律'}
         </button>
       ))}
       <button 
         onClick={() => setShowImport(true)} 
-        style={{ 
-          marginLeft: 'auto', 
-          background: 'none', 
-          border: '1px solid #d9c9b2', 
-          color: '#8b5a2b', 
-          padding: '4px 12px', 
-          borderRadius: '16px', 
-          fontSize: '13px', 
-          cursor: 'pointer', 
-          fontFamily: 'var(--font-kaiti)' 
-        }}
+        className="import-trigger"
       >
-        + 导入文稿
+        导入文稿
       </button>
     </div>
   );
 };
 
-export default ModeToggle;
+export default React.memo(ModeToggle);

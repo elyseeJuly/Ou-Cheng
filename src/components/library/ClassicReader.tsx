@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ClassicPoem, MeterCheckResult, ImageryItem } from '../../types';
-import { checkJintiShi, checkCipai } from '../../engine/meterChecker';
-import { getUpstreamIssueUrl, formatCorrectionJSON } from '../../services/contributionService';
+import React, { useState, useRef } from 'react';
+import { ClassicPoem, ImageryItem } from '../../types';
 
 interface ClassicReaderProps {
   poems: ClassicPoem[];
@@ -15,86 +13,7 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
   const [flipDir, setFlipDir] = useState<'up' | 'down'>('up');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [cipaiList, setCipaiList] = useState<any[]>([]);
-  const [auditResult, setAuditResult] = useState<MeterCheckResult | null>(null);
-  const [showContributionTip, setShowContributionTip] = useState(false);
-
-  // Correction Form States
-  const [correctedTitle, setCorrectedTitle] = useState('');
-  const [correctedAuthor, setCorrectedAuthor] = useState('');
-  const [correctedContent, setCorrectedContent] = useState('');
-  const [correctionNotes, setCorrectionNotes] = useState('');
-
   const poem = poems[currentIdx];
-
-  // Load Cipai list for Ci heuristics
-  useEffect(() => {
-    fetch(`${(import.meta as any).env.BASE_URL || ''}data/cipai.json`)
-      .then(r => r.json())
-      .then(data => setCipaiList(data))
-      .catch(() => {});
-  }, []);
-
-  // 自动探测并审计格律 (高度智能启发式：支持律绝与词牌)
-  const performAudit = () => {
-    if (!poem) return;
-    const lines = poem.content?.split('\n').filter(Boolean) || [];
-    const charCount = lines[0]?.replace(/[，。、；？！]/g, '').length || 0;
-    const lineCount = lines.length;
-
-    // 1. 律绝探测 (Genre 包含“诗”，或不包含“词/曲”的近体句式)
-    let shiType = '';
-    if (poem.genre?.includes('诗') || (!poem.genre && !poem.title.includes('·') && lineCount > 0)) {
-      if (lineCount === 4 && charCount === 5) shiType = 'jueju_5';
-      else if (lineCount === 4 && charCount === 7) shiType = 'jueju_7';
-      else if (lineCount === 8 && charCount === 5) shiType = 'lvshi_5';
-      else if (lineCount === 8 && charCount === 7) shiType = 'lvshi_7';
-    }
-
-    if (shiType) {
-      try {
-        const result = checkJintiShi(poem.content, shiType, 'ping_shui');
-        setAuditResult(result);
-        return;
-      } catch (_) {}
-    }
-
-    // 2. 词牌探测 (Genre 包含“词”，或标题中含“·”，或无类型但含有已知词牌)
-    if (poem.genre?.includes('词') || poem.title.includes('·') || (!poem.genre && lineCount > 0)) {
-      const titleParts = poem.title.split(/[·\s]/);
-      const possibleNames = [poem.title, ...titleParts];
-      
-      const matchedCipai = cipaiList.find(c => 
-        possibleNames.some(name => name.includes(c.name) || c.name.includes(name))
-      );
-
-      if (matchedCipai) {
-        try {
-          const result = checkCipai(poem.content, matchedCipai, 'ci_lin');
-          setAuditResult(result);
-          return;
-        } catch (_) {}
-      }
-    }
-
-    // 3. 兜底无审计
-    setAuditResult(null);
-  };
-
-  useEffect(() => {
-    setAuditResult(null); // 翻页时重置
-    setShowContributionTip(false);
-  }, [currentIdx]);
-
-  // Sync correction form states when correction dialog opens
-  useEffect(() => {
-    if (showContributionTip && poem) {
-      setCorrectedTitle(poem.title);
-      setCorrectedAuthor(poem.author || '佚名');
-      setCorrectedContent(poem.content);
-      setCorrectionNotes(auditResult?.summary || '');
-    }
-  }, [showContributionTip, poem, auditResult]);
 
   const goTo = (idx: number, dir: 'up' | 'down') => {
     if (isFlipping || idx < 0 || idx >= poems.length) return;
@@ -122,7 +41,7 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
   const lines = poem.content?.split('\n').filter(Boolean) || [];
 
   return (
-    <div
+    <div className="classic-reader-shell"
       style={{
         maxWidth: 520, margin: '0 auto', position: 'relative',
         userSelect: 'none',
@@ -147,7 +66,7 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
         }}
       >
         {/* 书脊线纹 */}
-        <div style={{
+        <div className="classic-book-spine" style={{
           position: 'absolute', left: 0, top: 0, bottom: 0, width: '18px',
           background: 'linear-gradient(to right, #c8b89a, #d9c9b2)',
           borderRadius: '2px 0 0 2px',
@@ -160,36 +79,36 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
         </div>
 
         {/* 右侧线缝装饰 */}
-        <div style={{
+        <div className="classic-book-seam" style={{
           position: 'absolute', right: '18px', top: 0, bottom: 0, width: '2px',
           borderRight: '1px dashed rgba(178,34,34,0.2)',
         }} />
 
         {/* 朝代 + 体裁标签 */}
-        <div style={{
+        <div className="classic-book-tags" style={{
           position: 'absolute', top: '20px', right: '30px',
           display: 'flex', gap: '6px',
         }}>
           {poem.dynasty && (
             <span style={{
-              fontSize: '11px', fontFamily: 'monospace',
+              fontSize: '11px', fontFamily: 'var(--font-serif)',
               color: '#999', letterSpacing: '1px',
               border: '1px solid #ddd', padding: '1px 6px', borderRadius: '3px',
             }}>{poem.dynasty}</span>
           )}
           {poem.genre && (
             <span style={{
-              fontSize: '11px', fontFamily: 'monospace',
-              color: 'var(--cinnabar-red)', letterSpacing: '1px',
+              fontSize: '11px', fontFamily: 'var(--font-serif)',
+              color: 'var(--accent-seal)', letterSpacing: '1px',
               border: '1px solid rgba(178,34,34,0.3)', padding: '1px 6px', borderRadius: '3px',
             }}>{poem.genre}</span>
           )}
         </div>
 
         {/* 诗题 */}
-        <h2 style={{
+        <h2 className="classic-book-title" style={{
           textAlign: 'center',
-          fontFamily: 'var(--font-kaiti)',
+          fontFamily: 'var(--font-kai)',
           fontSize: '26px',
           color: '#1a1a1a',
           letterSpacing: '6px',
@@ -199,9 +118,9 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
         </h2>
 
         {/* 作者 */}
-        <p style={{
+        <p className="classic-book-author" style={{
           textAlign: 'center',
-          fontFamily: 'var(--font-kaiti)',
+          fontFamily: 'var(--font-kai)',
           fontSize: '14px',
           color: '#b22222',
           letterSpacing: '4px',
@@ -211,22 +130,22 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
         </p>
 
         {/* 横分隔线 */}
-        <div style={{
+        <div className="classic-book-divider" style={{
           width: '60px', height: '1px',
           background: 'rgba(178,34,34,0.3)',
           margin: '0 auto 36px',
         }} />
 
         {/* 正文 */}
-        <div style={{
+        <div className="classic-book-content" style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '14px',
         }}>
           {lines.map((line, i) => (
-            <p key={i} style={{
-              fontFamily: 'var(--font-kaiti)',
+            <p className="classic-book-line" key={i} style={{
+              fontFamily: 'var(--font-kai)',
               fontSize: '20px',
               color: '#1a1a1a',
               letterSpacing: '5px',
@@ -240,7 +159,7 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
 
         {/* 意象标签 */}
         {imageryItems && poem && (
-          <div style={{
+          <div className="classic-imagery-tags" style={{
             display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center',
             marginTop: '36px',
             borderTop: '1px dashed rgba(178,34,34,0.15)', paddingTop: '20px'
@@ -253,12 +172,12 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
                   onClick={() => onImageryClick?.(item.word)}
                   style={{
                     background: 'rgba(178,34,34,0.06)', border: '1px solid rgba(178,34,34,0.15)',
-                    color: 'var(--cinnabar-red)', padding: '4px 14px', borderRadius: '16px',
-                    fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)',
+                    color: 'var(--accent-active)', padding: '4px 14px', borderRadius: '16px',
+                    fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-kai)',
                     transition: 'all 0.2s', letterSpacing: '2px'
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--cinnabar-red)'; e.currentTarget.style.color = 'white'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(178,34,34,0.06)'; e.currentTarget.style.color = 'var(--cinnabar-red)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-active)'; e.currentTarget.style.color = 'white'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(178,34,34,0.06)'; e.currentTarget.style.color = 'var(--accent-active)'; }}
                 >
                   {item.word}
                 </button>
@@ -267,147 +186,15 @@ const ClassicReader: React.FC<ClassicReaderProps> = ({ poems, imageryItems, onIm
         )}
 
         {/* 页码 */}
-        <div style={{
+        <div className="classic-page-number" style={{
           position: 'absolute', bottom: '24px', left: 0, right: 0,
           textAlign: 'center',
           fontSize: '12px', color: '#bbb',
-          fontFamily: 'monospace', letterSpacing: '2px',
+          fontFamily: 'var(--font-serif)', letterSpacing: '2px',
         }}>
           {currentIdx + 1} / {poems.length}
         </div>
 
-        {/* AI 纠错悬浮按钮 */}
-        <div style={{
-          position: 'absolute', bottom: '20px', right: '30px',
-          display: 'flex', gap: '8px', zIndex: 10,
-        }}>
-           {!auditResult ? (
-             <button
-               onClick={performAudit}
-               style={{
-                 background: 'rgba(178,34,34,0.05)', border: '1px solid rgba(178,34,34,0.2)',
-                 color: 'var(--cinnabar-red)', padding: '4px 12px', borderRadius: '15px',
-                 fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-kaiti)',
-               }}
-             >
-               AI 审计
-             </button>
-           ) : (
-             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-               <span style={{
-                 fontSize: '11px', padding: '2px 8px', borderRadius: '10px',
-                 background: auditResult.isValid ? 'rgba(45,90,61,0.1)' : 'rgba(178,34,34,0.1)',
-                 color: auditResult.isValid ? '#2d5a3d' : 'var(--cinnabar-red)',
-                 fontFamily: 'monospace',
-               }}>
-                 {auditResult.isValid ? '✓ 格律严整' : `⚠ ${auditResult.violationCount}处疑误`}
-               </span>
-               {!auditResult.isValid && (
-                 <button
-                   onClick={() => setShowContributionTip(true)}
-                   style={{
-                     background: 'var(--cinnabar-red)', color: 'white', border: 'none',
-                     padding: '2px 10px', borderRadius: '4px', fontSize: '11px',
-                     cursor: 'pointer', boxShadow: '0 2px 4px rgba(178,34,34,0.2)',
-                   }}
-                 >
-                   去纠错
-                 </button>
-               )}
-             </div>
-           )}
-        </div>
-
-        {/* 纠错弹窗 (高保真交互表单) */}
-        {showContributionTip && (
-          <div style={{
-            position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.98)',
-            zIndex: 100, padding: '24px 32px', display: 'flex', flexDirection: 'column',
-            justifyContent: 'flex-start', borderRadius: '8px', border: '2px solid var(--cinnabar-red)',
-            overflowY: 'auto',
-          }}>
-            <h3 style={{ fontFamily: 'var(--font-kaiti)', color: 'var(--cinnabar-red)', marginBottom: '12px', fontSize: '18px', textAlign: 'center' }}>
-              · 经典纠错回馈社区 ·
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, marginBottom: '16px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>标题</label>
-                  <input
-                    type="text"
-                    value={correctedTitle}
-                    onChange={e => setCorrectedTitle(e.target.value)}
-                    style={{ width: '100%', padding: '4px 8px', border: '1px solid #ddd', borderRadius: '4px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>作者</label>
-                  <input
-                    type="text"
-                    value={correctedAuthor}
-                    onChange={e => setCorrectedAuthor(e.target.value)}
-                    style={{ width: '100%', padding: '4px 8px', border: '1px solid #ddd', borderRadius: '4px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>正文内容</label>
-                <textarea
-                  value={correctedContent}
-                  onChange={e => setCorrectedContent(e.target.value)}
-                  style={{ width: '100%', flex: 1, padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px', resize: 'none', fontFamily: 'var(--font-kaiti)', fontSize: '15px', lineHeight: 1.6, background: 'transparent' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>纠错说明 / 考证参考</label>
-                <input
-                  type="text"
-                  value={correctionNotes}
-                  onChange={e => setCorrectionNotes(e.target.value)}
-                  placeholder="如：据宋本《东坡乐府》此处应为某字"
-                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', fontFamily: 'var(--font-kaiti)', background: 'transparent' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => {
-                  const json = formatCorrectionJSON({
-                    original: poem,
-                    corrected: { ...poem, title: correctedTitle, author: correctedAuthor, content: correctedContent },
-                    notes: correctionNotes,
-                    timestamp: Date.now()
-                  });
-                  navigator.clipboard.writeText(json);
-                  alert('已复制高保真纠错 JSON 数据！正在为您打开上游 GitHub 纠错 Issue 页面...');
-                  window.open(getUpstreamIssueUrl(correctedTitle), '_blank');
-                }}
-                style={{
-                  flex: 2, background: 'var(--cinnabar-red)', color: 'white', border: 'none',
-                  padding: '10px', borderRadius: '4px', cursor: 'pointer',
-                  fontFamily: 'var(--font-kaiti)', fontSize: '14px',
-                  boxShadow: '0 2px 4px rgba(178,34,34,0.2)',
-                }}
-              >
-                生成 JSON 并回馈社区
-              </button>
-              <button
-                onClick={() => setShowContributionTip(false)}
-                style={{
-                  flex: 1, background: 'none', border: '1px solid #ddd',
-                  padding: '10px', borderRadius: '4px', cursor: 'pointer',
-                  color: '#999', fontSize: '13px',
-                }}
-              >
-                取消
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 翻页控制 */}

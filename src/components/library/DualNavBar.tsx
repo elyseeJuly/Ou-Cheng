@@ -32,28 +32,29 @@ const GENRE_OPTIONS: { value: Genre; label: string; icon: string }[] = [
 
 const DualNavBar: React.FC<DualNavBarProps> = ({ dynasty, genre, onDynastyChange, onGenreChange }) => {
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div className="classic-dual-nav" style={{ marginBottom: '32px' }}>
       {/* 朝代栏 */}
-      <div style={{ marginBottom: '14px' }}>
-        <div style={{
+      <div className="classic-filter-group" style={{ marginBottom: '14px' }}>
+        <div className="classic-filter-label" style={{
           fontSize: '11px', color: '#999', letterSpacing: '3px',
-          fontFamily: 'monospace', marginBottom: '8px',
+          fontFamily: 'var(--font-serif)', marginBottom: '8px',
         }}>
           · 朝代 ·
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="classic-filter-options" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {DYNASTY_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => onDynastyChange(opt.value)}
+              className={dynasty === opt.value ? 'active' : ''}
               style={{
                 padding: '5px 14px',
-                border: dynasty === opt.value ? '1px solid var(--cinnabar-red)' : '1px solid #e0e0e0',
+                border: dynasty === opt.value ? '1px solid var(--accent-active)' : '1px solid var(--ink-qing)',
                 borderRadius: '20px',
-                background: dynasty === opt.value ? 'var(--cinnabar-red)' : 'transparent',
-                color: dynasty === opt.value ? 'white' : '#666',
+                background: dynasty === opt.value ? 'var(--accent-active)' : 'transparent',
+                color: dynasty === opt.value ? '#F9F3E6' : 'var(--ink-zhong)',
                 fontSize: '13px',
-                fontFamily: 'var(--font-kaiti)',
+                fontFamily: 'var(--font-kai)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 letterSpacing: '1px',
@@ -66,26 +67,27 @@ const DualNavBar: React.FC<DualNavBarProps> = ({ dynasty, genre, onDynastyChange
       </div>
 
       {/* 体裁栏 */}
-      <div>
-        <div style={{
+      <div className="classic-filter-group">
+        <div className="classic-filter-label" style={{
           fontSize: '11px', color: '#999', letterSpacing: '3px',
-          fontFamily: 'monospace', marginBottom: '8px',
+          fontFamily: 'var(--font-serif)', marginBottom: '8px',
         }}>
           · 体裁 ·
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="classic-filter-options" style={{ display: 'flex', gap: '8px' }}>
           {GENRE_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => onGenreChange(opt.value)}
+              className={genre === opt.value ? 'active' : ''}
               style={{
                 padding: '5px 14px',
-                border: genre === opt.value ? '1px solid #2d5a3d' : '1px solid #e0e0e0',
+                border: genre === opt.value ? '1px solid #2d5a3d' : '1px solid var(--ink-qing)',
                 borderRadius: '20px',
                 background: genre === opt.value ? '#2d5a3d' : 'transparent',
-                color: genre === opt.value ? 'white' : '#666',
+                color: genre === opt.value ? '#F9F3E6' : 'var(--ink-zhong)',
                 fontSize: '13px',
-                fontFamily: 'var(--font-kaiti)',
+                fontFamily: 'var(--font-kai)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 letterSpacing: '1px',

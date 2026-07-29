@@ -1,7 +1,7 @@
 // ============================================================
 // 偶成 v4.0 — 格律双指针校验引擎（精细纠错版）
 // ============================================================
-import { getTone, getCanonicalTone, isMultiTone, ToneClass } from './rhymeData';
+import { getTone, getCanonicalTone, isMultiTone, getRhymeGroups, ToneClass } from './rhymeData';
 import { MeterCheckResult, LineResult, CharResult, CharStatus, RhymeBook, CipaiData, SonnetType } from '../types';
 
 // ============================================================
@@ -167,12 +167,53 @@ const DEFAULT_TEMPLATE: Record<string, string> = {
 };
 
 // ============================================================
+// 韵部比对：离线韵书校验韵脚是否押韵
+// 两个韵脚字查同一韵部即押韵
+// ============================================================
+function checkRhymeGroups(
+  template: string[][],
+  lines: string[],
+  rhymeBook: RhymeBook,
+  manualGroupId?: string | null
+): 'ok' | 'fail' | 'unverified' {
+  const rhymeChars: string[] = [];
+  template.forEach((pattern, lineIdx) => {
+    const lastIdx = pattern.length - 1;
+    if (pattern[lastIdx] === 'R' || pattern[lastIdx] === 'r') {
+      const line = (lines[lineIdx] || '').replace(/[，。、；？！]/g, '').trim();
+      const ch = Array.from(line)[lastIdx];
+      if (ch && ch.trim()) rhymeChars.push(ch);
+    }
+  });
+
+  // 如果手动限定了韵部（彩蛋：限韵创作）
+  if (manualGroupId) {
+    if (rhymeChars.length === 0) return 'unverified';
+    const allInGroup = rhymeChars.every(c =>
+      getRhymeGroups(c, rhymeBook).some(group => group.groupId === manualGroupId)
+    );
+    return allInGroup ? 'ok' : 'fail';
+  }
+
+  if (rhymeChars.length < 2) return 'unverified';
+
+  const groupSets = rhymeChars.map(c => new Set(getRhymeGroups(c, rhymeBook).map(group => group.groupId)));
+  if (groupSets.some(groups => groups.size === 0)) return 'unverified';
+
+  const sharedGroup = [...groupSets[0]].some(groupId =>
+    groupSets.slice(1).every(groups => groups.has(groupId))
+  );
+  return sharedGroup ? 'ok' : 'fail';
+}
+
+// ============================================================
 // 近体诗校验
 // ============================================================
 export function checkJintiShi(
   content: string | string[],
   poemType: string,
-  rhymeBook: RhymeBook
+  rhymeBook: RhymeBook,
+  manualGroupId?: string | null
 ): MeterCheckResult {
   const templateKey = JINTI_TEMPLATES[poemType] ? poemType : (DEFAULT_TEMPLATE[poemType] || 'jueju_5_ze_no');
   const template = JINTI_TEMPLATES[templateKey];
@@ -181,9 +222,10 @@ export function checkJintiShi(
   const lines: LineResult[] = template.map((pattern, lineIdx) => {
     let line = rawLines[lineIdx] || '';
     line = line.replace(/[，。、；？！]/g, '').trim(); // Remove punctuation
+    const lineChars = Array.from(line);
 
     const chars: CharResult[] = pattern.map((expected, charIdx) => {
-      const char = line[charIdx];
+      const char = lineChars[charIdx];
       let status: CharStatus = 'neutral';
       let tooltip = '';
 
@@ -220,13 +262,13 @@ export function checkJintiShi(
     });
 
     // Add extra characters in the line as errors
-    if (line.length > pattern.length) {
-      for (let ci = pattern.length; ci < line.length; ci++) {
+    if (lineChars.length > pattern.length) {
+      for (let ci = pattern.length; ci < lineChars.length; ci++) {
         chars.push({
-          char: line[ci],
+          char: lineChars[ci],
           status: 'error',
           expected: '?',
-          actual: getCanonicalTone(line[ci], rhymeBook),
+          actual: getCanonicalTone(lineChars[ci], rhymeBook),
           tooltip: '多余字',
         });
       }
@@ -255,9 +297,8 @@ export function checkJintiShi(
     (acc, l) => acc + l.chars.filter(c => c.status === 'error').length, 0
   );
 
-  // If there are fewer lines than required, add missing line counts to violationCount
-  const missingLinesCount = Math.max(0, template.length - rawLines.length);
-  const violationCount = totalViolations + missingLinesCount * template[0].length;
+  // 模板映射已经为缺失字生成 error，不能再次叠加缺行惩罚。
+  const violationCount = totalViolations;
 
   return {
     lines,
@@ -266,7 +307,7 @@ export function checkJintiShi(
       : `发现 ${violationCount} 处出律，请参照点阵调整`,
     isValid: violationCount === 0,
     violationCount,
-    rhymeCheckStatus: 'unverified', // Heuristic offline default
+    rhymeCheckStatus: checkRhymeGroups(template, rawLines, rhymeBook, manualGroupId),
   };
 }
 
@@ -276,7 +317,8 @@ export function checkJintiShi(
 export function checkCipai(
   content: string | string[],
   cipai: CipaiData,
-  rhymeBook: RhymeBook
+  rhymeBook: RhymeBook,
+  manualGroupId?: string | null
 ): MeterCheckResult {
   const rawLines = (Array.isArray(content) ? content : content.split('\n')).filter(l => l.trim().length > 0);
   const fullPattern = [
@@ -285,12 +327,13 @@ export function checkCipai(
   ];
 
   const lines: LineResult[] = fullPattern.map((linePatternStr, lineIdx) => {
-    const linePattern = linePatternStr.split('');
+    const linePattern = Array.from(linePatternStr);
     let line = rawLines[lineIdx] || '';
     line = line.replace(/[，。、；？！]/g, '').trim();
+    const lineChars = Array.from(line);
     
     const chars: CharResult[] = linePattern.map((expected, charIdx) => {
-      const char = line[charIdx];
+      const char = lineChars[charIdx];
       let status: CharStatus = 'neutral';
       let tooltip = '';
 
@@ -298,8 +341,9 @@ export function checkCipai(
         return { char: '', status: 'error', expected, actual: '?', tooltip: '此处缺字' };
       }
 
+      const actualTones = getTone(char, rhymeBook);
       const actualMain = getCanonicalTone(char, rhymeBook);
-      const multi = isMultiTone(char);
+      const multi = Array.isArray(actualTones);
 
       if (actualMain === 'unknown') {
         status = 'warn';
@@ -313,7 +357,7 @@ export function checkCipai(
         if (actualMain === expectedTone) {
           status = 'ok';
         } else if (multi) {
-          const tones = getTone(char, rhymeBook) as ToneClass[];
+          const tones = actualTones as ToneClass[];
           status = tones.includes(expectedTone) ? 'warn' : 'error';
           tooltip = `多音字: 可读${tones.join('/')}`;
         } else {
@@ -326,13 +370,13 @@ export function checkCipai(
     });
 
     // Add extra characters in the line as errors
-    if (line.length > linePattern.length) {
-      for (let ci = linePattern.length; ci < line.length; ci++) {
+    if (lineChars.length > linePattern.length) {
+      for (let ci = linePattern.length; ci < lineChars.length; ci++) {
         chars.push({
-          char: line[ci],
+          char: lineChars[ci],
           status: 'error',
           expected: '?',
-          actual: getCanonicalTone(line[ci], rhymeBook),
+          actual: getCanonicalTone(lineChars[ci], rhymeBook),
           tooltip: '多余字',
         });
       }
@@ -361,15 +405,15 @@ export function checkCipai(
     (acc, l) => acc + l.chars.filter(c => c.status === 'error').length, 0
   );
 
-  const missingLinesCount = Math.max(0, fullPattern.length - rawLines.length);
-  const violationCount = totalViolations + missingLinesCount * 5; // default 5 chars penalty
+  // fullPattern.map 已把缺失句的每个字位标成 error，直接汇总即可精确计数。
+  const violationCount = totalViolations;
 
   return {
     lines,
     summary: violationCount === 0 ? `《${cipai.name}》格律合规` : `发现 ${violationCount} 处出律`,
     isValid: violationCount === 0,
     violationCount,
-    rhymeCheckStatus: 'unverified',
+    rhymeCheckStatus: checkRhymeGroups(fullPattern.map(s => Array.from(s)), rawLines, rhymeBook, manualGroupId),
   };
 }
 
@@ -415,7 +459,11 @@ export function checkSonnet(
   const lineCount = rawLines.length;
   let summary = '';
   if (lineCount < 14) summary = `当前 ${lineCount}/14 行，请继续创作`;
-  else if (lineCount === 14) summary = '十四行已足，请检查韵脚';
+  else if (lineCount === 14) {
+    summary = (sonnetType === 'shakespeare' || sonnetType === 'petrarchan')
+      ? '十四行字数已足（韵式仅作创作参考提示，暂不自动校验）'
+      : '十四行已足，请检查韵脚';
+  }
   else summary = `超出14行 (${lineCount} 行)`;
 
   const violationCount = lineCount === 14 ? 0 : Math.abs(14 - lineCount);

@@ -11,7 +11,7 @@ interface SealManagerProps {
 
 const ALL_STYLES: SealStyle[] = ['yang_yuan', 'yin_fang', 'jiudie', 'niaochen', 'guyuan'];
 
-const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSelect, compact = false }) => {
+const SealManager: React.FC<SealManagerProps> = ({ penName = '居士', onSelect, compact = false }) => {
   const [seals, setSeals] = useState<Seal[]>(() => getSeals());
   const [defaultSealId, setDefaultSealId] = useState(() => getSettings().defaultSealId);
   const [generating, setGenerating] = useState(false);
@@ -102,7 +102,7 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
             onClick={() => onSelect?.(seal)}
             style={{
               cursor: 'pointer',
-              border: defaultSealId === seal.id ? '2px solid var(--cinnabar-red)' : '2px solid transparent',
+              border: defaultSealId === seal.id ? '2px solid var(--accent-active)' : '2px solid transparent',
               borderRadius: '4px', padding: '2px',
               transition: 'border 0.2s',
             }}
@@ -118,7 +118,7 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
     <div>
       {/* 生成面板 */}
       <div style={{
-        background: '#fdfbf7', border: '1px solid #eee',
+        background: '#fdfbf7', border: '1px solid var(--ink-qing)',
         borderRadius: '8px', padding: '20px', marginBottom: '24px',
       }}>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px' }}>
@@ -130,17 +130,17 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
             style={{
               flex: 1, border: 'none', borderBottom: '1px solid #ddd',
               background: 'transparent', fontSize: '16px', padding: '6px 0',
-              fontFamily: 'var(--font-kaiti)',
+              fontFamily: 'var(--font-kai)',
             }}
           />
           <button
             onClick={handleGenerateAll}
             disabled={generating || !previewName.trim()}
             style={{
-              background: 'var(--cinnabar-red)', color: 'white',
+              background: 'var(--accent-cta)', color: '#F9F3E6',
               border: 'none', borderRadius: '6px', padding: '8px 20px',
               cursor: generating ? 'wait' : 'pointer', fontSize: '14px',
-              fontFamily: 'var(--font-kaiti)', opacity: generating ? 0.7 : 1,
+              fontFamily: 'var(--font-kai)', opacity: generating ? 0.7 : 1,
             }}
           >
             {generating ? '生成中...' : '生成五式印章'}
@@ -170,7 +170,7 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
             key={seal.id}
             style={{
               background: '#fdfbf7',
-              border: defaultSealId === seal.id ? '2px solid var(--cinnabar-red)' : '1px solid #eee',
+              border: defaultSealId === seal.id ? '2px solid var(--accent-active)' : '1px solid var(--ink-qing)',
               borderRadius: '8px', padding: '16px 12px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
               cursor: 'pointer', transition: 'all 0.2s',
@@ -180,20 +180,20 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
             <img src={seal.dataUrl} alt={seal.name} style={{ width: 64, height: 64 }} />
             <div style={{ fontSize: '12px', color: '#666', textAlign: 'center', fontFamily: '"Ma Shan Zheng", serif' }}>
               {seal.name}
-              {!seal.isCustom && <div style={{ fontSize: '11px', color: '#bbb' }}>{SEAL_STYLE_LABELS[seal.style]}</div>}
-              {seal.isCustom && <div style={{ fontSize: '11px', color: 'var(--cinnabar-red)' }}>自定义</div>}
+              {!seal.isCustom && <div style={{ fontSize: '11px', color: 'var(--ink-dan)' }}>{SEAL_STYLE_LABELS[seal.style]}</div>}
+              {seal.isCustom && <div style={{ fontSize: '11px', color: 'var(--accent-seal)' }}>自定义</div>}
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
               {defaultSealId !== seal.id && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleSetDefault(seal.id); }}
-                  style={{ fontSize: '11px', color: 'var(--cinnabar-red)', background: 'none', border: '1px solid rgba(178,34,34,0.3)', borderRadius: '10px', padding: '2px 8px', cursor: 'pointer' }}
+                  style={{ fontSize: '11px', color: 'var(--accent-active)', background: 'none', border: '1px solid rgba(166,58,43,0.3)', borderRadius: '10px', padding: '2px 8px', cursor: 'pointer' }}
                 >
                   置默认
                 </button>
               )}
               {defaultSealId === seal.id && (
-                <span style={{ fontSize: '11px', color: 'var(--cinnabar-red)' }}>✓ 默认</span>
+                <span style={{ fontSize: '11px', color: 'var(--accent-active)' }}>默认</span>
               )}
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(seal.id); }}
@@ -208,7 +208,7 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '偶成君', onSele
         {seals.length === 0 && (
           <div style={{
             gridColumn: '1/-1', textAlign: 'center', padding: '40px',
-            color: '#bbb', fontFamily: 'var(--font-kaiti)', fontSize: '18px',
+            color: 'var(--ink-dan)', fontFamily: 'var(--font-kai)', fontSize: '18px',
           }}>
             暂无印章，请生成或上传
           </div>

@@ -8,11 +8,11 @@ interface RhymeHighlighterProps {
 }
 
 const STATUS_COLORS: Record<CharStatus, { color: string; bg: string; underline?: string }> = {
-  ok:      { color: '#2d5a3d',        bg: 'transparent' },
-  warn:    { color: '#b8860b',        bg: 'rgba(255,200,50,0.15)', underline: '1px solid #b8860b' },
-  error:   { color: '#b22222',        bg: 'rgba(178,34,34,0.12)', underline: '2px solid #b22222' },
-  neutral: { color: 'var(--ink-black)', bg: 'transparent' },
-  rhyme:   { color: '#6b3fa0',        bg: 'rgba(107,63,160,0.1)', underline: '1px dashed #6b3fa0' },
+  ok:      { color: 'var(--meter-ping)',  bg: 'transparent' },
+  warn:    { color: 'var(--meter-warn)',  bg: 'transparent', underline: '2px solid var(--meter-warn)' },
+  error:   { color: 'var(--meter-error)', bg: 'transparent', underline: '2px solid var(--meter-error)' },
+  neutral: { color: 'var(--ink-nong)',    bg: 'transparent' },
+  rhyme:   { color: 'var(--meter-rhyme)', bg: 'transparent' },
 };
 
 const CharSpan: React.FC<{ result: CharResult; fontSize: number }> = ({ result, fontSize }) => {
@@ -63,8 +63,8 @@ const RhymeHighlighter: React.FC<RhymeHighlighterProps> = ({
             {line.isVolta && (
               <div style={{
                 position: 'absolute', top: '-20px', left: '50%', transform: 'translateX(-50%)',
-                fontSize: '10px', color: '#b22222', letterSpacing: '1px', whiteSpace: 'nowrap',
-                fontFamily: 'monospace',
+                fontSize: '10px', color: 'var(--meter-error)', letterSpacing: '1px', whiteSpace: 'nowrap',
+                fontFamily: 'var(--font-serif)',
               }}>
                 ▼ Volta
               </div>
@@ -85,11 +85,11 @@ const RhymeHighlighter: React.FC<RhymeHighlighterProps> = ({
           {line.isVolta && (
             <div style={{
               display: 'inline-block',
-              fontSize: '10px', color: '#b22222',
-              border: '1px solid rgba(178,34,34,0.4)',
+              fontSize: '10px', color: 'var(--meter-error)',
+              border: '1px solid rgba(166,58,43,0.4)',
               borderRadius: '3px', padding: '0 4px',
               marginRight: '8px', verticalAlign: 'middle',
-              fontFamily: 'monospace',
+              fontFamily: 'var(--font-serif)',
             }}>
               Volta ↓
             </div>
@@ -123,7 +123,7 @@ export const MeterLegend: React.FC = () => (
             border: `1px solid ${s.color}`,
             display: 'inline-block',
           }} />
-          <span style={{ color: s.color, fontFamily: 'var(--font-kaiti)' }}>{label}</span>
+          <span style={{ color: s.color, fontFamily: 'var(--font-kai)' }}>{label}</span>
         </div>
       );
     })}

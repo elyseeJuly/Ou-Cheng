@@ -1,8 +1,11 @@
 // ============================================================
-// 偶成 v4.0 — 韵书数据层（繁简支持与去重版）
+// 偶成 v5.0 — 韵书数据层（繁简支持与去重版）
+// 双向韵部索引 + 平仄查询 + 频率排序
 // ============================================================
 
 import { pinyin } from 'pinyin-pro';
+import { RhymeBook } from '../types';
+import { RHYME_GROUPS, CHAR_TO_GROUPS, CHAR_TO_TONES } from './rhymeGroupData';
 
 export type ToneClass = 'P' | 'Z';
 
@@ -198,12 +201,20 @@ function getTonesFromPinyin(char: string): ToneClass[] {
   }
 }
 
+import charFreqData from '../data/charFreq.json';
+
+const charFreqMap: Record<string, number> = charFreqData as Record<string, number>;
+
 // ── 查询接口 ───────────────────────────────────────────────
 export function getTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui' | 'xin_yun'): ToneClass | ToneClass[] | 'unknown' {
   const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
-  
+
   if (rhymeBook === 'ping_shui' || rhymeBook === 'ci_lin') {
+    const sourceTones = CHAR_TO_TONES[rhymeBook]?.[c];
+    if (sourceTones?.length === 1) return sourceTones[0];
+    if (sourceTones && sourceTones.length > 1) return sourceTones;
     if (PING_SHUI_EXTRA[c] !== undefined) return PING_SHUI_EXTRA[c];
+    return 'unknown';
   }
   
   const derived = getTonesFromPinyin(c);
@@ -223,10 +234,40 @@ export function getCanonicalTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui'
   return t;
 }
 
+/**
+ * 检查字符在现代普通话拼音中是否属于多音字。
+ * 注意：在具体格律校验中（如平水韵、词林正韵），请使用 Array.isArray(getTone(char, rhymeBook)) 判断对应韵书下的多音状态。
+ */
 export function isMultiTone(char: string): boolean {
   const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
   const manual = XIN_YUN_MAP[c];
   if (manual) return Array.isArray(manual);
   const derived = getTonesFromPinyin(c);
   return derived.length > 1;
+}
+
+// ── 韵部查询接口 ─────────────────────────────────────────────
+export interface RhymeGroupResult {
+  groupId: string;
+  groupName: string;
+}
+
+export function getRhymeGroups(char: string, book: RhymeBook): RhymeGroupResult[] {
+  const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
+  const groupIds = CHAR_TO_GROUPS[book]?.[c] || [];
+  return groupIds.flatMap(groupId => {
+    const group = RHYME_GROUPS[book].find(item => item.id === groupId);
+    return group ? [{ groupId, groupName: group.name }] : [];
+  });
+}
+
+export function getRhymeGroup(char: string, book: RhymeBook): RhymeGroupResult | null {
+  return getRhymeGroups(char, book)[0] || null;
+}
+
+export function getGroupChars(groupId: string, book: RhymeBook): string[] {
+  const group = RHYME_GROUPS[book].find(g => g.id === groupId);
+  if (!group) return [];
+  const chars = group.chars.split(' ').filter(c => c.trim());
+  return chars.sort((a, b) => (charFreqMap[b] || 0) - (charFreqMap[a] || 0));
 }

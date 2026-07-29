@@ -1,9 +1,7 @@
 import React from 'react';
-import { useCreate, RHYME_BOOKS, JINTI_TYPES } from './CreateContext';
-import MeterGrid from '../../components/creator/MeterGrid';
+import { useCreateDocument, useCreateForm, useCreateCaret, useCreateWorkflow, RHYME_BOOKS, JINTI_TYPES } from './CreateContext';
 import CipaiSelector from '../../components/creator/CipaiSelector';
 import StructuredInput from '../../components/creator/StructuredInput';
-import { MeterLegend } from '../../components/creator/RhymeHighlighter';
 
 const ProPanel: React.FC = () => {
   const {
@@ -11,12 +9,16 @@ const ProPanel: React.FC = () => {
     setTitle,
     author,
     setAuthor,
-    proTab,
-    setProTab,
     proLines,
     setProLines,
-    proInputMode,
-    setProInputMode,
+    showHeartNote,
+    setShowHeartNote,
+    heartNote,
+    setHeartNote,
+  } = useCreateDocument();
+  const {
+    proTab,
+    setProTab,
     rhymeBook,
     setRhymeBook,
     poemType,
@@ -26,204 +28,116 @@ const ProPanel: React.FC = () => {
     jintiRhyme,
     setJintiRhyme,
     derivedPoemType,
-    meterResult,
     selectedCipai,
-    setSelectedCipai,
     currentPatterns,
-    showHeartNote,
-    setShowHeartNote,
-    heartNote,
-    setHeartNote,
-    settings,
-  } = useCreate();
+  } = useCreateForm();
+  const {
+    onCaretOnRhyme,
+    onCellFocus,
+    onCaretCell,
+  } = useCreateCaret();
+  const { settings, meterResult } = useCreateWorkflow();
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '16px' }}>
-      {/* 基本信息 */}
-      <div style={{ display: 'flex', gap: '16px' }}>
-        <div className="input-group" style={{ flex: 1 }}>
-          <label>标题</label>
-          <input 
-            className="borderless-input" 
-            placeholder="无题" 
-            value={title} 
-            onChange={e => setTitle(e.target.value)} 
-          />
-        </div>
-        <div className="input-group" style={{ flex: 1 }}>
-          <label>笔名</label>
-          <input 
-            className="borderless-input" 
-            placeholder={settings.defaultPenName} 
-            value={author} 
-            onChange={e => setAuthor(e.target.value)} 
-          />
-        </div>
-      </div>
-
-      {/* 近体诗 / 词牌 切换 */}
-      <div style={{ display: 'flex', background: '#f0ede8', borderRadius: '20px', padding: '3px', gap: '4px' }}>
+    <div className="fade-in pro-panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '16px' }}>
+      {/* 近体诗 / 词牌 切换 - 改用 .opt-item */}
+      <div className="opt-group" style={{ justifyContent: 'center' }}>
         {(['jinti', 'cipai'] as const).map(t => (
           <button
             key={t}
-            onClick={() => { setProTab(t); setProLines([]); }}
-            style={{
-              flex: 1, 
-              padding: '7px 0', 
-              borderRadius: '16px', 
-              border: 'none',
-              background: proTab === t ? '#1a1a1a' : 'transparent',
-              color: proTab === t ? '#fff' : '#888',
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              fontFamily: 'var(--font-kaiti)', 
-              fontSize: '15px', 
-              letterSpacing: '2px',
-            }}
+            onClick={() => setProTab(t)}
+            className={`opt-item ${proTab === t ? 'active' : ''}`}
+            style={{ fontSize: 'var(--text-title)' }}
           >
             {t === 'jinti' ? '近体诗' : '词牌大观'}
           </button>
         ))}
       </div>
 
-      {/* 韵书与排版模式层 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-        {/* 韵书切换 */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: '#999', letterSpacing: '2px', fontFamily: 'monospace' }}>韵书：</span>
-          {RHYME_BOOKS.map(rb => (
-            <button
-              key={rb.value}
-              onClick={() => setRhymeBook(rb.value)}
-              style={{
-                padding: '4px 12px', 
-                borderRadius: '14px', 
-                border: 'none',
-                background: rhymeBook === rb.value ? '#1a1a1a' : '#f0ede8',
-                color: rhymeBook === rb.value ? '#fff' : '#888',
-                cursor: 'pointer', 
-                fontSize: '13px', 
-                transition: 'all 0.2s',
-                fontFamily: 'var(--font-kaiti)',
-              }}
-            >
-              {rb.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 录入排版开关 */}
-        <div style={{ display: 'flex', background: '#f0ede8', borderRadius: '14px', padding: '2px', gap: '2px' }}>
-          {(['interleaved', 'split'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setProInputMode(t)}
-              style={{
-                padding: '4px 10px', 
-                borderRadius: '12px', 
-                border: 'none',
-                background: proInputMode === t ? 'var(--cinnabar-red)' : 'transparent',
-                color: proInputMode === t ? '#fff' : '#888',
-                cursor: 'pointer', 
-                transition: 'all 0.2s',
-                fontFamily: 'var(--font-kaiti)', 
-                fontSize: '12px',
-              }}
-            >
-              {t === 'split' ? '分栏模式' : '极简穿插'}
-            </button>
-          ))}
-        </div>
+      {/* 韵书三枚 - 改用 .opt-item */}
+      <div className="opt-group" style={{ justifyContent: 'center', gap: 'var(--space-4)' }}>
+        <span style={{ fontSize: 'var(--text-note)', color: 'var(--ink-dan)', letterSpacing: '2px', fontFamily: 'var(--font-serif)', alignSelf: 'center' }}>韵书：</span>
+        {RHYME_BOOKS.map(rb => (
+          <button
+            key={rb.value}
+            onClick={() => setRhymeBook(rb.value)}
+            className={`opt-item ${rhymeBook === rb.value ? 'active' : ''}`}
+            style={{ fontSize: 'var(--text-note)' }}
+          >
+            {rb.label}
+          </button>
+        ))}
       </div>
 
       {/* 近体诗选择 */}
       {proTab === 'jinti' && (
         <div>
+          {/* 体裁四卡 - 改用左侧朱砂竖线选中，去掉红边框红字 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
             {JINTI_TYPES.map(jt => (
               <button
                 key={jt.value}
-                onClick={() => { setPoemType(jt.value); setProLines([]); }}
+                onClick={() => setPoemType(jt.value)}
                 style={{
-                  padding: '8px 12px', 
-                  border: poemType === jt.value ? '1px solid var(--cinnabar-red)' : '1px solid #e0e0e0',
-                  borderRadius: '8px', 
-                  background: poemType === jt.value ? 'rgba(178,34,34,0.06)' : 'white',
-                  color: poemType === jt.value ? 'var(--cinnabar-red)' : '#666',
-                  cursor: 'pointer', 
-                  transition: 'all 0.2s', 
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-xs)',
+                  border: 'none',
+                  background: 'var(--paper-1)',
+                  boxShadow: 'var(--shadow-paper)',
+                  color: poemType === jt.value ? 'var(--ink-jiao)' : 'var(--ink-zhong)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
                   textAlign: 'left',
+                  paddingLeft: poemType === jt.value ? '9px' : '12px',
+                  borderLeft: poemType === jt.value ? '3px solid var(--accent-active)' : '3px solid transparent',
                 }}
               >
-                <div style={{ fontFamily: 'var(--font-kaiti)', fontSize: '15px' }}>{jt.label}</div>
-                <div style={{ fontSize: '11px', color: '#bbb', marginTop: '2px' }}>{jt.chars}</div>
+                <div style={{ fontFamily: 'var(--font-kai)', fontSize: '15px' }}>{jt.label}</div>
+                <div style={{ fontSize: '11px', color: 'var(--ink-dan)', marginTop: '2px' }}>{jt.chars}</div>
               </button>
             ))}
           </div>
 
-          <div style={{ 
-            display: 'flex', 
-            gap: '16px', 
-            margin: '8px 0 12px 0', 
-            alignItems: 'center', 
-            background: 'rgba(247,241,227,0.5)', 
-            padding: '8px 12px', 
-            borderRadius: '8px', 
-            border: '1px solid rgba(26,26,26,0.05)' 
-          }}>
+          {/* 起调/首句 - 改用 .opt-item 小号，无卡片框，裸排 */}
+          <div style={{ display: 'flex', gap: '16px', margin: '8px 0 12px 0' }}>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-              <span style={{ fontSize: '12px', color: '#999', fontFamily: 'monospace' }}>起调：</span>
-              {(['ze', 'ping'] as const).map(s => (
-                <button
-                  key={s}
-                  onClick={() => { setJintiStart(s); setProLines([]); }}
-                  style={{
-                    padding: '3px 10px', 
-                    borderRadius: '10px', 
-                    border: 'none',
-                    background: jintiStart === s ? 'var(--cinnabar-red)' : '#f0ede8',
-                    color: jintiStart === s ? '#fff' : '#888',
-                    cursor: 'pointer', 
-                    fontSize: '11px', 
-                    fontFamily: 'var(--font-kaiti)'
-                  }}
-                >
-                  {s === 'ze' ? '仄起' : '平起'}
-                </button>
-              ))}
+              <span style={{ fontSize: '12px', color: 'var(--ink-dan)', fontFamily: 'var(--font-serif)' }}>起调：</span>
+              <div className="opt-group">
+                {(['ze', 'ping'] as const).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setJintiStart(s)}
+                    className={`opt-item ${jintiStart === s ? 'active' : ''}`}
+                    style={{ fontSize: '13px' }}
+                  >
+                    {s === 'ze' ? '仄起' : '平起'}
+                  </button>
+                ))}
+              </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-              <span style={{ fontSize: '12px', color: '#999', fontFamily: 'monospace' }}>首句：</span>
-              {(['no', 'yes'] as const).map(r => (
-                <button
-                  key={r}
-                  onClick={() => { setJintiRhyme(r); setProLines([]); }}
-                  style={{
-                    padding: '3px 10px', 
-                    borderRadius: '10px', 
-                    border: 'none',
-                    background: jintiRhyme === r ? 'var(--cinnabar-red)' : '#f0ede8',
-                    color: jintiRhyme === r ? '#fff' : '#888',
-                    cursor: 'pointer', 
-                    fontSize: '11px', 
-                    fontFamily: 'var(--font-kaiti)'
-                  }}
-                >
-                  {r === 'yes' ? '入韵' : '不入韵'}
-                </button>
-              ))}
+              <span style={{ fontSize: '12px', color: 'var(--ink-dan)', fontFamily: 'var(--font-serif)' }}>首句：</span>
+              <div className="opt-group">
+                {(['no', 'yes'] as const).map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setJintiRhyme(r)}
+                    className={`opt-item ${jintiRhyme === r ? 'active' : ''}`}
+                    style={{ fontSize: '13px' }}
+                  >
+                    {r === 'yes' ? '入韵' : '不入韵'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-
-          {proInputMode === 'split' && <MeterGrid poemType={derivedPoemType} meterResult={meterResult} />}
         </div>
       )}
 
       {/* 词牌选择 */}
       {proTab === 'cipai' && (
         <div>
-          <CipaiSelector value={selectedCipai?.name} onChange={c => { setSelectedCipai(c); setProLines([]); }} />
-          {proInputMode === 'split' && selectedCipai && <MeterGrid cipai={selectedCipai} meterResult={meterResult} />}
+          <CipaiSelector value={selectedCipai || undefined} />
         </div>
       )}
 
@@ -233,77 +147,97 @@ const ProPanel: React.FC = () => {
           patterns={currentPatterns}
           lines={proLines}
           onChange={setProLines}
-          inputMode={proInputMode}
           meterResult={meterResult}
+          onRhymeFocus={onCaretOnRhyme}
+          onCellFocus={onCellFocus}
+          onCaretCell={onCaretCell}
         />
-        
+
         {/* 格律结果摘要 */}
         {meterResult && (
           <div style={{
-            marginTop: '8px', 
+            marginTop: '8px',
             padding: '8px 12px',
             background: meterResult.isValid
-              ? 'rgba(45,90,61,0.08)'
+              ? 'rgba(90,114,71,0.1)'
               : meterResult.violationCount > 3
-                ? 'rgba(178,34,34,0.08)'
-                : 'rgba(184,134,11,0.08)',
-            borderRadius: '6px', 
+                ? 'rgba(166,58,43,0.1)'
+                : 'rgba(156,122,46,0.1)',
+            borderRadius: 'var(--radius-xs)',
             fontSize: '13px',
-            color: meterResult.isValid ? '#2d5a3d' : meterResult.violationCount > 3 ? '#b22222' : '#b8860b',
-            fontFamily: 'var(--font-kaiti)',
-            borderLeft: `3px solid ${meterResult.isValid ? '#2d5a3d' : meterResult.violationCount > 3 ? '#b22222' : '#b8860b'}`,
+            color: meterResult.isValid ? 'var(--meter-ping)' : meterResult.violationCount > 3 ? 'var(--meter-error)' : 'var(--meter-warn)',
+            fontFamily: 'var(--font-kai)',
+            borderLeft: `3px solid ${meterResult.isValid ? 'var(--meter-ping)' : meterResult.violationCount > 3 ? 'var(--meter-error)' : 'var(--meter-warn)'}`,
           }}>
             {meterResult.summary}
           </div>
         )}
-        {meterResult && meterResult.lines.length > 0 && (
-          <div style={{ marginTop: '12px' }}>
-            <MeterLegend />
-          </div>
-        )}
       </div>
 
-      {/* 挥毫心声 */}
+      {/* 标题 / 笔名 移到底部 */}
+      <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+        <div className="input-group" style={{ flex: 1 }}>
+          <label>标题</label>
+          <input
+            className="borderless-input"
+            placeholder="无题"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+        </div>
+        <div className="input-group" style={{ flex: 1 }}>
+          <label>笔名</label>
+          <input
+            className="borderless-input"
+            placeholder={settings.defaultPenName}
+            value={author}
+            onChange={e => setAuthor(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 挥毫心声 - 换文字代替几何三角 */}
       <div>
-        <button 
+        <button
           onClick={() => setShowHeartNote(!showHeartNote)}
-          style={{ 
-            background: 'none', 
-            border: 'none', 
-            cursor: 'pointer', 
-            color: '#999', 
-            fontSize: '13px', 
-            fontFamily: 'monospace', 
-            letterSpacing: '2px', 
-            padding: 0 
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--ink-dan)',
+            fontSize: '13px',
+            fontFamily: 'var(--font-serif)',
+            letterSpacing: '2px',
+            padding: 0
           }}
         >
-          {showHeartNote ? '▲' : '▼'} 挥毫心声
+          {showHeartNote ? '藏' : '展'} 挥毫心声
         </button>
         {showHeartNote && (
-          <textarea 
-            placeholder="记录灵感来源..." 
-            value={heartNote} 
+          <textarea
+            placeholder="记录灵感来源..."
+            value={heartNote}
             onChange={e => setHeartNote(e.target.value)}
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              marginTop: '8px', 
-              minHeight: '70px', 
-              border: '1px solid #eee', 
-              borderRadius: '6px', 
-              padding: '10px', 
-              resize: 'vertical', 
-              fontFamily: 'var(--font-kaiti)', 
-              fontSize: '15px', 
-              background: 'rgba(247,241,227,0.4)', 
-              color: '#555' 
-            }} 
+            style={{
+              display: 'block',
+              width: '100%',
+              marginTop: '8px',
+              minHeight: '70px',
+              border: '1px solid var(--ink-qing)',
+              borderRadius: 'var(--radius-xs)',
+              padding: '10px',
+              resize: 'vertical',
+              fontFamily: 'var(--font-kai)',
+              fontSize: '15px',
+              background: 'var(--paper-1)',
+              color: 'var(--ink-zhong)'
+            }}
           />
         )}
       </div>
+
     </div>
   );
 };
 
-export default ProPanel;
+export default React.memo(ProPanel);

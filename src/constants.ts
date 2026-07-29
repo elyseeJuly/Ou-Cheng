@@ -52,7 +52,5 @@ export const FONT_STYLES: Record<string, { label: string, family: string }> = {
   none: { label: '系统默认', family: 'var(--font-serif)' },
   lxgw_wenkai: { label: '霞鹜文楷', family: '"LXGW WenKai Lite", var(--font-serif)' },
   noto_serif: { label: '思源宋体', family: '"Noto Serif SC", var(--font-serif)' },
-  zhi_mang_xing: { label: '志莽行书', family: '"Zhi Mang Xing", cursive' },
-  long_cang: { label: '龙藏行书', family: '"Long Cang", cursive' },
   ma_shan_zheng: { label: '马善政楷', family: '"Ma Shan Zheng", "LXGW WenKai Lite", var(--font-serif)' }
 };

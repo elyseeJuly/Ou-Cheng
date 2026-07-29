@@ -1,25 +1,71 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { Poem, PoemType, SonnetType, RhymeBook, PaperStyle, LayoutMode, FontStyle, CipaiData, MeterCheckResult } from '../../types';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Poem, PoemBase, PoemType, SonnetType, RhymeBook, PaperStyle, LayoutMode, FontStyle, CipaiData, MeterCheckResult, PoemForm } from '../../types';
 import { checkJintiShi, checkCipai, checkSonnet } from '../../engine/meterChecker';
-import { savePoem, getSettings, getPoemById } from '../../services/storageService';
+import { savePoem, getSettings, getPoemById, getDraft, saveDraft, deleteDraft } from '../../services/storageService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { JINTI_TEMPLATES } from '../../engine/meterChecker';
+import { getForm, SONNET_FORM_MAP, checkCharsPerLine, formatChars } from '../../data/poemForms';
+import { clausesToProLines, getCipaiEditorPatterns, normalizePoemClauses } from '../../engine/importParser';
+import { mergePoemForSave } from '../../services/poemSave';
+import { EventBus } from '../../utils/EventBus';
 import { checkMeterAndComment } from '../../services/geminiService';
 
-// ── Mock AI 点评（高质量文言库） ─────────────────────────
-export const MOCK_COMMENTS = [
-  '起笔清雅，意境悠远，然"月"字处平仄微滞，可酌改"霜"字以顺音律。',
-  '此作情韵兼胜，颔联对仗工整，尾句余味悠长，颇得唐人神髓。',
-  '入题直截，不假雕琢，自有天然之趣；唯第三句音节稍促，宜舒缓之。',
-  '炼字见功，"孤""寒"二字相辅，境界自出，建议收笔再添一转折，使意更丰。',
-  '节奏流畅，意象清骨，略嫌笔力稍薄，若增一实景衬托，则虚实相生矣。',
-  '词气雍容，格调沉稳，用典得当，不显堆砌；末句"归"字一字千钧，可留。',
-  '意脉连贯，行气一气合成，然音韵尚需磨砺，韵脚处宜再斟酌。',
-];
+const getMockComment = () => {
+  const mocks = [
+    "此作意境深远，格律严整，字里行间颇有古人遗风，甚佳。",
+    "起承转合自然，用词雅致，读来朗朗上口，回味无穷。",
+    "遣词造句精妙，情感真挚，唯韵脚处可再斟酌，以臻完美。"
+  ];
+  return mocks[Math.floor(Math.random() * mocks.length)];
+};
 
-export function getMockComment(): string {
-  return MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)];
-}
+type ClearedSnapshot = {
+  title: string;
+  author: string;
+  content: string;
+  heartNote: string;
+  proLines: string[];
+  mode: 'free' | 'pro';
+  proTab: 'jinti' | 'cipai';
+  poemType: PoemType;
+  jintiStart: 'ping' | 'ze';
+  jintiRhyme: 'yes' | 'no';
+  sonnetType: SonnetType;
+  formId: string;
+  selectedCipai: CipaiData | null;
+  rhymeBook: RhymeBook;
+  layout: LayoutMode;
+  paperStyle: PaperStyle;
+  fontStyle: FontStyle;
+  manualRhymeGroupId: string | null;
+};
+
+type PoemVariantState = {
+  mode: 'free' | 'pro';
+  sonnetType: SonnetType;
+  formId: string;
+  formName: string;
+  proTab: 'jinti' | 'cipai';
+  selectedCipai: CipaiData | null;
+  poemType: PoemType;
+  jintiVariant: string;
+};
+
+const buildTypedPoem = (base: PoemBase, state: PoemVariantState): Poem => {
+  if (state.mode === 'free') {
+    const form = state.formId !== 'free' ? { formId: state.formId, formName: state.formName } : {};
+    if (state.sonnetType !== 'none') return { ...base, ...form, type: 'sonnet', sonnetType: state.sonnetType };
+    return { ...base, ...form, type: 'free' };
+  }
+  if (state.proTab === 'cipai' && state.selectedCipai?.id) {
+    return { ...base, type: 'cipai', cipaiName: state.selectedCipai.name, cipaiVariantId: state.selectedCipai.id };
+  }
+  const type = state.poemType === 'jueju_5' || state.poemType === 'jueju_7'
+    || state.poemType === 'lvshi_5' || state.poemType === 'lvshi_7'
+    ? state.poemType
+    : 'jueju_5';
+  return { ...base, type, jintiVariant: state.jintiVariant };
+};
 
 export const SONNET_TYPES: { value: SonnetType; label: string; sub: string }[] = [
   { value: 'none', label: '无', sub: '自由形式' },
@@ -41,29 +87,8 @@ export const RHYME_BOOKS: { value: RhymeBook; label: string }[] = [
   { value: 'xin_yun', label: '中华新韵' },
 ];
 
-export interface CreateContextType {
-  // Navigation & Query
-  navigate: ReturnType<typeof useNavigate>;
-  searchParams: ReturnType<typeof useSearchParams>[0];
-  settings: ReturnType<typeof getSettings>;
-
-  // Dialog & Flow States
-  editId: string | null;
-  setEditId: React.Dispatch<React.SetStateAction<string | null>>;
-  showImport: boolean;
-  setShowImport: React.Dispatch<React.SetStateAction<boolean>>;
-  
-  // Modes & Settings
-  mode: 'free' | 'pro';
-  setMode: React.Dispatch<React.SetStateAction<'free' | 'pro'>>;
-  proTab: 'jinti' | 'cipai';
-  setProTab: React.Dispatch<React.SetStateAction<'jinti' | 'cipai'>>;
-  proInputMode: 'split' | 'interleaved';
-  setProInputMode: React.Dispatch<React.SetStateAction<'split' | 'interleaved'>>;
-  proLines: string[];
-  setProLines: React.Dispatch<React.SetStateAction<string[]>>;
-
-  // Form Content
+// ── 细粒度 Context 定义 ──────────────────────────────────
+export interface CreateDocumentState {
   title: string;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   author: string;
@@ -72,6 +97,20 @@ export interface CreateContextType {
   setContent: React.Dispatch<React.SetStateAction<string>>;
   heartNote: string;
   setHeartNote: React.Dispatch<React.SetStateAction<string>>;
+  proLines: string[];
+  setProLines: React.Dispatch<React.SetStateAction<string[]>>;
+  activeContent: string;
+  showHeartNote: boolean;
+  setShowHeartNote: React.Dispatch<React.SetStateAction<boolean>>;
+  aiComment: string;
+  setAiComment: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export interface CreateFormState {
+  mode: 'free' | 'pro';
+  setMode: React.Dispatch<React.SetStateAction<'free' | 'pro'>>;
+  proTab: 'jinti' | 'cipai';
+  setProTab: React.Dispatch<React.SetStateAction<'jinti' | 'cipai'>>;
   poemType: PoemType;
   setPoemType: React.Dispatch<React.SetStateAction<PoemType>>;
   jintiStart: 'ping' | 'ze';
@@ -80,56 +119,83 @@ export interface CreateContextType {
   setJintiRhyme: React.Dispatch<React.SetStateAction<'yes' | 'no'>>;
   sonnetType: SonnetType;
   setSonnetType: React.Dispatch<React.SetStateAction<SonnetType>>;
+  formId: string;
+  setFormId: React.Dispatch<React.SetStateAction<string>>;
+  currentForm: PoemForm;
   selectedCipai: CipaiData | null;
   setSelectedCipai: React.Dispatch<React.SetStateAction<CipaiData | null>>;
   rhymeBook: RhymeBook;
   setRhymeBook: React.Dispatch<React.SetStateAction<RhymeBook>>;
-  
-  // Layout Styles
+  derivedPoemType: string;
+  currentPatterns: string[][];
+}
+
+export interface CreateCaretState {
+  rhymeHintEnabled: boolean;
+  setRhymeHintEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  rhymeMirrorVisible: boolean;
+  rhymeMirrorRowIndex: number;
+  anchorRhymeChar: string | null;
+  usedRhymes: string[];
+  onCaretOnRhyme: (isOnRhyme: boolean, rowIndex: number) => void;
+  handleRhymePick: (char: string) => void;
+  manualRhymeGroupId: string | null;
+  setManualRhymeGroupId: React.Dispatch<React.SetStateAction<string | null>>;
+  caretRow: number;
+  caretCol: number;
+  toneReq: 'P' | 'Z' | null;
+  onCellFocus: (toneReq: 'P' | 'Z' | null) => void;
+  onCaretCell: (rowIndex: number, colIndex: number) => void;
+}
+
+export interface CreatePresentationState {
   layout: LayoutMode;
   setLayout: React.Dispatch<React.SetStateAction<LayoutMode>>;
   paperStyle: PaperStyle;
   setPaperStyle: React.Dispatch<React.SetStateAction<PaperStyle>>;
   fontStyle: FontStyle;
   setFontStyle: React.Dispatch<React.SetStateAction<FontStyle>>;
-
-  // Derived Memos
-  derivedPoemType: string;
-  currentPatterns: string[][];
-  activeContent: string;
   previewPoem: Poem;
-  sonnetLineCount: number;
-
-  // Validation & AI
-  meterResult: MeterCheckResult | null;
-  setMeterResult: React.Dispatch<React.SetStateAction<MeterCheckResult | null>>;
-  aiLoading: boolean;
-  setAiLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  aiComment: string;
-  setAiComment: React.Dispatch<React.SetStateAction<string>>;
-  showHeartNote: boolean;
-  setShowHeartNote: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Actions
-  handleAIReview: () => Promise<void>;
-  handleSave: () => void;
-  handleClear: () => void;
 }
 
-const CreateContext = createContext<CreateContextType | undefined>(undefined);
+export interface CreateWorkflowState {
+  settings: ReturnType<typeof getSettings>;
+  editId: string | null;
+  setEditId: React.Dispatch<React.SetStateAction<string | null>>;
+  showImport: boolean;
+  setShowImport: React.Dispatch<React.SetStateAction<boolean>>;
+  sonnetLineCount: number;
+  meterResult: MeterCheckResult | null;
+  setMeterResult: React.Dispatch<React.SetStateAction<MeterCheckResult | null>>;
+  handleSave: () => Promise<void>;
+  handleClear: () => void;
+  handleRestoreClear: () => void;
+  canRestoreClear: boolean;
+  aiLoading: boolean;
+  handleAIReview: () => Promise<void>;
+}
+
+const CreateDocumentContext = createContext<CreateDocumentState | undefined>(undefined);
+const CreateFormContext = createContext<CreateFormState | undefined>(undefined);
+const CreateCaretContext = createContext<CreateCaretState | undefined>(undefined);
+const CreatePresentationContext = createContext<CreatePresentationState | undefined>(undefined);
+const CreateWorkflowContext = createContext<CreateWorkflowState | undefined>(undefined);
+
 
 export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const settings = getSettings();
+  const settings = useMemo(() => getSettings(), []);
+  const draftRestored = useRef(false);
 
   const [editId, setEditId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [aiComment, setAiComment] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   // ── 模式 ──────────────────────────────────────────────
   const [mode, setMode] = useState<'free' | 'pro'>('free');
   const [proTab, setProTab] = useState<'jinti' | 'cipai'>('jinti');
-  const [proInputMode, setProInputMode] = useState<'split' | 'interleaved'>('interleaved');
   const [proLines, setProLines] = useState<string[]>([]);
 
   // ── 表单状态 ────────────────────────────────────────────
@@ -141,6 +207,7 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [jintiStart, setJintiStart] = useState<'ping' | 'ze'>('ze');
   const [jintiRhyme, setJintiRhyme] = useState<'yes' | 'no'>('no');
   const [sonnetType, setSonnetType] = useState<SonnetType>('none');
+  const [formId, setFormId] = useState<string>('free');
   const [selectedCipai, setSelectedCipai] = useState<CipaiData | null>(null);
   const [rhymeBook, setRhymeBook] = useState<RhymeBook>(settings.rhymeBook);
   const [layout, setLayout] = useState<LayoutMode>(settings.defaultLayout);
@@ -149,11 +216,17 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // ── 格律校验 ────────────────────────────────────────────
   const [meterResult, setMeterResult] = useState<MeterCheckResult | null>(null);
-
-  // ── AI 点评 ─────────────────────────────────────────────
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiComment, setAiComment] = useState('');
   const [showHeartNote, setShowHeartNote] = useState(false);
+  const [manualRhymeGroupId, setManualRhymeGroupId] = useState<string | null>(null);
+  const [clearedSnapshot, setClearedSnapshot] = useState<ClearedSnapshot | null>(null);
+
+  // ── 韵镜与光标状态 ─────────────────────────────────────
+  const [rhymeHintEnabled, setRhymeHintEnabled] = useState(settings.rhymeHintEnabled ?? true);
+  const [rhymeMirrorVisible, setRhymeMirrorVisible] = useState(false);
+  const [rhymeMirrorRowIndex, setRhymeMirrorRowIndex] = useState(-1);
+  const [caretRow, setCaretRow] = useState(-1);
+  const [caretCol, setCaretCol] = useState(-1);
+  const [toneReq, setToneReq] = useState<'P' | 'Z' | null>(null);
 
   // 初始化编辑状态
   useEffect(() => {
@@ -165,26 +238,42 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setTitle(p.title || '');
         setAuthor(p.author || '');
         setHeartNote(p.heartNote || '');
+        setAiComment(p.aiComment || '');
         setLayout(p.layout || settings.defaultLayout);
         setPaperStyle(p.paperStyle || settings.defaultPaperStyle);
         setFontStyle(p.fontStyle || 'none');
         setRhymeBook(p.rhymeBook || settings.rhymeBook);
-        setAiComment(p.aiComment || '');
-        
-        const linesWithoutPunc = (p.content || '').split('\n').map(l => l.replace(/[，。、；？！]/g, '').trim()).filter(Boolean);
+        setRhymeHintEnabled(settings.rhymeHintEnabled ?? true);
+        const linesWithoutPunc = normalizePoemClauses(p.content || '');
         
         if (p.type === 'free' || p.type === 'sonnet') {
           setMode('free');
           setContent(p.content || '');
-          if (p.type === 'sonnet' && p.sonnetType) setSonnetType(p.sonnetType);
+          if (p.type === 'sonnet' && p.sonnetType) {
+            setSonnetType(p.sonnetType);
+            setFormId(SONNET_FORM_MAP[p.sonnetType] || 'free');
+          }
         } else {
           setMode('pro');
-          setProLines(linesWithoutPunc);
           if (p.type === 'cipai') {
             setProTab('cipai');
+            if (p.cipaiName || p.cipaiVariantId) {
+              fetch(`${import.meta.env.BASE_URL}data/cipai.json`)
+                .then(r => r.json())
+                .then((list: CipaiData[]) => {
+                  const matched = list.find(c => c.id === p.cipaiVariantId)
+                    || list.find(c => c.name === p.cipaiName || c.aliases?.includes(p.cipaiName!));
+                  if (matched) {
+                    setSelectedCipai(matched);
+                    setProLines(clausesToProLines(linesWithoutPunc, getCipaiEditorPatterns(matched)));
+                  }
+                })
+                .catch(() => {});
+            }
           } else {
             setProTab('jinti');
-            setPoemType(p.type as PoemType);
+            setProLines(linesWithoutPunc);
+            setPoemType(p.type);
             if (p.jintiVariant) {
                const parts = p.jintiVariant.split('_');
                if (parts.length >= 4) {
@@ -198,6 +287,123 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [searchParams, settings]);
 
+  // 从词牌详情页进入创作
+  useEffect(() => {
+    const cipaiId = searchParams.get('cipai');
+    if (!cipaiId || searchParams.get('edit')) return;
+    fetch(`${import.meta.env.BASE_URL}data/cipai.json`)
+      .then(r => r.json())
+      .then((list: CipaiData[]) => {
+        const matched = list.find(c => c.id === cipaiId);
+        if (!matched) return;
+        const draft = getDraft(null);
+        const draftCipaiId = draft?.selectedCipaiId;
+        const draftClauses = Array.isArray(draft?.proLines)
+          ? draft.proLines.filter((line: string) => line?.trim())
+          : [];
+        if (draftClauses.length && draftCipaiId && draftCipaiId !== matched.id) {
+          const expectedCount = getCipaiEditorPatterns(matched).filter(pattern => pattern.length > 0).length;
+          if (draftClauses.length !== expectedCount) {
+            alert('新词牌句数与当前草稿不一致，已保留原词牌和草稿。请先保存当前作品后再切换。');
+            return;
+          }
+          const confirmed = confirm('将当前草稿按新词牌重新排布。原文不会清空，是否继续？');
+          if (!confirmed) return;
+        }
+        setMode('pro');
+        setProTab('cipai');
+        setSelectedCipai(matched);
+        if (draftClauses.length) {
+          setProLines(clausesToProLines(draftClauses, getCipaiEditorPatterns(matched)));
+        }
+      })
+      .catch(() => {});
+  }, [searchParams]);
+
+  // 从近体诗直达路由进入创作
+  useEffect(() => {
+    const variant = searchParams.get('jinti');
+    if (!variant || searchParams.get('edit') || !JINTI_TEMPLATES[variant]) return;
+    const parts = variant.split('_');
+    if (parts.length < 4) return;
+    const type = `${parts[0]}_${parts[1]}` as PoemType;
+    setMode('pro');
+    setProTab('jinti');
+    setPoemType(type);
+    setJintiStart(parts[2] as 'ping' | 'ze');
+    setJintiRhyme(parts[3] as 'yes' | 'no');
+  }, [searchParams]);
+
+  // 自动恢复当前作品对应的草稿
+  useEffect(() => {
+    if (draftRestored.current) return;
+    draftRestored.current = true;
+    try {
+      const draft = getDraft(searchParams.get('edit'));
+      if (!draft) return;
+      setMode(draft.mode === 'pro' ? 'pro' : 'free');
+      setProTab(draft.proTab === 'cipai' ? 'cipai' : 'jinti');
+      setProLines(Array.isArray(draft.proLines) ? draft.proLines : []);
+      setTitle(draft.title || '');
+      setAuthor(draft.author || settings.defaultPenName);
+      setContent(draft.content || '');
+      setHeartNote(draft.heartNote || '');
+      if (draft.poemType) setPoemType(draft.poemType);
+      if (draft.jintiStart) setJintiStart(draft.jintiStart);
+      if (draft.jintiRhyme) setJintiRhyme(draft.jintiRhyme);
+      if (draft.sonnetType) setSonnetType(draft.sonnetType);
+      if (draft.formId) setFormId(draft.formId);
+      if (draft.rhymeBook) setRhymeBook(draft.rhymeBook);
+      if (draft.layout) setLayout(draft.layout);
+      if (draft.paperStyle) setPaperStyle(draft.paperStyle);
+      if (draft.fontStyle) setFontStyle(draft.fontStyle);
+      if (draft.manualRhymeGroupId !== undefined) setManualRhymeGroupId(draft.manualRhymeGroupId);
+      const draftCipaiId = draft.selectedCipaiId;
+      if (draftCipaiId && !searchParams.get('cipai')) {
+        fetch(`${import.meta.env.BASE_URL}data/cipai.json`)
+          .then(r => r.json())
+          .then((list: CipaiData[]) => {
+            const matched = list.find(c => c.id === draftCipaiId);
+            if (matched) {
+              setSelectedCipai(matched);
+              const patterns = getCipaiEditorPatterns(matched);
+              setProLines(lines => lines.length === patterns.filter(pattern => pattern.length > 0).length && patterns.some(pattern => pattern.length === 0)
+                ? clausesToProLines(lines, patterns)
+                : lines);
+            }
+          })
+          .catch(() => {});
+      }
+    } catch (_) {}
+  }, [searchParams, settings.defaultPenName]);
+
+  // 防误触/刷新丢稿
+  useEffect(() => {
+    if (!draftRestored.current) return;
+    const persistDraft = () => {
+      const hasWriting = title.trim() || content.trim() || proLines.some(line => line.trim()) || heartNote.trim();
+      if (!hasWriting) return;
+      saveDraft(editId, {
+        editId, mode, proTab, proLines, title, author, content, heartNote, poemType,
+        jintiStart, jintiRhyme, sonnetType, formId, rhymeBook,
+        selectedCipaiId: selectedCipai?.id,
+        layout, paperStyle, fontStyle, manualRhymeGroupId,
+      });
+    };
+    const timer = window.setTimeout(persistDraft, 300);
+    const handlePageHide = () => persistDraft();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') persistDraft();
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [editId, mode, proTab, proLines, title, author, content, heartNote, poemType, jintiStart, jintiRhyme, sonnetType, formId, selectedCipai, rhymeBook, layout, paperStyle, fontStyle, manualRhymeGroupId]);
+
   const derivedPoemType = useMemo(() => {
     return `${poemType}_${jintiStart}_${jintiRhyme}`;
   }, [poemType, jintiStart, jintiRhyme]);
@@ -208,9 +414,7 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const templateKey = JINTI_TEMPLATES[derivedPoemType] ? derivedPoemType : (poemType === 'jueju_5' ? 'jueju_5_ze_no' : poemType === 'jueju_7' ? 'jueju_7_ze_yes' : poemType === 'lvshi_5' ? 'lvshi_5_ze_no' : poemType === 'lvshi_7' ? 'lvshi_7_ping_yes' : 'jueju_5_ze_no');
       pts = JINTI_TEMPLATES[templateKey] || [];
     } else if (proTab === 'cipai' && selectedCipai) {
-      const upper = selectedCipai.upperPattern.map(s => s.split(''));
-      const lower = selectedCipai.lowerPattern?.map(s => s.split('')) || [];
-      pts = [...upper, ...(lower.length ? [[], ...lower] : [])];
+      pts = getCipaiEditorPatterns(selectedCipai);
     }
     return pts;
   }, [proTab, poemType, derivedPoemType, selectedCipai]);
@@ -228,6 +432,66 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }).filter(s => s !== '').join('\n');
   }, [mode, content, currentPatterns, proLines]);
 
+  const onCellFocus = useCallback((req: 'P' | 'Z' | null) => { setToneReq(req); }, []);
+  const onCaretCell = useCallback((rowIndex: number, colIndex: number) => {
+    setCaretRow(rowIndex);
+    setCaretCol(colIndex);
+  }, []);
+
+  useEffect(() => {
+    setManualRhymeGroupId(null);
+  }, [proTab, poemType, selectedCipai]);
+
+  const anchorRhymeChar = useMemo(() => {
+    if (mode === 'free') return null;
+    for (let ri = 0; ri < currentPatterns.length; ri++) {
+      const row = currentPatterns[ri];
+      if (row.length === 0) continue;
+      const lastCharIndex = row.length - 1;
+      if (row[lastCharIndex] === 'R' || row[lastCharIndex] === 'r') {
+        const line = proLines[ri] || '';
+        const ch = [...line][lastCharIndex];
+        if (ch && ch.trim()) return ch;
+      }
+    }
+    return null;
+  }, [mode, currentPatterns, proLines]);
+
+  const usedRhymes = useMemo(() => {
+    const used: string[] = [];
+    if (mode === 'free') return used;
+    for (let ri = 0; ri < currentPatterns.length; ri++) {
+      const row = currentPatterns[ri];
+      if (row.length === 0) continue;
+      const lastCharIndex = row.length - 1;
+      if (row[lastCharIndex] === 'R' || row[lastCharIndex] === 'r') {
+        const line = proLines[ri] || '';
+        const ch = [...line][lastCharIndex];
+        if (ch && ch.trim()) used.push(ch);
+      }
+    }
+    return used;
+  }, [mode, currentPatterns, proLines]);
+
+  const onCaretOnRhyme = useCallback((isOnRhyme: boolean, rowIndex: number) => {
+    setRhymeMirrorVisible(isOnRhyme && rhymeHintEnabled);
+    setRhymeMirrorRowIndex(rowIndex);
+  }, [rhymeHintEnabled]);
+
+  const handleRhymePick = useCallback((char: string) => {
+    if (rhymeMirrorRowIndex < 0 || rhymeMirrorRowIndex >= currentPatterns.length) return;
+    const row = currentPatterns[rhymeMirrorRowIndex];
+    if (row.length === 0) return;
+    const lastCharIndex = row.length - 1;
+    const newLines = [...proLines];
+    const currentLine = newLines[rhymeMirrorRowIndex] || '';
+    const chars = [...currentLine];
+    while (chars.length < lastCharIndex) chars.push(' ');
+    chars[lastCharIndex] = char;
+    newLines[rhymeMirrorRowIndex] = chars.join('').trimEnd();
+    setProLines(newLines);
+  }, [rhymeMirrorRowIndex, currentPatterns, proLines]);
+
   // 实时格律校验
   useEffect(() => {
     if (!activeContent.trim()) {
@@ -239,7 +503,7 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         try {
           const result = checkSonnet(activeContent, sonnetType);
           setMeterResult(result);
-        } catch (_) { /* ignore */ }
+        } catch (_) {}
       }, 400);
       return () => clearTimeout(timer);
     }
@@ -251,23 +515,24 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         let result: MeterCheckResult;
         if (proTab === 'jinti') {
-          result = checkJintiShi(activeContent, derivedPoemType, rhymeBook);
+          result = checkJintiShi(activeContent, derivedPoemType, rhymeBook, manualRhymeGroupId);
         } else if (selectedCipai) {
-          result = checkCipai(activeContent, selectedCipai, rhymeBook);
+          result = checkCipai(activeContent, selectedCipai, rhymeBook, manualRhymeGroupId);
         } else return;
         setMeterResult(result);
-      } catch (_) { /* ignore */ }
+      } catch (_) {}
     }, 400);
     return () => clearTimeout(timer);
-  }, [activeContent, mode, proTab, poemType, derivedPoemType, selectedCipai, rhymeBook, sonnetType]);
+  }, [activeContent, mode, proTab, poemType, derivedPoemType, selectedCipai, rhymeBook, sonnetType, manualRhymeGroupId]);
 
-  // 自由模式十四行实时状态
   const [sonnetLineCount, setSonnetLineCount] = useState(0);
   useEffect(() => {
     setSonnetLineCount(activeContent.split('\n').filter(l => l.trim()).length);
   }, [activeContent]);
 
-  const handleAIReview = async () => {
+  const currentForm = useMemo(() => getForm(formId), [formId]);
+
+  const handleAIReview = useCallback(async () => {
     if (!activeContent.trim()) return;
     setAiLoading(true);
     try {
@@ -288,16 +553,26 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } finally {
       setAiLoading(false);
     }
-  };
+  }, [activeContent, mode, proTab, selectedCipai, poemType, sonnetType, rhymeBook]);
 
-  const handleSave = () => {
-    if (!activeContent.trim()) { alert('请先写下诗句'); return; }
+  const handleSave = useCallback(async () => {
+    if (mode === 'pro' && proTab === 'cipai' && !selectedCipai?.id) {
+      EventBus.emit('TRIGGER_BURST', { shapeType: 'starburst' });
+      alert('请先选择具体词牌变体');
+      return;
+    }
+    if (!activeContent.trim()) {
+      EventBus.emit('TRIGGER_BURST', { shapeType: 'starburst' });
+      alert('请先写下诗句');
+      return;
+    }
 
     if (mode === 'pro') {
       const nonSeparatorPatterns = currentPatterns.filter(p => p.length > 0);
       const typedLines = proLines.filter((l, idx) => currentPatterns[idx]?.length > 0 && l.trim().length > 0);
       
       if (typedLines.length < nonSeparatorPatterns.length) {
+        EventBus.emit('TRIGGER_BURST', { shapeType: 'starburst' });
         alert('结构不完整，保存前请完整填写所有诗词行！');
         return;
       }
@@ -305,135 +580,195 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       for (let ri = 0; ri < currentPatterns.length; ri++) {
         if (currentPatterns[ri].length > 0) {
           const expectedLen = currentPatterns[ri].length;
-          const actualLen = (proLines[ri] || '').trim().length;
-          if (actualLen < expectedLen) {
-            alert(`第 ${ri + 1} 行缺字！应为 ${expectedLen} 字，实为 ${actualLen} 字，请补全。`);
+          const actualLen = Array.from((proLines[ri] || '').trim()).length;
+          if (actualLen !== expectedLen) {
+            EventBus.emit('TRIGGER_BURST', { shapeType: 'starburst' });
+            alert(`第 ${ri + 1} 行字数不符！应为 ${expectedLen} 字，实为 ${actualLen} 字，请调整。`);
             return;
           }
         }
       }
     }
 
-    const autoTitle = title || activeContent.split('\n')[0].slice(0, 12).replace(/[，。]/g, '') || '无题';
-    const poem: Poem = {
+    const form = currentForm;
+    if (form.lineCount && sonnetLineCount !== form.lineCount) {
+      EventBus.emit('TRIGGER_BURST', { shapeType: 'crossette' });
+      const ok = confirm(`${form.name} 要求 ${form.lineCount} 行，当前 ${sonnetLineCount} 行。是否仍然保存？`);
+      if (!ok) return;
+    }
+    if (form.charsPerLine && mode === 'free') {
+      const lines = activeContent.split('\n').filter(l => l.trim());
+      const bad = lines.some(l => {
+        const len = Array.from(l.replace(/[，。、；：？！,.!?]/g, '')).length;
+        return !checkCharsPerLine(len, form.charsPerLine);
+      });
+      if (bad) {
+        const ok = confirm(`${form.name} 要求每行 ${formatChars(form.charsPerLine)} 字，部分行字数不符。是否仍然保存？`);
+        if (!ok) return;
+      }
+    }
+
+    const autoTitle = title || Array.from(activeContent.split('\n')[0]).slice(0, 12).join('').replace(/[，。]/g, '') || '无题';
+    const existingPoem = editId ? getPoemById(editId) : undefined;
+    const now = Date.now();
+    const nextPoem = buildTypedPoem({
       id: editId || Date.now().toString(),
       title: autoTitle,
       author: author || '佚名',
       content: activeContent,
       heartNote,
-      type: mode === 'free'
-        ? (sonnetType !== 'none' ? 'sonnet' : 'free')
-        : (proTab === 'cipai' ? 'cipai' : poemType),
-      sonnetType: sonnetType !== 'none' ? sonnetType : undefined,
-      jintiVariant: mode === 'pro' && proTab === 'jinti' ? derivedPoemType : undefined,
-      cipaiName: selectedCipai?.name,
       layout,
       paperStyle,
       fontStyle,
       rhymeBook,
-      createdAt: Date.now(),
-      aiComment,
-    };
-    savePoem(poem);
+      createdAt: existingPoem?.createdAt || now,
+      aiComment: existingPoem?.aiComment || aiComment,
+    }, { mode, sonnetType, formId, formName: form.name, proTab, selectedCipai, poemType, jintiVariant: derivedPoemType });
+
+    const finalPoem = mergePoemForSave(existingPoem, nextPoem, now);
+    const saveRes = await savePoem(finalPoem);
+    if (!saveRes.ok) {
+      EventBus.emit('TRIGGER_BURST', { shapeType: 'crossette' });
+      alert(saveRes.error || '保存失败，可能因存储空间不足');
+      return;
+    }
+    await deleteDraft(editId);
+
+    EventBus.emit('TRIGGER_BURST', { shapeType: 'peony' });
     navigate('/works');
-  };
+  }, [mode, proTab, selectedCipai, activeContent, currentPatterns, proLines, currentForm, sonnetLineCount, title, editId, author, heartNote, poemType, layout, paperStyle, fontStyle, rhymeBook, derivedPoemType, navigate]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
+    setClearedSnapshot({
+      title, author, content, heartNote, proLines: [...proLines],
+      mode, proTab, poemType, jintiStart, jintiRhyme, sonnetType,
+      formId, selectedCipai, rhymeBook, layout, paperStyle, fontStyle,
+      manualRhymeGroupId,
+    });
+    setTitle('');
     setContent('');
+    setHeartNote('');
     setProLines([]);
+    setSelectedCipai(null);
+    setManualRhymeGroupId(null);
     setAiComment('');
-    setMeterResult(null);
-  };
+    deleteDraft(editId);
+    EventBus.emit('TRIGGER_BURST', { shapeType: 'willow' });
+  }, [title, author, content, heartNote, proLines, mode, proTab, poemType, jintiStart, jintiRhyme, sonnetType, formId, selectedCipai, rhymeBook, layout, paperStyle, fontStyle, manualRhymeGroupId, editId]);
 
-  // 预览用 poem 对象
-  const previewPoem = useMemo((): Poem => ({
-    id: 'preview',
+  const handleRestoreClear = useCallback(() => {
+    if (!clearedSnapshot) return;
+    setTitle(clearedSnapshot.title || '');
+    setAuthor(clearedSnapshot.author || settings.defaultPenName);
+    setContent(clearedSnapshot.content || '');
+    setHeartNote(clearedSnapshot.heartNote || '');
+    setProLines(clearedSnapshot.proLines || []);
+    setMode(clearedSnapshot.mode || 'free');
+    setProTab(clearedSnapshot.proTab || 'jinti');
+    setPoemType(clearedSnapshot.poemType || 'jueju_5');
+    setJintiStart(clearedSnapshot.jintiStart || 'ze');
+    setJintiRhyme(clearedSnapshot.jintiRhyme || 'no');
+    setSonnetType(clearedSnapshot.sonnetType || 'none');
+    setFormId(clearedSnapshot.formId || 'free');
+    setSelectedCipai(clearedSnapshot.selectedCipai || null);
+    setRhymeBook(clearedSnapshot.rhymeBook || settings.rhymeBook);
+    setLayout(clearedSnapshot.layout || settings.defaultLayout);
+    setPaperStyle(clearedSnapshot.paperStyle || settings.defaultPaperStyle);
+    setFontStyle(clearedSnapshot.fontStyle || 'none');
+    setManualRhymeGroupId(clearedSnapshot.manualRhymeGroupId || null);
+    setAiComment('');
+    setClearedSnapshot(null);
+    EventBus.emit('TRIGGER_BURST', { shapeType: 'saturn' });
+  }, [clearedSnapshot, settings]);
+
+  const previewPoem = useMemo<Poem>(() => buildTypedPoem({
+    id: editId || 'preview',
     title: title || '无题',
     author: author || '佚名',
-    content: activeContent || '在此输入佳句...',
+    content: activeContent || '（诗文效果预览）',
     heartNote,
-    type: mode === 'free'
-      ? (sonnetType !== 'none' ? 'sonnet' : 'free')
-      : (proTab === 'cipai' ? 'cipai' : poemType),
-    sonnetType: sonnetType !== 'none' ? sonnetType : undefined,
-    cipaiName: selectedCipai?.name,
     layout,
     paperStyle,
     fontStyle,
     rhymeBook,
     createdAt: Date.now(),
-    aiComment,
-  }), [title, author, activeContent, heartNote, mode, sonnetType, poemType, selectedCipai, layout, paperStyle, fontStyle, rhymeBook, aiComment]);
+  }, { mode, sonnetType, formId, formName: currentForm.name, proTab, selectedCipai, poemType, jintiVariant: derivedPoemType }), [editId, title, author, activeContent, heartNote, mode, sonnetType, formId, currentForm, proTab, selectedCipai, poemType, derivedPoemType, layout, paperStyle, fontStyle, rhymeBook]);
+
+  // ── 子 State 分组 ──────────────────────────────────────
+  const docState = useMemo<CreateDocumentState>(() => ({
+    title, setTitle, author, setAuthor, content, setContent,
+    heartNote, setHeartNote, proLines, setProLines, activeContent,
+    showHeartNote, setShowHeartNote,
+    aiComment, setAiComment,
+  }), [title, author, content, heartNote, proLines, activeContent, showHeartNote, aiComment]);
+
+  const formState = useMemo<CreateFormState>(() => ({
+    mode, setMode, proTab, setProTab, poemType, setPoemType,
+    jintiStart, setJintiStart, jintiRhyme, setJintiRhyme,
+    sonnetType, setSonnetType, formId, setFormId, currentForm,
+    selectedCipai, setSelectedCipai, rhymeBook, setRhymeBook,
+    derivedPoemType, currentPatterns,
+  }), [mode, proTab, poemType, jintiStart, jintiRhyme, sonnetType, formId, currentForm, selectedCipai, rhymeBook, derivedPoemType, currentPatterns]);
+
+  const caretState = useMemo<CreateCaretState>(() => ({
+    rhymeHintEnabled, setRhymeHintEnabled, rhymeMirrorVisible,
+    rhymeMirrorRowIndex, anchorRhymeChar, usedRhymes, onCaretOnRhyme,
+    handleRhymePick, manualRhymeGroupId, setManualRhymeGroupId,
+    caretRow, caretCol, toneReq, onCellFocus, onCaretCell,
+  }), [rhymeHintEnabled, rhymeMirrorVisible, rhymeMirrorRowIndex, anchorRhymeChar, usedRhymes, onCaretOnRhyme, handleRhymePick, manualRhymeGroupId, caretRow, caretCol, toneReq, onCellFocus, onCaretCell]);
+
+  const presentationState = useMemo<CreatePresentationState>(() => ({
+    layout, setLayout, paperStyle, setPaperStyle, fontStyle, setFontStyle, previewPoem,
+  }), [layout, paperStyle, fontStyle, previewPoem]);
+
+  const workflowState = useMemo<CreateWorkflowState>(() => ({
+    settings, editId, setEditId, showImport, setShowImport,
+    sonnetLineCount, meterResult, setMeterResult, handleSave, handleClear,
+    handleRestoreClear, canRestoreClear: Boolean(clearedSnapshot),
+    aiLoading, handleAIReview,
+  }), [settings, editId, showImport, sonnetLineCount, meterResult, handleSave, handleClear, handleRestoreClear, clearedSnapshot, aiLoading, handleAIReview]);
 
   return (
-    <CreateContext.Provider value={{
-      navigate,
-      searchParams,
-      settings,
-      editId,
-      setEditId,
-      showImport,
-      setShowImport,
-      mode,
-      setMode,
-      proTab,
-      setProTab,
-      proInputMode,
-      setProInputMode,
-      proLines,
-      setProLines,
-      title,
-      setTitle,
-      author,
-      setAuthor,
-      content,
-      setContent,
-      heartNote,
-      setHeartNote,
-      poemType,
-      setPoemType,
-      jintiStart,
-      setJintiStart,
-      jintiRhyme,
-      setJintiRhyme,
-      sonnetType,
-      setSonnetType,
-      selectedCipai,
-      setSelectedCipai,
-      rhymeBook,
-      setRhymeBook,
-      layout,
-      setLayout,
-      paperStyle,
-      setPaperStyle,
-      fontStyle,
-      setFontStyle,
-      derivedPoemType,
-      currentPatterns,
-      activeContent,
-      previewPoem,
-      sonnetLineCount,
-      meterResult,
-      setMeterResult,
-      aiLoading,
-      setAiLoading,
-      aiComment,
-      setAiComment,
-      showHeartNote,
-      setShowHeartNote,
-      handleAIReview,
-      handleSave,
-      handleClear,
-    }}>
-      {children}
-    </CreateContext.Provider>
+    <CreateDocumentContext.Provider value={docState}>
+      <CreateFormContext.Provider value={formState}>
+        <CreateCaretContext.Provider value={caretState}>
+          <CreatePresentationContext.Provider value={presentationState}>
+            <CreateWorkflowContext.Provider value={workflowState}>
+              {children}
+            </CreateWorkflowContext.Provider>
+          </CreatePresentationContext.Provider>
+        </CreateCaretContext.Provider>
+      </CreateFormContext.Provider>
+    </CreateDocumentContext.Provider>
   );
 };
 
-export const useCreate = () => {
-  const context = useContext(CreateContext);
-  if (!context) {
-    throw new Error('useCreate must be used within a CreateProvider');
-  }
+export const useCreateDocument = () => {
+  const context = useContext(CreateDocumentContext);
+  if (!context) throw new Error('useCreateDocument must be used within CreateProvider');
+  return context;
+};
+
+export const useCreateForm = () => {
+  const context = useContext(CreateFormContext);
+  if (!context) throw new Error('useCreateForm must be used within CreateProvider');
+  return context;
+};
+
+export const useCreateCaret = () => {
+  const context = useContext(CreateCaretContext);
+  if (!context) throw new Error('useCreateCaret must be used within CreateProvider');
+  return context;
+};
+
+export const useCreatePresentation = () => {
+  const context = useContext(CreatePresentationContext);
+  if (!context) throw new Error('useCreatePresentation must be used within CreateProvider');
+  return context;
+};
+
+export const useCreateWorkflow = () => {
+  const context = useContext(CreateWorkflowContext);
+  if (!context) throw new Error('useCreateWorkflow must be used within CreateProvider');
   return context;
 };

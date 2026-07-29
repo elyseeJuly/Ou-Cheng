@@ -1,30 +1,47 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Dynasty, Genre, ClassicPoem, ImageryItem } from '../types';
-import WordCloud3D from '../components/library/WordCloud3D';
-import ClassicReader from '../components/library/ClassicReader';
 import DualNavBar from '../components/library/DualNavBar';
+import { loadIndex, ImageryIndexEntry } from '../services/imageryService';
+
+const WordCloud3D = React.lazy(() => import('../components/library/WordCloud3D'));
+const ClassicReader = React.lazy(() => import('../components/library/ClassicReader'));
 
 const Library: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [allPoems, setAllPoems] = useState<ClassicPoem[]>([]);
   const [imageryItems, setImageryItems] = useState<ImageryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dynasty, setDynasty] = useState<Dynasty>('all');
   const [genre, setGenre] = useState<Genre>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [wordPoems, setWordPoems] = useState<ClassicPoem[]>([]);
-  const [view, setView] = useState<'cloud' | 'read'>('cloud');
+  const [view, setView] = useState<'cloud' | 'read'>(searchParams.get('search') ? 'read' : 'cloud');
 
   useEffect(() => {
     Promise.all([
-      fetch(`${(import.meta as any).env.BASE_URL}data/poetry.json`).then(r => r.json()).catch(() => []),
-      fetch(`${(import.meta as any).env.BASE_URL}data/imagery.json`).then(r => r.json()).catch(() => []),
-    ]).then(([poems, imagery]) => {
+      fetch(`${import.meta.env.BASE_URL}data/poetry.json`).then(r => r.json()).catch(() => []),
+      loadIndex().catch(() => []),
+    ]).then(([poems, imageryIndex]) => {
       setAllPoems(poems);
-      setImageryItems(imagery);
+      // 新管线 index.json: {w,c,f,t} -> 兼容 WordCloud3D 的 ImageryItem
+      setImageryItems((imageryIndex as ImageryIndexEntry[]).map(e => ({
+        word: e.w,
+        frequency: e.f,
+        category: e.c,
+        tone: e.t,
+        relatedWords: [],
+      })));
       setIsLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    const q = searchParams.get('search') || '';
+    setSearchTerm(q);
+    if (q) setView('read');
+  }, [searchParams]);
 
   // 过滤（以 category 字段为主，如"唐诗""宋词"）
   const filtered = allPoems.filter(p => {
@@ -56,57 +73,55 @@ const Library: React.FC = () => {
   });
 
 
-  const handleWordSelect = (word: string, poems: ClassicPoem[]) => {
+  const handleWordSelect = (word: string) => {
     setSelectedWord(word);
-    setWordPoems(poems);
+    setWordPoems(allPoems.filter(p => p.content?.includes(word) || p.title?.includes(word)).slice(0, 12));
+  };
+
+  const handleSearchChange = (q: string) => {
+    setSearchTerm(q);
+    if (q) {
+      setSearchParams({ search: q });
+    } else {
+      setSearchParams({});
+    }
   };
 
   return (
-    <div style={{ padding: '40px 60px', minHeight: '100vh', background: 'var(--paper-white)' }}>
+    <div className="collection-page library-page" style={{ padding: '40px 60px', minHeight: '100vh', background: 'var(--paper-0)' }}>
       {/* 页头 */}
       <div className="fade-in" style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{
-          fontFamily: 'var(--font-kaiti)', fontSize: '42px',
-          color: 'var(--cinnabar-red)', marginBottom: '8px', letterSpacing: '8px',
+          fontFamily: 'var(--font-kai)', fontSize: '42px',
+          color: 'var(--accent-seal)', marginBottom: '8px', letterSpacing: '8px',
         }}>
-          寻章摘句
+          卷帙
         </h1>
         <p style={{ fontSize: '16px', color: '#999', letterSpacing: '4px', fontFamily: '"Ma Shan Zheng", serif' }}>
-          典藏 33,000 首 · 唐宋至清 · 公版古典诗词
+          经典与意象，皆可入诗
         </p>
       </div>
 
-      {/* 视图切换 */}
-      <div style={{ display: 'flex', gap: '6px', background: '#f0ede8', borderRadius: '20px', padding: '3px', width: 'fit-content', margin: '0 auto 32px' }}>
-        {([['cloud', '☁ 意象词云'], ['read', '📖 经典赏读']] as const).map(([v, label]) => (
-          <button key={v} onClick={() => setView(v)} style={{
-            padding: '7px 24px', borderRadius: '16px', border: 'none',
-            background: view === v ? '#1a1a1a' : 'transparent',
-            color: view === v ? '#fff' : '#888',
-            cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s',
-            fontFamily: 'var(--font-kaiti)', letterSpacing: '2px',
-          }}>{label}</button>
+      {/* 视图切换 - 改用 .opt-item */}
+      <div className="opt-group" style={{ justifyContent: 'center', marginBottom: '32px' }}>
+        {([['cloud', '意象词云'], ['read', '经典赏读']] as const).map(([v, label]) => (
+          <button key={v} onClick={() => setView(v)} className={`opt-item ${view === v ? 'active' : ''}`} style={{ fontSize: 'var(--text-body)' }}>{label}</button>
         ))}
       </div>
 
       {/* ── 3D 词云视图 ── */}
       {view === 'cloud' && (
         <div className="fade-in">
-          <div style={{
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%)',
-            borderRadius: '16px', overflow: 'hidden', marginBottom: '32px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-          }}>
+          <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '32px' }}>
             {isLoading ? (
-              <div style={{ height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', fontFamily: 'var(--font-kaiti)', fontSize: '20px' }}>
+              <div style={{ height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-dan)', fontFamily: 'var(--font-kai)', fontSize: '20px' }}>
                 正在加载卷帙...
               </div>
             ) : (
-              <WordCloud3D
+              <React.Suspense fallback={<div className="route-loading">正在绘制意象……</div>}><WordCloud3D
                 imageryItems={imageryItems}
-                allPoems={allPoems}
                 onWordSelect={handleWordSelect}
-              />
+              /></React.Suspense>
             )}
           </div>
 
@@ -114,7 +129,7 @@ const Library: React.FC = () => {
           {selectedWord && wordPoems.length > 0 && (
             <div className="fade-in" style={{ marginBottom: '32px' }}>
               <h3 style={{
-                fontFamily: 'var(--font-kaiti)', fontSize: '20px',
+                fontFamily: 'var(--font-kai)', fontSize: '20px',
                 color: '#333', letterSpacing: '4px', marginBottom: '16px',
               }}>
                 含「{selectedWord}」的诗词 ({wordPoems.length} 首)
@@ -124,7 +139,7 @@ const Library: React.FC = () => {
                   <div key={i} onClick={() => { setView('read'); setSearchTerm(p.title); }}
                     style={{
                       background: '#fdfbf7', padding: '20px',
-                      borderLeft: '3px solid var(--cinnabar-red)',
+                      borderLeft: '3px solid var(--accent-active)',
                       borderRadius: '0 6px 6px 0',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                       cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s',
@@ -132,12 +147,12 @@ const Library: React.FC = () => {
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; }}
                   >
-                    <h4 style={{ fontFamily: 'var(--font-kaiti)', fontSize: '18px', color: '#1a1a1a', marginBottom: '4px' }}>{p.title}</h4>
-                    <p style={{ fontSize: '13px', color: 'var(--cinnabar-red)', marginBottom: '10px', fontFamily: '"Ma Shan Zheng", serif' }}>{p.author}</p>
+                    <h4 style={{ fontFamily: 'var(--font-kai)', fontSize: '18px', color: '#1a1a1a', marginBottom: '4px' }}>{p.title}</h4>
+                    <p style={{ fontSize: '13px', color: 'var(--accent-seal)', marginBottom: '10px', fontFamily: '"Ma Shan Zheng", serif' }}>{p.author}</p>
                     <p style={{
                       fontSize: '14px', color: '#666', lineHeight: 1.7,
                       display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      fontFamily: 'var(--font-kaiti)', letterSpacing: '2px',
+                      fontFamily: 'var(--font-kai)', letterSpacing: '2px',
                     }}>
                       {p.content}
                     </p>
@@ -151,44 +166,44 @@ const Library: React.FC = () => {
 
       {/* ── 经典赏读视图 ── */}
       {view === 'read' && (
-        <div className="fade-in">
+        <div className="fade-in classic-read-view">
           {/* 双维导航 */}
           <DualNavBar dynasty={dynasty} genre={genre} onDynastyChange={setDynasty} onGenreChange={setGenre} />
 
           {/* 搜索 */}
-          <div style={{ marginBottom: '32px', maxWidth: '480px', margin: '0 auto 32px' }}>
+          <div className="classic-search" style={{ marginBottom: '32px', maxWidth: '480px', margin: '0 auto 32px' }}>
             <input
               type="text"
               placeholder="搜索诗题、作者或佳句..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => handleSearchChange(e.target.value)}
               style={{
                 width: '100%', padding: '12px 20px',
                 border: '1px solid #e0e0e0', borderRadius: '24px',
                 background: 'white', fontSize: '16px',
-                fontFamily: 'var(--font-kaiti)', boxSizing: 'border-box',
+                fontFamily: 'var(--font-kai)', boxSizing: 'border-box',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}
             />
           </div>
 
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#bbb', fontFamily: 'var(--font-kaiti)', fontSize: '20px' }}>
+            <div style={{ textAlign: 'center', padding: '60px', color: '#bbb', fontFamily: 'var(--font-kai)', fontSize: '20px' }}>
               正在加载卷帙...
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#bbb', fontFamily: 'var(--font-kaiti)', fontSize: '20px' }}>
+            <div style={{ textAlign: 'center', padding: '60px', color: '#bbb', fontFamily: 'var(--font-kai)', fontSize: '20px' }}>
               未找到相关卷帙
             </div>
           ) : (
-            <ClassicReader 
-              poems={filtered.slice(0, 500)} 
+            <React.Suspense fallback={<div className="route-loading">正在展卷……</div>}><ClassicReader
+              poems={filtered}
               imageryItems={imageryItems}
               onImageryClick={(word) => {
                 setView('cloud');
-                handleWordSelect(word, allPoems.filter(p => p.content?.includes(word) || p.title?.includes(word)));
+                handleWordSelect(word);
               }}
-            />
+            /></React.Suspense>
           )}
         </div>
       )}
@@ -199,7 +214,7 @@ const Library: React.FC = () => {
         textAlign: 'center', opacity: 0.6,
       }}>
         <p style={{ fontSize: '12px', color: '#888', fontFamily: '"Ma Shan Zheng", serif', letterSpacing: '2px' }}>
-          数据源于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--cinnabar-red)', textDecoration: 'none' }}>chinese-poetry/chinese-poetry</a> 开源项目
+          数据源于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-seal)', textDecoration: 'none' }}>chinese-poetry/chinese-poetry</a> 开源项目
         </p>
       </footer>
     </div>

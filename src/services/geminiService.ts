@@ -42,7 +42,7 @@ const callLLMApi = async (
       { role: "user", content: prompt }
     ];
 
-    const body: any = {
+    const body: Record<string, unknown> = {
       model: model,
       messages: messages,
       temperature: options?.temperature ?? 0.7,
@@ -73,7 +73,7 @@ const callLLMApi = async (
     const ai = getClient();
     const model = settings.apiModel || 'gemini-2.5-flash-preview-04-17';
     
-    const config: any = {
+    const config: Record<string, unknown> = {
       systemInstruction: systemInstruction,
       temperature: options?.temperature ?? 0.7,
     };
@@ -100,9 +100,10 @@ export const checkMeterAndComment = async (
     const prompt = `对以下${type}（韵书：${rhymeScheme}）进行简短点评或给出一两处润色建议：「${content}」`;
 
     return await callLLMApi(system, prompt, { temperature: 0.6 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("LLM Text Error:", error);
-    if (error?.message === "API_KEY_MISSING") {
+    const err = error as Record<string, unknown> | null;
+    if (err?.message === "API_KEY_MISSING") {
       return "API_KEY_MISSING";
     }
     return "评价服务暂不可用。";
@@ -163,9 +164,10 @@ export const chatWithPoet = async (history: ChatMessage[], newMessage: string): 
       const response = await chat.sendMessage({ message: newMessage });
       return response.text || "（沉默不语）";
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("LLM Chat Error:", error);
-    if (error?.message === "API_KEY_MISSING") {
+    const err = error as Record<string, unknown> | null;
+    if (err?.message === "API_KEY_MISSING") {
       return "【提示】偶成君之思绪受限，请前往「印匣」配置您的 API Key 以便进行交流。";
     }
     return "吾思绪纷乱，暂不能答。";
@@ -191,9 +193,10 @@ export const generatePoemImage = async (prompt: string): Promise<string> => {
       }
     }
     throw new Error("No image data returned");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Gemini Image Error:", error);
-    if (error?.message === "API_KEY_MISSING") {
+    const err = error as Record<string, unknown> | null;
+    if (err?.message === "API_KEY_MISSING") {
       throw new Error("API_KEY_MISSING");
     }
     throw error;
