@@ -49,6 +49,7 @@
 | **`PLAN_`** | [PLAN_20260701_IMPORT_SYSTEM.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/PLAN_20260701_IMPORT_SYSTEM.md) | 自动识别多首诗词导入与文集管理系统设计实施方案书。包含拼音引擎集成方案。 | 2026-07-01 |
 | **`EXEC_`** | [EXEC_20260701_IMPORT_SYSTEM_TASK.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260701_IMPORT_SYSTEM_TASK.md) | 批量导入与文集功能开发任务清单。 | 2026-07-01 |
 | **`EXEC_`** | [EXEC_20260701_IMPORT_SYSTEM_WALKTHROUGH.md](file:///Users/quantumrose/Documents/Emberois/ou-cheng/docs/EXEC_20260701_IMPORT_SYSTEM_WALKTHROUGH.md) | 批量导入与文集功能开发交付汇报。包含 100% 通过测试纪实。 | 2026-07-01 |
+| **`EXEC_`** | [EXEC_20261119_OUCHENG_APP_SYNC_V5_1.md](EXEC_20261119_OUCHENG_APP_SYNC_V5_1.md) | v5.1 能力回流：从 oucheng-app 迁移格律引擎、5118 首语料、2280 体词谱、存储与导出修复及测试，排除 UI、移动端与商业化内容。 | 2026-11-19 |
 
 ---
 

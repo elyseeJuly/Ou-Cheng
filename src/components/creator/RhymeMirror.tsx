@@ -134,7 +134,8 @@ const RhymeMirror: React.FC<Props> = ({ anchorChar, usedRhymes, rhymeBook, visib
           {chars.map(c => (
             <button key={c}
               className={`rhyme-char ${usedRhymes.includes(c) ? 'used' : ''}`}
-              onMouseDown={e => { e.preventDefault(); onPick(c); }}  /* preventDefault 保住 input 焦点 */
+              onMouseDown={e => e.preventDefault()}  /* preventDefault 保住格子焦点 */
+              onClick={() => onPick(c)}
             >{c}</button>
           ))}
         </div>

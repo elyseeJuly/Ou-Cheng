@@ -7,7 +7,7 @@
   </p>
   <p>
     <a href="https://elyseejuly.github.io/Ou-Cheng/">
-      <img src="https://img.shields.io/badge/Version-v5.0.0-B22222?style=for-the-badge" alt="Version">
+      <img src="https://img.shields.io/badge/Version-v5.1.0-B22222?style=for-the-badge" alt="Version">
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-444444?style=for-the-badge" alt="License">
@@ -58,8 +58,15 @@
 * **时序与类型检索 [v5.0 新增]**：支持按创作时间升序/降序、体裁类型过滤等方式快速管理您的文稿。
 * **高精无损导出**：支持 1x/2x/4x 无损缩放导出 PNG/JPG，为您的诗词画卷达到收藏级输出精度。
 
+#### 🆕 v5.1 更新（2026-11-19）
+* **格律引擎**：近体诗对仗检测、换韵与邻韵通押、十四行诗韵式自动识别；三叠、四叠词牌按段校验。
+* **词谱 2280 体**：覆盖 813 个词牌，经结构校验；词牌详情按段展示平仄谱。
+* **文稿导入**：识别题序、作者朝代、韵书标记、注与后记、落款日期。
+* **稳定性**：多标签页保存不再失败；横排「无句读」生效；印章与海报绘制前预载字体。
+* 详见 `docs/EXEC_20261119_OUCHENG_APP_SYNC_V5_1.md`。
+
 #### 📚 3. 卷帙与意象 (Volumes & Imagery) — 典籍库与词云
-* **古典文献馆**：内置 1941 首本地古诗词（源自 `chinese-poetry` 库精简清洗），支持结构化阅读与智能检索。
+* **古典文献馆**：内置 5118 首本地古诗词（源自 `chinese-poetry`、`Werneror/Poetry`、`open-chinese/poetry-collection`，来源与许可见 `docs/data/CORPUS_SOURCES.md`），支持结构化阅读与智能检索。
 * **3D 意象共现网络 [v5.0 重构]**：
   * 基于真实历史诗库重建了意象共现矩阵引擎（通过 `build-imagery.cjs` 提取 144 个核心古典意象种子词的关联度）。
   * 采用 Three.js 3D 渲染，点击词云意象（如“明月”）将高亮并动态绘制到达其最强关联词（如“相思”、“清酒”、“离愁”）的金色贝塞尔曲线，弱化非关联词（透明度降至 0.15），可视化发散创作灵感。
@@ -117,8 +124,14 @@ In the **v5.0 "System Flow" Release**, we expanded the underlying metrics engine
 * **Sorting & Querying [New in v5.0]**: Organize works chronologically (ascending/descending) or filter by specific poetic genres.
 * **High-Res Export**: Support 1x/2x/4x lossless scaling to export works as crisp JPG/PNG files ready for print or sharing.
 
+#### 🆕 What's new in v5.1 (2026-11-19)
+* **Meter engine**: couplet parallelism checks, rhyme switching and neighbouring-rhyme rules, automatic sonnet rhyme-scheme detection; three- and four-stanza ci tunes checked stanza by stanza.
+* **2,280 ci patterns** across 813 tunes, structurally validated; tune pages show the tonal pattern per stanza.
+* **Import**: recognises prefaces, dynasty/author lines, rhyme-book markers, notes and dated signatures.
+* **Stability**: saving across multiple tabs no longer fails; "no punctuation" works in horizontal layouts; fonts are preloaded before seals and posters are drawn.
+
 #### 📚 3. Volumes & Imagery (卷帙与意象) — Library & 3D Cloud
-* **Classical Library**: Home to 1,941 curated offline classical poems (derived from the `chinese-poetry` database) for local lookup and reading.
+* **Classical Library**: Home to 5,118 curated offline classical poems (from `chinese-poetry`, `Werneror/Poetry` and `open-chinese/poetry-collection`; see `docs/data/CORPUS_SOURCES.md`) for local lookup and reading.
 * **3D Imagery Association Network [Rebuilt in v5.0]**:
   * An imagery co-occurrence matrix engine compiled from the classical corpus (calculating the semantic linkages of 144 core imagery concepts via `build-imagery.cjs`).
   * Powered by Three.js. Clicking an imagery node (e.g., "Bright Moon") highlights it and dynamically draws glowing golden Bezier curves to its strongly related words (e.g., "Lovesick", "Clear Wine"), fading irrelevant nodes to 0.15 opacity.

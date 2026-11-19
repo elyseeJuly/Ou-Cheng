@@ -1,155 +1,147 @@
 const fs = require('fs');
+// 体名用汉字序数（格二、格十一），界面不出现阿拉伯数字
+const toCnNumeral = n => {
+  const d = '〇一二三四五六七八九';
+  if (n < 10) return d[n];
+  if (n < 20) return '十' + (n % 10 ? d[n % 10] : '');
+  return d[Math.floor(n / 10)] + '十' + (n % 10 ? d[n % 10] : '');
+};
 const path = require('path');
-const https = require('https');
-const OpenCC = require('opencc-js');
 
 const root = path.resolve(__dirname, '..');
-const sourceDir = path.join(root, 'data/cipai/kanripo');
-const outputPath = path.join(root, 'public/data/cipai.json');
-const upstreamCommit = '27cad1682661123100cb73820f773ed6ecfdb808';
-const converter = OpenCC.Converter({ from: 'hk', to: 'cn' });
+const sourcePath = path.join(root, 'data', 'cipai', 'couyun-snapshot.json');
+const outputPath = path.join(root, 'public', 'data', 'cipai.json');
 
-const chineseNumber = value => {
-  const digits = { 零: 0, 一: 1, 二: 2, 兩: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
-  if (/^十/.test(value)) return 10 + (digits[value[1]] || 0);
-  if (value.includes('十')) return (digits[value[0]] || 0) * 10 + (digits[value[2]] || 0);
-  return digits[value] || Number(value) || 0;
-};
+const digits = { 零: 0, 一: 1, 二: 2, 两: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+function chineseNumber(value) {
+  if (!value) return 0;
+  if (/^\d+$/.test(value)) return Number(value);
+  if (value === '十') return 10;
+  if (value.includes('十')) {
+    const [before, after] = value.split('十');
+    return (before ? digits[before] : 1) * 10 + (after ? digits[after] : 0);
+  }
+  return digits[value] || 0;
+}
 
-function download(url, target) {
-  return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'oucheng-cipai-builder' } }, response => {
-      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        return download(response.headers.location, target).then(resolve, reject);
-      }
-      if (response.statusCode !== 200) return reject(new Error(`${url}: HTTP ${response.statusCode}`));
-      const chunks = [];
-      response.on('data', chunk => chunks.push(chunk));
-      response.on('end', () => { fs.writeFileSync(target, Buffer.concat(chunks)); resolve(); });
-    }).on('error', reject);
+function splitParts(value) {
+  const parts = [];
+  const matcher = /([中平仄]+)(?:换|換)?(?:平|仄)?(韵|韻|叶|疊|叠|句|读|讀)/gu;
+  for (const match of value.matchAll(matcher)) {
+    const marker = match[2];
+    const tones = Array.from(match[1]).map(tone => tone === '中' ? 'X' : tone === '平' ? 'P' : 'Z');
+    const isRhyme = !/[句读讀]/u.test(marker);
+    parts.push({ tones, isRhyme });
+  }
+  return parts;
+}
+
+function splitStanzas(patterns, tuneType, description) {
+  const count = /四[叠疊]/u.test(tuneType) ? 4 : /三[叠疊]/u.test(tuneType) ? 3 : /双调|雙調/u.test(tuneType) ? 2 : 1;
+  if (count === 1) return [patterns];
+  const normalized = description.replace(/[，、/]/g, '');
+  const explicit = [];
+  for (const label of ['前段', '后段', '後段', '第一段', '第二段', '第三段', '第四段']) {
+    const match = normalized.match(new RegExp(`${label}([一二三四五六七八九十两兩\\d]+)句`));
+    if (match) explicit.push(chineseNumber(match[1]));
+  }
+  if (explicit.length === count && explicit.reduce((sum, value) => sum + value, 0) === patterns.length) {
+    let cursor = 0;
+    return explicit.map(size => patterns.slice(cursor, cursor += size));
+  }
+  const each = normalized.match(/前后段各([一二三四五六七八九十两兩\d]+)句/u);
+  if (count === 2 && each && chineseNumber(each[1]) * 2 === patterns.length) {
+    const size = chineseNumber(each[1]);
+    return [patterns.slice(0, size), patterns.slice(size)];
+  }
+  if (patterns.length % count === 0) {
+    const size = patterns.length / count;
+    return Array.from({ length: count }, (_, index) => patterns.slice(index * size, (index + 1) * size));
+  }
+  return [patterns];
+}
+
+function sourceClauses(form) {
+  return (form.ci_sep || []).flatMap(group => group.split(/　+/u)).map(line => line.trim()).filter(Boolean);
+}
+
+function lineRhymeGroups(form, patterns) {
+  const byPosition = new Map();
+  Object.entries(form.yun_classify || {}).forEach(([group, positions]) => {
+    positions.forEach(position => byPosition.set(Math.abs(position), group));
+  });
+  let cursor = 0;
+  return patterns.map(pattern => {
+    cursor += Array.from(pattern).length;
+    return pattern.endsWith('R') ? (byPosition.get(cursor - 1) ?? null) : null;
   });
 }
 
-async function ensureSources() {
-  fs.mkdirSync(sourceDir, { recursive: true });
-  for (let index = 1; index <= 40; index++) {
-    const file = `KR4j0086_${String(index).padStart(3, '0')}.txt`;
-    const target = path.join(sourceDir, file);
-    if (!fs.existsSync(target)) {
-      await download(`https://raw.githubusercontent.com/kanripo/KR4j0086/${upstreamCommit}/${file}`, target);
-    }
-  }
-}
+function build() {
+  if (!fs.existsSync(sourcePath)) throw new Error(`缺少词谱快照：${sourcePath}`);
+  const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+  const variants = [];
+  const rejected = [];
 
-function buildToneMap() {
-  const source = JSON.parse(fs.readFileSync(path.join(root, 'data/rhyme/Cilin_Rhyme.json'), 'utf8'));
-  const map = new Map();
-  Object.values(source).forEach(tones => Object.entries(tones).forEach(([tone, chars]) => {
-    const value = tone.includes('平') ? 'P' : 'Z';
-    chars.forEach(char => {
-      const values = map.get(char) || new Set();
-      values.add(value);
-      map.set(char, values);
+  source.entries.forEach(entry => entry.forms.forEach((form, formIndex) => {
+    const clauses = sourceClauses(form);
+    const rawParts = (form.ge_lyu_sep || []).flatMap(splitParts);
+    const parsed = rawParts.map((item, index) => {
+      const length = Array.from(clauses[index] || '').length;
+      const tones = item.tones.slice(0, length);
+      const rhymeTone = item.isRhyme ? tones[tones.length - 1] : null;
+      if (item.isRhyme && tones.length) tones[tones.length - 1] = 'R';
+      return { pattern: tones.join(''), rhymeTone };
+    });
+    const patterns = parsed.map(item => item.pattern);
+    const charCount = Array.from(form.ge_lyu_str || '').length;
+    const patternCount = patterns.reduce((sum, pattern) => sum + Array.from(pattern).length, 0);
+    const textCount = clauses.reduce((sum, line) => sum + Array.from(line).length, 0);
+    if (!patterns.length || rawParts.length !== clauses.length || rawParts.some((part, index) => part.tones.length < Array.from(clauses[index] || '').length) || patternCount !== charCount || textCount !== charCount) {
+      rejected.push({ name: entry.names[0], formIndex, patterns: patterns.length, clauses: clauses.length, patternCount, textCount, charCount });
+      return;
+    }
+    const stanzas = splitStanzas(patterns, entry.tuneType, form.description || '');
+    variants.push({
+      id: `qdc_${String(entry.idx).padStart(3, '0')}_${String(formIndex + 1).padStart(2, '0')}`,
+      name: entry.names[0],
+      aliases: entry.names.slice(1),
+      charCount,
+      category: charCount <= 58 ? 'xiao_ling' : charCount <= 90 ? 'zhong_diao' : 'chang_diao',
+      upperPattern: stanzas[0],
+      ...(stanzas.length > 1 ? { lowerPattern: stanzas.slice(1).flat(), stanzas } : {}),
+      rhymeGroups: lineRhymeGroups(form, patterns),
+      rhymeTones: parsed.map(item => item.rhymeTone),
+      stanzaCount: stanzas.length,
+      representative: form.author || '佚名',
+      variantLabel: formIndex === 0 ? '正体' : `格${toCnNumeral(formIndex + 1)}`,
+      isVariant: formIndex > 0,
+      sourceAuthor: form.author || '佚名',
+      sourceIncipit: clauses.join('').slice(0, 12),
+      sourceText: clauses.join('\n'),
+      sourceBook: '《钦定词谱》结构化谱式',
+      sourceRef: `couyun ${source.upstream.commit.slice(0, 12)} / cipai_${entry.idx}`,
+      description: form.description || '',
     });
   }));
-  return map;
-}
 
-function cleanText(value) {
-  return converter(value
-    .replace(/<pb:[^>]+>/g, '')
-    .replace(/\([^)]*\)/g, '')
-    .replace(/[\s¶　]/g, '')
-    .replace(/[，。！？；、,.!?;：:“”‘’《》〈〉]/g, ''));
-}
-
-function splitStanzas(patterns, meta) {
-  if (!/雙調|双调/.test(meta)) return [patterns, []];
-  const firstCount = meta.match(/前(?:段|片)([一二兩三四五六七八九十\d]+)句/);
-  const count = firstCount ? chineseNumber(firstCount[1]) : Math.floor(patterns.length / 2);
-  return [patterns.slice(0, count), patterns.slice(count)];
-}
-
-function parseSources() {
-  const toneMap = buildToneMap();
-  const variants = [];
-  let currentName = '';
-  let variantIndex = 0;
-
-  for (let volume = 1; volume <= 40; volume++) {
-    const file = `KR4j0086_${String(volume).padStart(3, '0')}.txt`;
-    const lines = fs.readFileSync(path.join(sourceDir, file), 'utf8').split(/\r?\n/);
-    for (let index = 0; index < lines.length; index++) {
-      const normalized = lines[index].replace(/<pb:[^>]+>/g, '').replace(/¶/g, '').trim();
-      const match = normalized.match(/^(又一體|又一体|[\p{Script=Han}]{2,20})\(([^)]*(?:單調|雙調|三疊|四疊|单调|双调)[^)]*)\)\s*(.*)$/u);
-      if (!match) continue;
-      const [, heading, meta, authorRaw = '佚名'] = match;
-      if (!/^又一[體体]$/.test(heading)) {
-        currentName = converter(heading);
-        variantIndex = 0;
-      } else if (!currentName) continue;
-      variantIndex += 1;
-
-      const body = [];
-      for (let cursor = index + 1; cursor < lines.length; cursor++) {
-        const candidate = lines[cursor].replace(/<pb:[^>]+>/g, '').replace(/¶/g, '');
-        const trimmedCandidate = candidate.trim();
-        if ((trimmedCandidate.startsWith('(') || trimmedCandidate.startsWith('（'))
-          && !/^\((韻|韵|叶|句|讀|读)\//u.test(trimmedCandidate)) break;
-        const nextHeader = candidate.trim().match(/^(又一體|又一体|[\p{Script=Han}]{2,20})\([^)]*(?:單調|雙調|三疊|四疊|单调|双调)/u);
-        if (nextHeader) break;
-        body.push(candidate);
-      }
-      const joined = body.join('')
-        .replace(/\((韻|韵|叶|句|讀|读)\/[^)]*\)/g, '$1')
-        .replace(/\([^)]*\/(韻|韵|叶|句|讀|读)\)/g, '$1')
-        .replace(/\((韻|韵|叶|句|讀|读)\)/g, '$1')
-        .replace(/\([^)]*\)/g, '');
-      const parts = [...joined.matchAll(/(.+?)(韻|韵|叶|句|讀|读)/gu)];
-      if (!parts.length) continue;
-      const sourceLines = parts.map(part => cleanText(part[1])).filter(Boolean);
-      if (!sourceLines.length) continue;
-      const patterns = sourceLines.map((line, lineIndex) => {
-        const chars = Array.from(line).map(char => {
-          const tones = toneMap.get(char) || toneMap.get(converter(char));
-          return !tones || tones.size !== 1 ? 'X' : [...tones][0];
-        });
-        if (/[韻韵叶]/u.test(parts[lineIndex]?.[2] || '') && chars.length) chars[chars.length - 1] = 'R';
-        return chars.join('');
-      });
-      const [upperPattern, lowerPattern] = splitStanzas(patterns, converter(meta));
-      const charCount = sourceLines.reduce((sum, line) => sum + Array.from(line).length, 0);
-      const sourceAuthor = converter(authorRaw.replace(/\([^)]*\)/g, '').replace(/[^\p{Script=Han}·]/gu, '')) || '佚名';
-      variants.push({
-        id: `qdc_${String(volume).padStart(2, '0')}_${String(variants.length + 1).padStart(4, '0')}`,
-        name: currentName,
-        aliases: [],
-        charCount,
-        category: charCount <= 58 ? 'xiao_ling' : charCount <= 90 ? 'zhong_diao' : 'chang_diao',
-        upperPattern,
-        ...(lowerPattern.length ? { lowerPattern } : {}),
-        representative: sourceAuthor,
-        variantLabel: variantIndex === 1 ? '正体' : `又一体 ${variantIndex - 1}`,
-        isVariant: variantIndex > 1,
-        sourceAuthor,
-        sourceIncipit: sourceLines.join('').slice(0, 12),
-        sourceText: sourceLines.join('\n'),
-        sourceBook: '《御定词谱》（四库全书本）',
-        sourceRef: `Kanripo KR4j0086 卷${volume}`,
-        description: converter(meta),
-      });
-    }
-  }
-  return variants;
-}
-
-(async () => {
-  await ensureSources();
-  const variants = parseSources();
   const names = new Set(variants.map(item => item.name));
-  if (names.size < 750 || variants.length < 2000) {
-    throw new Error(`词谱解析数量异常：${names.size} 调 / ${variants.length} 体`);
+  if (names.size < 800 || variants.length < 2200) {
+    throw new Error(`词谱解析数量异常：${names.size} 调 / ${variants.length} 体；拒绝 ${rejected.length} 体`);
   }
+  const required = new Map([
+    ['菩萨蛮', { count: 44, lines: 8 }],
+    ['如梦令', { count: 33, lines: 7 }],
+    ['水调歌头', { count: 95, lines: 19 }],
+    ['忆江南', { count: 27, lines: 5 }],
+  ]);
+  required.forEach((expected, name) => {
+    const item = variants.find(variant => variant.name === name && variant.charCount === expected.count);
+    const lines = item ? item.upperPattern.length + (item.lowerPattern?.length || 0) : 0;
+    if (!item || lines !== expected.lines) throw new Error(`${name} 基准谱式异常：${item?.charCount || 0} 字 / ${lines} 句`);
+  });
   fs.writeFileSync(outputPath, `${JSON.stringify(variants, null, 2)}\n`);
-  console.log(`已生成 ${path.relative(root, outputPath)}：${names.size} 调 / ${variants.length} 体`);
-})();
+  console.log(`已生成 ${path.relative(root, outputPath)}：${names.size} 调 / ${variants.length} 体；拒绝 ${rejected.length} 个结构不自洽体`);
+}
+
+build();

@@ -23,7 +23,7 @@ const VerseRow: React.FC<VerseRowProps> = ({
   pattern, value, charStates, punctuation, inputRef, onChange, onKeyDown, onCaretOnRhyme, onCellFocus, onCaretCell,
 }) => {
   const composing = useRef(false);
-  const [committedLen, setCommittedLen] = useState([...value].length);
+  const [compositionValue, setCompositionValue] = useState<string | null>(null);
   const ghostRef = useRef<HTMLInputElement | null>(null);
   const [caretPos, setCaretPos] = useState([...value].length);
   const [overflowed, setOverflowed] = useState(false);
@@ -32,10 +32,9 @@ const VerseRow: React.FC<VerseRowProps> = ({
 
   const lastValRef = useRef(value);
 
-  // 同步 value 到 committedLen，仅在聚焦时依据 DOM 选区同步光标，或失焦/外部重置时处理光标
+  // 组合输入期间保留本地原文；提交值变化时才同步字格光标。
   useEffect(() => {
     if (!composing.current) {
-      setCommittedLen([...value].length);
       if (ghostRef.current && document.activeElement === ghostRef.current) {
         syncCaret(ghostRef.current);
       } else if (value === '' || Math.abs([...value].length - [...lastValRef.current].length) > 1) {
@@ -62,14 +61,45 @@ const VerseRow: React.FC<VerseRowProps> = ({
   };
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    syncCaret(e.currentTarget);
+    const input = e.currentTarget;
+    syncCaret(input);
     // 移动端键盘遮挡处理：聚焦行滚动到视野中央
-    if (e.currentTarget && typeof e.currentTarget.scrollIntoView === 'function') {
+    if (typeof input.scrollIntoView === 'function') {
       setTimeout(() => {
-        e.currentTarget.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        if (document.activeElement === input && document.documentElement.dataset.composeKeyboard !== 'open') {
+          input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
       }, 300);
     }
   };
+
+  const commitInput = (input: HTMLInputElement) => {
+    const raw = input.value;
+    const normalized = [...raw].slice(0, patternChars.length).join('');
+    setOverflowed([...raw].length > patternChars.length);
+    if (raw !== normalized) {
+      const start = Math.min(input.selectionStart ?? raw.length, normalized.length);
+      const end = Math.min(input.selectionEnd ?? raw.length, normalized.length);
+      input.value = normalized;
+      input.setSelectionRange(start, end);
+    }
+    setCompositionValue(null);
+    onChange(normalized);
+    syncCaret(input);
+  };
+
+  const updateComposition = (input: HTMLInputElement) => {
+    composing.current = true;
+    // 同步标记供保存/预览在 pointerdown 时保焦，早于浏览器默认的失焦与 compositionend。
+    input.dataset.imeComposing = 'true';
+    setCompositionValue(input.value);
+    setOverflowed(false);
+    setCaretPos(-1);
+  };
+
+  const isComposingKey = (event: React.KeyboardEvent<HTMLInputElement>) => (
+    composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229
+  );
 
   return (
     <div className="verse-row">
@@ -108,31 +138,31 @@ const VerseRow: React.FC<VerseRowProps> = ({
         <input
           ref={setRef}
           className="verse-input-ghost"
-          value={value}
-          maxLength={patternChars.length * 2}
+          value={compositionValue ?? value}
           aria-label={`格律输入，限 ${patternChars.length} 字`}
           aria-describedby={overflowed ? 'verse-overflow-warning' : undefined}
           onChange={e => {
-            setOverflowed([...e.target.value].length > patternChars.length);
-            const normalized = [...e.target.value].slice(0, patternChars.length).join('');
-            onChange(normalized);
-            if (!composing.current) {
-              setCommittedLen([...normalized].length);
-              syncCaret(e.target);
+            if (composing.current || (e.nativeEvent as InputEvent).isComposing) {
+              updateComposition(e.currentTarget);
+              return;
             }
+            commitInput(e.currentTarget);
           }}
-          onCompositionStart={() => { composing.current = true; setCaretPos(-1); }}
+          onCompositionStart={e => updateComposition(e.currentTarget)}
           onCompositionEnd={e => {
             composing.current = false;
-            const target = e.target as HTMLInputElement;
-            setOverflowed([...target.value].length > patternChars.length);
-            const normalized = [...target.value].slice(0, patternChars.length).join('');
-            setCommittedLen([...normalized].length);
-            onChange(normalized);
-            syncCaret(target);
+            delete e.currentTarget.dataset.imeComposing;
+            commitInput(e.currentTarget);
           }}
-          onKeyDown={onKeyDown}
-          onKeyUp={e => syncCaret(e.currentTarget)}
+          onKeyDown={e => {
+            if (!isComposingKey(e)) onKeyDown(e);
+          }}
+          onKeyUp={e => {
+            if (!isComposingKey(e)) syncCaret(e.currentTarget);
+          }}
+          onSelect={e => {
+            if (!composing.current) syncCaret(e.currentTarget);
+          }}
           onFocus={handleFocus}
           onBlur={() => { onCaretOnRhyme(false); setCaretPos(-1); }}
           autoComplete="off" autoCorrect="off" spellCheck={false}

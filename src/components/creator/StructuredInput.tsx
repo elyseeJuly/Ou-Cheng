@@ -40,6 +40,8 @@ const StructuredInput: React.FC<StructuredInputProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, ri: number) => {
+    // 输入法组字中（拼音候选）不处理回车/方向键，避免选词时跳行
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
     if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); focusRow(ri, 1); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); focusRow(ri, -1); }
     else if (e.key === 'Backspace' && (lines[ri] || '') === '') { e.preventDefault(); focusRow(ri, -1); }

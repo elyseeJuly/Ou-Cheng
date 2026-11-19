@@ -1708,3 +1708,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .classic-imagery-tags { display:none !important; }
   .classic-page-number { bottom:10px !important; font-size:9px !important; }
 }
+
+/* ── 词牌谱式（v5.1 迁移：三叠/四叠词牌按段展示平仄谱） ── */
+.cipai-pattern { display: flex; flex-direction: column; gap: 12px; }
+.cipai-pattern-stanza { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.cipai-pattern-tag { flex-basis: 100%; color: var(--ink-dan); font-size: var(--text-micro); letter-spacing: .2em; }
+.cipai-pattern-line { display: inline-flex; gap: 1px; font-size: 15px; line-height: 1.6; color: var(--ink-zhong); }
+.cipai-pattern-line i { font-style: normal; width: 1.05em; text-align: center; }
+.cipai-pattern-line .t-R { color: var(--meter-rhyme); }
+.cipai-pattern-line .t-X { color: var(--ink-dan); }
+.cipai-pattern-legend { margin-top: 8px; color: var(--ink-dan); font-size: var(--text-note); }
+.example-lines { display: flex; flex-direction: column; gap: 16px; }
+.example-stanza { display: flex; flex-direction: column; gap: 2px; }
+.example-stanza + .example-stanza { padding-top: 12px; border-top: 1px dashed var(--ink-qing); }

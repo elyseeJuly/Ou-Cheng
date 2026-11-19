@@ -6,6 +6,12 @@ import HorizontalLayout from './HorizontalLayout';
 import { getSeals, getSettings, saveSettings } from '../../services/storageService';
 import { FONT_STYLES } from '../../constants';
 
+// 预览排版偏好：刷新后保持（Muse 2026-10-28：版式与句读刷新后回到默认）
+const TEMPLATE_KEY = 'oucheng_preview_template';
+const JUDOU_KEY = 'oucheng_preview_judou';
+const readPref = (key: string): string | null => { try { return localStorage.getItem(key); } catch { return null; } };
+const writePref = (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } };
+
 interface PoemPreviewProps {
   poem: Poem;
   onLayoutChange?: (l: LayoutMode) => void;
@@ -18,8 +24,10 @@ const PoemPreview: React.FC<PoemPreviewProps> = ({
   poem, onLayoutChange, onPaperChange, onFontChange, compact = false,
 }) => {
   const [hSubMode, setHSubMode] = useState<HorizontalSubMode>(poem.horizontalSubMode || 'modern');
-  const [template, setTemplate] = useState<'plain' | 'wusilan'>('plain');
-  const [stripPunct, setStripPunct] = useState<boolean>(false);
+  const [template, setTemplateState] = useState<'plain' | 'wusilan'>(() => readPref(TEMPLATE_KEY) === 'wusilan' ? 'wusilan' : 'plain');
+  const [stripPunct, setStripPunctState] = useState<boolean>(() => readPref(JUDOU_KEY) === 'strip');
+  const setTemplate = (t: 'plain' | 'wusilan') => { setTemplateState(t); writePref(TEMPLATE_KEY, t); };
+  const setStripPunct = (sp: boolean) => { setStripPunctState(sp); writePref(JUDOU_KEY, sp ? 'strip' : 'keep'); };
 
   const seals = getSeals();
   const settings = getSettings();
@@ -170,6 +178,7 @@ const PoemPreview: React.FC<PoemPreviewProps> = ({
                 createdAt={poem.createdAt}
                 subMode={hSubMode}
                 sealDataUrl={sealDataUrl}
+                stripPunct={stripPunct}
               />
             )
           }

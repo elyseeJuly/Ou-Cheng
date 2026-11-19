@@ -1,7 +1,7 @@
 {
   "name": "ou-cheng-(偶成)",
   "private": true,
-  "version": "0.5.1",
+  "version": "5.1.0",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -13,6 +13,7 @@
     "fetch-data": "node scripts/fetch-poetry.js",
     "build:rhyme": "node scripts/build-rhyme-data.cjs",
     "build:cipai": "node scripts/build-cipai-data.cjs",
+    "import:cipai-source": "node scripts/import-couyun-cipai.cjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --coverage.reporter=text-summary",

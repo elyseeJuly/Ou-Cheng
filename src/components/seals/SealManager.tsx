@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Seal, SealStyle } from '../../types';
 import { getSeals, saveSeal, deleteSeal, setDefaultSeal, getSettings } from '../../services/storageService';
+import { ensureCanvasFonts } from '../../utils/fontReady';
 import SealGenerator, { generateSealDataUrl, SEAL_STYLE_LABELS } from './SealGenerator';
 
 interface SealManagerProps {
@@ -26,7 +27,9 @@ const SealManager: React.FC<SealManagerProps> = ({ penName = '居士', onSelect,
   // Generate all 5 styles for a pen name
   const handleGenerateAll = () => {
     setGenerating(true);
-    setTimeout(() => {
+    setTimeout(async () => {
+      // 先把印章字体真正加载进来，否则 canvas 会悄悄退回系统字体
+      await ensureCanvasFonts(previewName);
       ALL_STYLES.forEach(style => {
         const dataUrl = generateSealDataUrl(previewName, style, 120);
         const seal: Seal = {

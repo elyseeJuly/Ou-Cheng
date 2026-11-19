@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalDialogProps {
   label: string;
@@ -48,7 +49,8 @@ const ModalDialog: React.FC<ModalDialogProps> = ({ label, onClose, children, ove
     };
   }, []);
 
-  return (
+  // 挂到 body：避免被祖先的 transform / isolation 困住，fixed 遮罩只盖住局部
+  const dialog = (
     <div
       ref={dialogRef}
       role="dialog"
@@ -64,6 +66,7 @@ const ModalDialog: React.FC<ModalDialogProps> = ({ label, onClose, children, ove
       </div>
     </div>
   );
+  return typeof document !== 'undefined' ? createPortal(dialog, document.body) : dialog;
 };
 
 export default ModalDialog;

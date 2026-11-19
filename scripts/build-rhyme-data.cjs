@@ -24,16 +24,44 @@ const pingShuiSections = Object.entries(pingShuiSource).map(([section, sourceGro
   return [section, Object.entries(groups)];
 });
 
+// 上游个别韵部漏收韵目字本身（如「一先」缺「先」）；韵目字必属本韵，补到首位。
+const withHeadChar = (name, chars) => {
+  const head = Array.from(name.replace(/^入声/, '').replace(/[一二三四五六七八九十]/g, '')).pop();
+  return head && !chars.includes(head) ? [head, ...chars] : chars;
+};
+
 const pingShuiGroups = pingShuiSections.flatMap(([, groups]) => groups).map(([name, chars], index) => ({
   id: `ps_${pad(index + 1)}`,
   name: name.replace(/^入声/, ''),
-  chars: unique(chars).join(' '),
+  chars: unique(withHeadChar(name, chars)).join(' '),
 }));
 
-const ciLinGroups = Object.entries(ciLinSource).map(([name, tones], index) => ({
+const ciLinBase = Object.entries(ciLinSource).map(([name, tones]) => ({ name, chars: unique(Object.values(tones).flat()) }));
+
+// 《词林正韵》即合并《平水韵》诸部而成；上游词林字表约五千字，只有平水韵的一半。
+// 按「平水韵部 → 收字重合最多的词林韵部」把平水韵独有的字补进词林正韵，
+// 否则大量常用字在词林正韵下查不到平仄与韵部。
+const ciLinCharSet = new Set(ciLinBase.flatMap(group => group.chars));
+const psToCl = pingShuiGroups.map(group => {
+  const chars = group.chars.split(' ');
+  let best = -1; let bestHits = 0;
+  ciLinBase.forEach((cl, index) => {
+    const set = new Set(cl.chars);
+    const hits = chars.filter(char => set.has(char)).length;
+    if (hits > bestHits) { best = index; bestHits = hits; }
+  });
+  return { chars, cl: bestHits >= 3 ? best : -1 };
+});
+const ciLinAdded = ciLinBase.map(() => []);
+psToCl.forEach(({ chars, cl }) => {
+  if (cl < 0) return;
+  chars.forEach(char => { if (!ciLinCharSet.has(char)) ciLinAdded[cl].push(char); });
+});
+
+const ciLinGroups = ciLinBase.map(({ name, chars }, index) => ({
   id: `cl_${pad(index + 1)}`,
   name,
-  chars: unique(Object.values(tones).flat()).join(' '),
+  chars: unique([...chars, ...ciLinAdded[index]]).join(' '),
 }));
 
 const xinYunGroups = Object.entries(xinYunSource).map(([name, tones], index) => ({
@@ -57,7 +85,7 @@ const buildCharToToneMap = entries => {
 const charToTones = {
   ping_shui: buildCharToToneMap(
     pingShuiSections.flatMap(([section, groups]) =>
-      groups.map(([, chars]) => [section, chars])
+      groups.map(([name, chars]) => [section, withHeadChar(name, chars)])
     )
   ),
   ci_lin: buildCharToToneMap(
@@ -67,6 +95,11 @@ const charToTones = {
     Object.values(xinYunSource).flatMap(tones => Object.entries(tones))
   ),
 };
+// 词林正韵：平水韵中有的读音一并收入（词林正韵分部源于平水韵，读音不会少于平水韵）。
+for (const [char, tones] of Object.entries(charToTones.ping_shui)) {
+  const target = charToTones.ci_lin[char] ?? (charToTones.ci_lin[char] = []);
+  tones.forEach(tone => { if (!target.includes(tone)) target.push(tone); });
+}
 const toneChars = Object.fromEntries(Object.entries(charToTones).map(([book, map]) => [book, {
   P: Object.entries(map).filter(([, tones]) => tones.includes('P')).map(([char]) => char).join(' '),
   Z: Object.entries(map).filter(([, tones]) => tones.includes('Z')).map(([char]) => char).join(' '),

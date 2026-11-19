@@ -6,8 +6,14 @@
 import { pinyin } from 'pinyin-pro';
 import { RhymeBook } from '../types';
 import { RHYME_GROUPS, CHAR_TO_GROUPS, CHAR_TO_TONES } from './rhymeGroupData';
+import { toSimplified } from '../utils/textNormalize';
 
 export type ToneClass = 'P' | 'Z';
+
+function normalizeRhymeChar(char: string): string {
+  const normalized = toSimplified(char);
+  return normalized !== char ? normalized : (TRADITIONAL_TO_SIMPLIFIED[char] || char);
+}
 
 // 繁体字到简体字的快速映射表
 const TRADITIONAL_TO_SIMPLIFIED: Record<string, string> = {
@@ -60,6 +66,23 @@ const TRADITIONAL_TO_SIMPLIFIED: Record<string, string> = {
   '乾': '乾', '坤': '坤', '太': '太', '虛': '虚', '玄': '玄', '妙': '妙', '真': '真', '道': '道',
   '德': '德', '義': '义', '禮': '礼', '智': '智', '忠': '忠', '孝': '孝', '廉': '廉', '恥': '耻',
   '勇': '勇', '拼': '拼', '搏': '搏', '節': '节', '極': '极',
+};
+
+// 词谱、古籍里常见、但韵表只收通行字形的异体字 → 通行字
+const CLASSICAL_VARIANTS: Record<string, string> = {
+  '蘋': '苹', '彫': '雕', '敧': '欹', '攲': '欹', '䌽': '彩', '淩': '凌', '誇': '夸', '捲': '卷',
+  '毬': '球', '鞦': '秋', '韆': '千', '悽': '凄', '髣': '仿', '髴': '佛', '篴': '笛', '苧': '苎',
+  '倖': '幸', '鸂': '溪', '鶒': '敕', '鴃': '决', '鲙': '脍', '罇': '尊', '樽': '尊', '沉': '沈',
+  '姮': '恒', '嫦': '恒', '牕': '窗', '窻': '窗', '牋': '笺', '箇': '个', '凴': '凭', '慿': '凭',
+  '銷': '销', '鏁': '锁', '灩': '滟', '澹': '淡', '迴': '回', '廻': '回', '甯': '宁', '着': '著',
+};
+// 韵表漏收另一读的字（《广韵》两读）：阿，乌何切 / 乌可切；祇，巨支切 / 诸氏切（同「只」）
+const CLASSICAL_MULTI: Record<string, ToneClass[]> = { '阿': ['P', 'Z'], '祇': ['P', 'Z'] };
+// 韵表未收的常用字（取《广韵》读音的平仄）
+const CLASSICAL_SUPPLEMENT: Record<string, ToneClass[]> = {
+  '这': ['Z'], '恹': ['P'], '晌': ['Z'], '乾': ['P'], '炼': ['Z'], '另': ['Z'], '它': ['P'],
+  '裤': ['Z'], '撒': ['Z'], '粘': ['P'], '幺': ['P'], '鸶': ['P'], '玻': ['P'], '籞': ['Z'],
+  '巘': ['Z'], '徵': ['P', 'Z'], '祇': ['P', 'Z'], '您': ['P'], '们': ['P'], '吗': ['P'], '呢': ['P'],
 };
 
 // 高频汉字平仄表（新韵，去重后约 200 字核心集）
@@ -177,6 +200,12 @@ const PING_SHUI_EXTRA: Record<string, ToneClass> = {
   '敌': 'Z', '帖': 'Z', '贴': 'Z', '铁': 'Z', '叠': 'Z', '碟': 'Z',
   '叔': 'Z', '腹': 'Z', '伏': 'Z', '拂': 'Z', '洽': 'Z',
   '缉': 'Z', '读': 'Z', '毒': 'Z', '独': 'Z',
+  '德': 'Z', '达': 'Z', '阔': 'Z', '佛': 'Z', '福': 'Z', '黑': 'Z',
+  '绝': 'Z', '贼': 'Z', '合': 'Z', '盒': 'Z', '法': 'Z', '答': 'Z',
+  '塔': 'Z', '压': 'Z', '鸭': 'Z', '插': 'Z', '甲': 'Z', '乞': 'Z',
+  '罚': 'Z', '竭': 'Z', '伐': 'Z', '拔': 'Z', '渴': 'Z',
+  '泼': 'Z', '末': 'Z', '活': 'Z', '抹': 'Z',
+  '策': 'Z', '册': 'Z', '侧': 'Z', '勒': 'Z', '逼': 'Z',
 };
 
 // 使用 pinyin-pro 动态获取汉字平仄
@@ -207,13 +236,31 @@ const charFreqMap: Record<string, number> = charFreqData as Record<string, numbe
 
 // ── 查询接口 ───────────────────────────────────────────────
 export function getTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui' | 'xin_yun'): ToneClass | ToneClass[] | 'unknown' {
-  const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
+  if ((rhymeBook === 'ping_shui' || rhymeBook === 'ci_lin') && CLASSICAL_MULTI[char]) return CLASSICAL_MULTI[char];
+  if (rhymeBook === 'ping_shui' || rhymeBook === 'ci_lin') {
+    const directTones = CHAR_TO_TONES[rhymeBook]?.[char];
+    if (directTones?.length === 1) return directTones[0];
+    if (directTones && directTones.length > 1) return directTones;
+  }
+
+  const c = normalizeRhymeChar(char);
 
   if (rhymeBook === 'ping_shui' || rhymeBook === 'ci_lin') {
     const sourceTones = CHAR_TO_TONES[rhymeBook]?.[c];
     if (sourceTones?.length === 1) return sourceTones[0];
     if (sourceTones && sourceTones.length > 1) return sourceTones;
     if (PING_SHUI_EXTRA[c] !== undefined) return PING_SHUI_EXTRA[c];
+    if (PING_SHUI_EXTRA[char] !== undefined) return PING_SHUI_EXTRA[char];
+    // 异体 / 古今字：先归到通行字再查
+    const variant = CLASSICAL_VARIANTS[char] || CLASSICAL_VARIANTS[c];
+    if (variant && variant !== char) return getTone(variant, rhymeBook);
+    const supplement = CLASSICAL_SUPPLEMENT[c] || CLASSICAL_SUPPLEMENT[char];
+    if (supplement) return supplement.length === 1 ? supplement[0] : supplement;
+    // 上游平水韵表偶有漏字（如「啼」），词林正韵分部源自平水韵，读音可互证
+    if (rhymeBook === 'ping_shui') {
+      const fromCiLin = CHAR_TO_TONES.ci_lin?.[c] || CHAR_TO_TONES.ci_lin?.[char];
+      if (fromCiLin?.length) return fromCiLin.length === 1 ? fromCiLin[0] : fromCiLin;
+    }
     return 'unknown';
   }
   
@@ -221,7 +268,7 @@ export function getTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui' | 'xin_y
   if (derived.length === 1) return derived[0];
   if (derived.length > 1) return derived;
   
-  const manual = XIN_YUN_MAP[c];
+  const manual = XIN_YUN_MAP[c] || XIN_YUN_MAP[char];
   if (manual) return manual;
   
   return 'unknown';
@@ -239,8 +286,8 @@ export function getCanonicalTone(char: string, rhymeBook: 'ci_lin' | 'ping_shui'
  * 注意：在具体格律校验中（如平水韵、词林正韵），请使用 Array.isArray(getTone(char, rhymeBook)) 判断对应韵书下的多音状态。
  */
 export function isMultiTone(char: string): boolean {
-  const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
-  const manual = XIN_YUN_MAP[c];
+  const c = normalizeRhymeChar(char);
+  const manual = XIN_YUN_MAP[c] || XIN_YUN_MAP[char];
   if (manual) return Array.isArray(manual);
   const derived = getTonesFromPinyin(c);
   return derived.length > 1;
@@ -253,8 +300,13 @@ export interface RhymeGroupResult {
 }
 
 export function getRhymeGroups(char: string, book: RhymeBook): RhymeGroupResult[] {
-  const c = TRADITIONAL_TO_SIMPLIFIED[char] || char;
-  const groupIds = CHAR_TO_GROUPS[book]?.[c] || [];
+  let groupIds = CHAR_TO_GROUPS[book]?.[char];
+  if (!groupIds || groupIds.length === 0) {
+    const c = normalizeRhymeChar(char);
+    groupIds = CHAR_TO_GROUPS[book]?.[c] || [];
+    const variant = CLASSICAL_VARIANTS[char] || CLASSICAL_VARIANTS[c];
+    if (groupIds.length === 0 && variant) groupIds = CHAR_TO_GROUPS[book]?.[variant] || [];
+  }
   return groupIds.flatMap(groupId => {
     const group = RHYME_GROUPS[book].find(item => item.id === groupId);
     return group ? [{ groupId, groupName: group.name }] : [];

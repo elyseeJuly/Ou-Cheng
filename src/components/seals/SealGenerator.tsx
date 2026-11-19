@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { ensureCanvasFonts } from '../../utils/fontReady';
 import { Seal, SealStyle } from '../../types';
 
 interface SealGeneratorProps {
@@ -9,7 +10,7 @@ interface SealGeneratorProps {
 }
 
 // ── 印泥侵蚀：模拟印泥不均与纸面纤维 ────────────────────
-function applySealErosion(ctx: CanvasRenderingContext2D, size: number) {
+export function applySealErosion(ctx: CanvasRenderingContext2D, size: number) {
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
   // 1. 全域细小蚀点（印泥颗粒感）
@@ -29,6 +30,24 @@ function applySealErosion(ctx: CanvasRenderingContext2D, size: number) {
     ctx.fillStyle = `rgba(0,0,0,${0.35 + Math.random() * 0.4})`;
     ctx.beginPath();
     ctx.arc(x, y, Math.random() * 2 + 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 3. 金石崩角与刀刻微瑕（模拟青田、寿山石金石感）
+  const notches = Math.max(3, Math.floor(size * 0.04));
+  for (let i = 0; i < notches; i++) {
+    const isCorner = Math.random() > 0.35;
+    let nx: number, ny: number;
+    if (isCorner) {
+      nx = Math.random() > 0.5 ? size * (0.05 + Math.random() * 0.03) : size * (0.95 - Math.random() * 0.03);
+      ny = Math.random() > 0.5 ? size * (0.05 + Math.random() * 0.03) : size * (0.95 - Math.random() * 0.03);
+    } else {
+      const isH = Math.random() > 0.5;
+      nx = isH ? Math.random() * size : (Math.random() > 0.5 ? size * 0.06 : size * 0.94);
+      ny = isH ? (Math.random() > 0.5 ? size * 0.06 : size * 0.94) : Math.random() * size;
+    }
+    ctx.fillStyle = `rgba(0,0,0,${0.4 + Math.random() * 0.4})`;
+    ctx.beginPath();
+    ctx.ellipse(nx, ny, Math.random() * 3.5 + 1.2, Math.random() * 2.2 + 0.8, Math.random() * Math.PI, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -191,17 +210,23 @@ const SealGenerator: React.FC<SealGeneratorProps> = ({ penName, style, size = 12
   useEffect(() => { onGeneratedRef.current = onGenerated; }, [onGenerated]);
 
   useEffect(() => {
-    const dataUrl = generateSealDataUrl(penName, style, size);
-    if (canvasRef.current) {
-      const img = new Image();
-      img.onload = () => {
-        const ctx = canvasRef.current!.getContext('2d')!;
-        ctx.clearRect(0, 0, size, size);
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = dataUrl;
-    }
-    onGeneratedRef.current?.(dataUrl);
+    let cancelled = false;
+    void ensureCanvasFonts(penName).then(() => {
+      if (cancelled) return;
+      const dataUrl = generateSealDataUrl(penName, style, size);
+      if (canvasRef.current) {
+        const img = new Image();
+        img.onload = () => {
+          if (!canvasRef.current) return;
+          const ctx = canvasRef.current.getContext('2d')!;
+          ctx.clearRect(0, 0, size, size);
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = dataUrl;
+      }
+      onGeneratedRef.current?.(dataUrl);
+    });
+    return () => { cancelled = true; };
   }, [penName, style, size]);
 
   return (

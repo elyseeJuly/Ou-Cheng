@@ -65,7 +65,10 @@ const Works: React.FC = () => {
     const deleted = poems.find(poem => poem.id === id) || null;
     const res = await deletePoem(id);
     if (!res.ok) {
-      alert(res.error || '删除失败');
+      // 关闭确认框并明确告知作品仍在，避免误以为已删除（Muse 2026-10-28）
+      setConfirmDeleteId(null);
+      alert(`删除未完成，作品仍在墨迹中，可再试一次。${res.error ? `（${res.error}）` : ''}`);
+      refresh();
       return;
     }
     setLastDeleted(deleted);
@@ -81,6 +84,10 @@ const Works: React.FC = () => {
   }, [lastDeleted]);
 
   const handleExportAll = () => {
+    if (getPoems().length === 0) {
+      alert('墨迹尚空，暂无可导出的作品。');
+      return;
+    }
     const json = exportAllPoems();
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

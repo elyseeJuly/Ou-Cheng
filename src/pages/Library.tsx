@@ -7,6 +7,10 @@ import { loadIndex, ImageryIndexEntry } from '../services/imageryService';
 const WordCloud3D = React.lazy(() => import('../components/library/WordCloud3D'));
 const ClassicReader = React.lazy(() => import('../components/library/ClassicReader'));
 
+/** 过滤含替换字符（U+FFFD）的残缺语料条目。 */
+export const hasReadableCorpusText = (poem: ClassicPoem) =>
+  !/[\uFFFD]/.test(`${poem.title || ''}${poem.author || ''}${poem.content || ''}`);
+
 const Library: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [allPoems, setAllPoems] = useState<ClassicPoem[]>([]);
@@ -24,7 +28,7 @@ const Library: React.FC = () => {
       fetch(`${import.meta.env.BASE_URL}data/poetry.json`).then(r => r.json()).catch(() => []),
       loadIndex().catch(() => []),
     ]).then(([poems, imageryIndex]) => {
-      setAllPoems(poems);
+      setAllPoems((poems as ClassicPoem[]).filter(hasReadableCorpusText));
       // 新管线 index.json: {w,c,f,t} -> 兼容 WordCloud3D 的 ImageryItem
       setImageryItems((imageryIndex as ImageryIndexEntry[]).map(e => ({
         word: e.w,
@@ -214,7 +218,7 @@ const Library: React.FC = () => {
         textAlign: 'center', opacity: 0.6,
       }}>
         <p style={{ fontSize: '12px', color: '#888', fontFamily: '"Ma Shan Zheng", serif', letterSpacing: '2px' }}>
-          数据源于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-seal)', textDecoration: 'none' }}>chinese-poetry/chinese-poetry</a> 开源项目
+          数据源于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-seal)', textDecoration: 'none' }}>chinese-poetry</a>、<a href="https://github.com/Werneror/Poetry" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-seal)', textDecoration: 'none' }}>Werneror/Poetry</a>、<a href="https://github.com/open-chinese/poetry-collection" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-seal)', textDecoration: 'none' }}>poetry-collection</a> 开源项目
         </p>
       </footer>
     </div>

@@ -70,8 +70,8 @@ const buildTypedPoem = (base: PoemBase, state: PoemVariantState): Poem => {
 export const SONNET_TYPES: { value: SonnetType; label: string; sub: string }[] = [
   { value: 'none', label: '无', sub: '自由形式' },
   { value: 'shakespeare', label: '莎士比亚', sub: 'ABAB·CDCD·EFEF·GG' },
-  { value: 'petrarchan', label: '彼特拉克', sub: 'ABBA·ABBA + CDE' },
-  { value: 'chinese_modern', label: '现代汉语', sub: '11–15字·第9行Volta' },
+  { value: 'petrarchan', label: '彼特拉克', sub: 'ABBA·ABBA + CDE/CDC' },
+  { value: 'chinese_modern', label: '现代汉语', sub: '10–13字·韵式自动识别' },
 ];
 
 export const JINTI_TYPES: { value: PoemType; label: string; chars: string }[] = [
@@ -184,7 +184,8 @@ const CreateWorkflowContext = createContext<CreateWorkflowState | undefined>(und
 
 export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const handledCipaiParam = useRef<string | null>(null);
   const settings = useMemo(() => getSettings(), []);
   const draftRestored = useRef(false);
 
@@ -291,11 +292,20 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const cipaiId = searchParams.get('cipai');
     if (!cipaiId || searchParams.get('edit')) return;
+    if (handledCipaiParam.current === cipaiId) return; // StrictMode / 重渲染只处理一次
+    handledCipaiParam.current = cipaiId;
+    // 处理完即从地址栏移除，刷新页面不会再次切换词牌、覆盖草稿
+    const consumeParam = () => {
+      const next = new URLSearchParams(searchParams);
+      next.delete('cipai');
+      next.delete('mode');
+      setSearchParams(next, { replace: true });
+    };
     fetch(`${import.meta.env.BASE_URL}data/cipai.json`)
       .then(r => r.json())
       .then((list: CipaiData[]) => {
-        const matched = list.find(c => c.id === cipaiId);
-        if (!matched) return;
+        const matched = list.find(c => c.id === cipaiId) || list.find(c => c.name === cipaiId);
+        if (!matched) { alert('未找到该词牌变体'); consumeParam(); return; }
         const draft = getDraft(null);
         const draftCipaiId = draft?.selectedCipaiId;
         const draftClauses = Array.isArray(draft?.proLines)
@@ -305,10 +315,11 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const expectedCount = getCipaiEditorPatterns(matched).filter(pattern => pattern.length > 0).length;
           if (draftClauses.length !== expectedCount) {
             alert('新词牌句数与当前草稿不一致，已保留原词牌和草稿。请先保存当前作品后再切换。');
+            consumeParam();
             return;
           }
           const confirmed = confirm('将当前草稿按新词牌重新排布。原文不会清空，是否继续？');
-          if (!confirmed) return;
+          if (!confirmed) { consumeParam(); return; }
         }
         setMode('pro');
         setProTab('cipai');
@@ -316,9 +327,10 @@ export const CreateProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (draftClauses.length) {
           setProLines(clausesToProLines(draftClauses, getCipaiEditorPatterns(matched)));
         }
+        consumeParam();
       })
       .catch(() => {});
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
 
   // 从近体诗直达路由进入创作
   useEffect(() => {

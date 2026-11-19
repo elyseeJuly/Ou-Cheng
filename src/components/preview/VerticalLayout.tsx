@@ -1,5 +1,6 @@
 import React from 'react';
 import { elegantDate } from '../../utils/elegantDate';
+import { stripJudou } from '../../utils/punctuation';
 
 interface VerticalLayoutProps {
   title: string;
@@ -22,7 +23,7 @@ const VerticalLayout: React.FC<VerticalLayoutProps> = ({
   // 处理无句读
   const rawLines = content.split('\n');
   const cleanedLines = stripPunct
-    ? rawLines.map(l => l.replace(/[，。、；？！,.!?]/g, ''))
+    ? rawLines.map(stripJudou)
     : rawLines;
 
   // 段落分割（空行处理）

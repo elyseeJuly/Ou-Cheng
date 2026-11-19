@@ -1,5 +1,5 @@
 // ============================================================
-// 偶成 (Ou Cheng) v5.0 — 全局类型定义
+// 偶成 (Ou Cheng) v5.1 — 全局类型定义
 // ============================================================
 
 export type LayoutMode = 'vertical' | 'horizontal';
@@ -83,7 +83,7 @@ export interface UserSettings {
   theme?: 'day' | 'night' | 'auto';  // 主题模式
   hapticsEnabled?: boolean;          // 触觉反馈开关
   beatTickHapticsEnabled?: boolean;  // 节奏拍点触觉开关
-  apiKey?: string;         // 私有大模型 API Key（本地加密存储，Option B 留存）
+  apiKey?: string;         // 私有大模型 API Key（本地存储，Option B 留存）
   apiBaseUrl?: string;     // 自定义 API 地址（Option B 留存）
   apiModel?: string;       // 自定义大模型名称（Option B 留存）
 }
@@ -114,6 +114,10 @@ export interface CipaiData {
   category: CipaiCategory;
   upperPattern: string[];   // 上阕格律点阵（'P'=平,'Z'=仄,'R'=韵,'X'=可平可仄）
   lowerPattern?: string[];  // 下阕（单调词牌无此字段）
+  stanzas?: string[][];     // 完整分片；三叠、四叠不再压扁成“双调”
+  stanzaCount?: number;
+  rhymeGroups?: (string | null)[]; // 每句韵脚所属换韵组；非韵句为 null
+  rhymeTones?: (('P' | 'Z') | null)[]; // 每句韵脚应为平声或仄声
   representative?: string;  // 代表词人
   variantLabel?: string;    // 正体 / 又一体序号
   isVariant?: boolean;
@@ -142,6 +146,23 @@ export interface LineResult {
   lineIndex: number;
   chars: CharResult[];
   isVolta?: boolean;  // 十四行诗 Volta（第9行）
+  rhymeLabel?: string; // 十四行诗：该行在韵式中的字母（A/B/C…）
+  note?: string;       // 十四行诗：音节数 / 字数
+}
+
+export interface CoupletParallelism {
+  isToneAligned: boolean;
+  verificationStatus: 'verified' | 'unverified';
+  score: number; // 0 - 100
+  opposingToneRate: number; // 0 - 1
+  duplicateChars: string[];
+  unknownPositions: number[];
+  summary: string;
+}
+
+export interface ParallelismResult {
+  hanLian?: CoupletParallelism; // 颔联 (第3、4句)
+  jingLian?: CoupletParallelism; // 颈联 (第5、6句)
 }
 
 export interface MeterCheckResult {
@@ -149,7 +170,11 @@ export interface MeterCheckResult {
   summary: string;
   isValid: boolean;
   violationCount: number;
+  unknownCount?: number;
+  verificationStatus?: 'verified' | 'unverified' | 'ambiguous';
   rhymeCheckStatus?: 'ok' | 'fail' | 'unverified';
+  matchedTemplate?: string;
+  parallelism?: ParallelismResult;
 }
 
 // ============================================================

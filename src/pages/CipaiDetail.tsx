@@ -2,6 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CipaiData, ClassicPoem } from '../types';
+import { getCipaiPatterns, getCipaiStanzas } from '../engine/cipaiPatterns';
+import { formatCiLines } from '../utils/ciLines';
+
+/** 出处里的内部数据编号（couyun 哈希、cipai_N）不给读者看，只保留可读的书目卷次 */
+function readableSourceRef(ref?: string): string {
+  if (!ref) return '';
+  if (/couyun|cipai_\d|\b[0-9a-f]{10,}\b/i.test(ref)) return '';
+  return ref;
+}
 
 const clauseLengths = (content: string) => content
   .split(/[，。、；？！\n\r]+/)
@@ -12,7 +21,7 @@ export const matchesCipaiVariant = (poem: ClassicPoem, cipai: CipaiData) => {
   if (/[□〓]/.test(poem.content)) return false;
   const names = [cipai.name, ...(cipai.aliases || [])];
   if (!names.some(name => poem.title === name || poem.title.startsWith(`${name}·`) || poem.title.startsWith(`${name}・`))) return false;
-  const expected = [...cipai.upperPattern, ...(cipai.lowerPattern || [])].map(pattern => pattern.length);
+  const expected = getCipaiPatterns(cipai).map(pattern => Array.from(pattern).length);
   const actual = clauseLengths(poem.content);
   return expected.length === actual.length && expected.every((length, index) => length === actual[index]);
 };
@@ -84,7 +93,8 @@ const CipaiDetail: React.FC = () => {
     return [...canonical, ...poems.filter(poem => matchesCipaiVariant(poem, selected))].slice(0, 5);
   }, [poems, selected]);
   const currentExample = examples[exampleIndex] || examples[0];
-  const lineCount = selected ? selected.upperPattern.length + (selected.lowerPattern?.length || 0) : 0;
+  const lineCount = selected ? getCipaiPatterns(selected).length : 0;
+  const stanzaCount = selected ? getCipaiStanzas(selected).length : 1;
 
   useEffect(() => { setExampleIndex(0); }, [selectedId]);
 
@@ -107,7 +117,7 @@ const CipaiDetail: React.FC = () => {
         <dl>
           <div><dt>字数</dt><dd>{selected.charCount} 字</dd></div>
           <div><dt>句数</dt><dd>{lineCount} 句</dd></div>
-          <div><dt>片数</dt><dd>{selected.lowerPattern?.length ? '双调' : '单调'}</dd></div>
+          <div><dt>片数</dt><dd>{stanzaCount === 1 ? '单调' : stanzaCount === 2 ? '双调' : `${stanzaCount} 叠`}</dd></div>
           <div><dt>格体</dt><dd>{selected.variantLabel || '正体'}</dd></div>
           {selected.aliases?.length ? <div className="wide"><dt>别名</dt><dd>{selected.aliases.join('、')}</dd></div> : null}
         </dl>
@@ -120,7 +130,7 @@ const CipaiDetail: React.FC = () => {
 
       {currentExample && <section className="detail-block example-browser">
         <div className="example-heading"><h2>{currentExample === examples[0] && selected.sourceText ? '定格词作' : '同体词作'}</h2><span>{Math.min(exampleIndex + 1, examples.length)} / {examples.length}</span></div>
-        <div className="example-poem"><h3>{currentExample.title}</h3><span>{currentExample.author}{currentExample === examples[0] && selected.sourceRef ? ` · ${selected.sourceRef}` : ''}</span><p>{currentExample.content}</p></div>
+        <div className="example-poem"><h3>{currentExample.title}</h3><span>{currentExample.author}{currentExample === examples[0] && readableSourceRef(selected.sourceRef) ? ` · ${readableSourceRef(selected.sourceRef)}` : ''}</span><div className="example-lines">{formatCiLines(currentExample.content, currentExample === examples[0] && selected.sourceText ? { rhymeGroups: selected.rhymeGroups as (string | null)[] | undefined, stanzaSizes: getCipaiStanzas(selected).map(st => st.length) } : {}).map((stanza, si) => <div className="example-stanza" key={si}>{stanza.map((line, li) => <p key={li}>{line}</p>)}</div>)}</div></div>
         {examples.length > 1 && <div className="example-pager" aria-label="切换词作">
           <button disabled={exampleIndex === 0} onClick={() => setExampleIndex(index => index - 1)}>上一篇</button>
           <div>{examples.map((poem, index) => <button key={`${poem.title}-${poem.author}-${index}`} className={index === exampleIndex ? 'active' : ''} onClick={() => setExampleIndex(index)} aria-label={`查看第 ${index + 1} 首词作`} />)}</div>
@@ -128,7 +138,24 @@ const CipaiDetail: React.FC = () => {
         </div>}
       </section>}
 
-      {variants.length > 1 && <section className="detail-block variant-block"><h2>词牌变体</h2><select value={selected.id || selected.name} onChange={e => { setExampleIndex(0); setSelectedId(e.target.value); }}>{variants.map((variant, index) => <option key={variant.id || index} value={variant.id || variant.name}>{variant.variantLabel || `第 ${index + 1} 体`} · {variant.charCount} 字</option>)}</select></section>}
+      {variants.length > 1 && <section className="detail-block variant-block"><h2>词牌变体</h2><select aria-label="选择变体" value={selected.id || selected.name} onChange={e => { setExampleIndex(0); setSelectedId(e.target.value); navigate(`/cipai/${encodeURIComponent(e.target.value)}`, { replace: true }); }}>{variants.map((variant, index) => <option key={variant.id || index} value={variant.id || variant.name}>{variant.variantLabel || `第 ${index + 1} 体`} · {variant.charCount} 字{variant.sourceAuthor ? ` · ${variant.sourceAuthor}体` : ''}</option>)}</select><p className="variant-hint">共 {variants.length} 体，各体句读与平仄不同；「依此填词」按当前所选这一体出格子。</p></section>}
+
+      <section className="detail-block pattern-block">
+        <h2>谱式<small>{selected.variantLabel || '正体'}{selected.sourceAuthor ? ` · ${selected.sourceAuthor}` : ''}</small></h2>
+        <div className="cipai-pattern" aria-label="平仄谱式">
+          {getCipaiStanzas(selected).map((stanza, si) => (
+            <div key={si} className="cipai-pattern-stanza">
+              {stanzaCount > 1 && <span className="cipai-pattern-tag">{stanzaCount === 2 ? (si === 0 ? '上片' : '下片') : `第${si + 1}段`}</span>}
+              {stanza.map((pattern, li) => (
+                <span key={li} className="cipai-pattern-line">
+                  {Array.from(pattern).map((tone, ci) => <i key={ci} className={`t-${tone}`}>{tone === 'P' ? '○' : tone === 'Z' ? '●' : tone === 'X' ? '◐' : '◎'}</i>)}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+        <p className="cipai-pattern-legend">○ 平　● 仄　◐ 可平可仄　◎ 韵脚</p>
+      </section>
 
       <div className="sticky-primary"><button onClick={() => navigate(`/?mode=pro&cipai=${encodeURIComponent(selected.id || selected.name)}`)}>依此填词</button></div>
     </div>

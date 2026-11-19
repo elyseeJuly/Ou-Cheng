@@ -1,10 +1,17 @@
 // ============================================================
-// 偶成 (Ou Cheng) v0.5.1 — 运行时 Schema 校验层
+// 偶成 (Ou Cheng) v1.0.0 — 运行时 Schema 校验层
 // ============================================================
 
 import { Poem, UserSettings, Seal, OuchengBackupV2, CreateDraft, PoemType, SonnetType, RhymeBook, LayoutMode, PaperStyle, FontStyle } from '../types';
 import { PoemForm } from '../data/poemForms';
 import { PouchItem } from '../stores/pouchStore';
+
+// Built-in forms use at most 14 lines; custom long forms retain room without unbounded DOM allocation.
+export const MAX_CUSTOM_FORM_LINES = 200;
+export const isValidFormLineCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= MAX_CUSTOM_FORM_LINES;
+const isPositiveInteger = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value >= 1;
 
 export function isObject(obj: unknown): obj is Record<string, unknown> {
   return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
@@ -20,7 +27,7 @@ export function validatePoem(data: unknown): Poem | null {
   if (typeof author !== 'string') return null;
   if (typeof content !== 'string') return null;
   if (typeof heartNote !== 'string') return null;
-  if (typeof createdAt !== 'number' || isNaN(createdAt)) return null;
+  if (typeof createdAt !== 'number' || !Number.isFinite(createdAt)) return null;
 
   const validTypes = ['free', 'jueju_5', 'jueju_7', 'lvshi_5', 'lvshi_7', 'cipai', 'sonnet'];
   if (typeof type !== 'string' || !validTypes.includes(type)) return null;
@@ -56,7 +63,7 @@ export function validatePoem(data: unknown): Poem | null {
   }
 
   // 校验其他可选字段的类型
-  if (data.updatedAt !== undefined && (typeof data.updatedAt !== 'number' || isNaN(data.updatedAt))) return null;
+  if (data.updatedAt !== undefined && (typeof data.updatedAt !== 'number' || !Number.isFinite(data.updatedAt))) return null;
   if (data.favorite !== undefined && typeof data.favorite !== 'boolean') return null;
   if (data.draft !== undefined && typeof data.draft !== 'boolean') return null;
   if (data.fontStyle !== undefined) {
@@ -65,7 +72,7 @@ export function validatePoem(data: unknown): Poem | null {
   }
   if (data.sealId !== undefined && typeof data.sealId !== 'string') return null;
   if (data.collectionName !== undefined && typeof data.collectionName !== 'string') return null;
-  if (data.aiComment !== undefined && typeof data.aiComment !== 'string') return null;
+  if (data.aiComment !== undefined && typeof data.aiComment !== 'string') return null; // Option B
 
   return data as unknown as Poem;
 }
@@ -77,10 +84,16 @@ export function validateUserSettings(data: unknown): UserSettings | null {
   if (!['ci_lin', 'ping_shui', 'xin_yun'].includes(String(data.rhymeBook))) return null;
   if (!['xuan', 'meihua', 'yunwen', 'zhu', 'lianhua'].includes(String(data.defaultPaperStyle))) return null;
   if (!['vertical', 'horizontal'].includes(String(data.defaultLayout))) return null;
-
-  if (data.apiKey !== undefined && typeof data.apiKey !== 'string') return null;
-  if (data.apiBaseUrl !== undefined && typeof data.apiBaseUrl !== 'string') return null;
-  if (data.apiModel !== undefined && typeof data.apiModel !== 'string') return null;
+  if (data.defaultSealId !== undefined && typeof data.defaultSealId !== 'string') return null;
+  if (data.globalFont !== undefined && !['lxgw_wenkai', 'noto_serif', 'ma_shan_zheng', 'none'].includes(String(data.globalFont))) return null;
+  if (data.theme !== undefined && !['day', 'night', 'auto'].includes(String(data.theme))) return null;
+  for (const key of ['rhymeHintEnabled', 'hapticsEnabled', 'beatTickHapticsEnabled']) {
+    if (data[key] !== undefined && typeof data[key] !== 'boolean') return null;
+  }
+  // Option B：开源版保留自带 API Key 的 AI 点评
+  for (const key of ['apiKey', 'apiBaseUrl', 'apiModel']) {
+    if (data[key] !== undefined && typeof data[key] !== 'string') return null;
+  }
 
   return data as unknown as UserSettings;
 }
@@ -88,61 +101,100 @@ export function validateUserSettings(data: unknown): UserSettings | null {
 export function validateCustomForm(data: unknown): PoemForm | null {
   if (!isObject(data)) return null;
   if (typeof data.id !== 'string' || !data.id) return null;
-  if (typeof data.name !== 'string' || !data.name) return null;
+  if (typeof data.name !== 'string' || !data.name.trim()) return null;
+  // This collection stores user forms only; a built-in flag would make import silently skip the entry.
+  if (data.builtin !== undefined && data.builtin !== false) return null;
+  if (data.lineCount !== undefined && !isValidFormLineCount(data.lineCount)) return null;
+  if (data.voltaAt !== undefined && !isValidFormLineCount(data.voltaAt)) return null;
+  if (typeof data.lineCount === 'number' && typeof data.voltaAt === 'number' && data.voltaAt > data.lineCount) return null;
+  if (data.charsPerLine !== undefined) {
+    const rule = data.charsPerLine;
+    if (Array.isArray(rule)) {
+      if (rule.length !== 2 || !rule.every(isPositiveInteger) || rule[0] > rule[1]) return null;
+    } else if (!isPositiveInteger(rule)) return null;
+  }
+  if (data.rhymeScheme !== undefined && typeof data.rhymeScheme !== 'string') return null;
+  if (data.guide !== undefined && typeof data.guide !== 'string') return null;
 
-  return data as unknown as PoemForm;
+  return { ...data, builtin: data.builtin ?? false } as unknown as PoemForm;
 }
 
 export function validatePouchItem(data: unknown): PouchItem | null {
   if (!isObject(data)) return null;
   const word = typeof data.word === 'string' ? data.word : (typeof data.char === 'string' ? data.char : null);
   if (!word) return null;
+  if (typeof data.category !== 'string' || typeof data.tone !== 'string') return null;
+  if (typeof data.freq !== 'number' || !Number.isFinite(data.freq)) return null;
+  if (typeof data.timestamp !== 'number' || !Number.isFinite(data.timestamp)) return null;
 
-  return data as unknown as PouchItem;
+  return { ...data, word } as unknown as PouchItem;
 }
 
 export function validateSeal(data: unknown): Seal | null {
   if (!isObject(data)) return null;
   if (typeof data.id !== 'string' || !data.id) return null;
   if (typeof data.name !== 'string') return null;
-  if (typeof data.dataUrl !== 'string') return null;
+  if (typeof data.dataUrl !== 'string' || !/^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/i.test(data.dataUrl)) return null;
+  if (!['yang_yuan', 'yin_fang', 'jiudie', 'niaochen', 'guyuan'].includes(String(data.style))) return null;
+  if (typeof data.isCustom !== 'boolean') return null;
+  if (typeof data.createdAt !== 'number' || !Number.isFinite(data.createdAt)) return null;
 
   return data as unknown as Seal;
 }
 
 export function validateBackupV2(data: unknown): OuchengBackupV2 | null {
   if (!isObject(data)) return null;
-  if (data.schemaVersion !== 2 && data.version !== 'v5.0') return null;
+  if (data.schemaVersion !== 2) return null;
   if (!Array.isArray(data.poems)) return null;
-
-  const validPoems = data.poems.map(validatePoem).filter((p): p is Poem => p !== null);
+  if (typeof data.exportedAt !== 'number' || !Number.isFinite(data.exportedAt)) return null;
+  const settings = validateUserSettings(data.settings);
+  if (!settings) return null;
+  if (!Array.isArray(data.seals) || !Array.isArray(data.customForms) || !Array.isArray(data.pouch)) return null;
+  const poems = data.poems.map(validatePoem);
+  const seals = data.seals.map(validateSeal);
+  const customForms = data.customForms.map(validateCustomForm);
+  const pouch = data.pouch.map(validatePouchItem);
+  // A backup is indivisible: filtering bad entries would silently report a partial restore as success.
+  if (poems.some(value => !value) || seals.some(value => !value) || customForms.some(value => !value) || pouch.some(value => !value)) return null;
+  if (data.drafts !== undefined && !Array.isArray(data.drafts)) return null;
+  const drafts: NonNullable<OuchengBackupV2['drafts']> = [];
+  for (const item of data.drafts ?? []) {
+    if (!isObject(item) || typeof item.key !== 'string') return null;
+    const draft = validateDraft(item.data);
+    if (!draft) return null;
+    drafts.push({ key: item.key, data: draft });
+  }
 
   return {
     schemaVersion: 2,
-    exportedAt: typeof data.exportedAt === 'number' ? data.exportedAt : Date.now(),
-    poems: validPoems,
-    settings: (validateUserSettings(data.settings) ?? {
-      penNames: ['偶成作者'],
-      defaultPenName: '偶成作者',
-      rhymeBook: 'ci_lin',
-      defaultPaperStyle: 'xuan',
-      defaultLayout: 'vertical',
-    }) as UserSettings,
-    seals: Array.isArray(data.seals) ? data.seals.map(validateSeal).filter((s): s is Seal => s !== null) : [],
-    customForms: Array.isArray(data.customForms) ? data.customForms.map(validateCustomForm).filter((f): f is PoemForm => f !== null) : [],
-    pouch: Array.isArray(data.pouch) ? data.pouch.map(validatePouchItem).filter((p): p is PouchItem => p !== null) : [],
-    drafts: Array.isArray(data.drafts)
-      ? data.drafts.flatMap(item => {
-          if (!isObject(item) || typeof item.key !== 'string') return [];
-          const draft = validateDraft(item.data);
-          return draft ? [{ key: item.key, data: draft }] : [];
-        })
-      : [],
+    exportedAt: data.exportedAt,
+    poems: poems as Poem[],
+    settings,
+    seals: seals as Seal[],
+    customForms: customForms as PoemForm[],
+    pouch: pouch as PouchItem[],
+    drafts,
   };
 }
 
 export function validateDraft(data: unknown): CreateDraft | null {
   if (!isObject(data)) return null;
+  const stringKeys = ['title', 'author', 'content', 'heartNote', 'formId', 'selectedCipaiId', 'aiComment'];
+  if (stringKeys.some(key => data[key] !== undefined && typeof data[key] !== 'string')) return null;
+  for (const key of ['editId', 'manualRhymeGroupId']) {
+    if (data[key] !== undefined && data[key] !== null && typeof data[key] !== 'string') return null;
+  }
+  if (data.proLines !== undefined && (!Array.isArray(data.proLines) || !data.proLines.every(line => typeof line === 'string'))) return null;
+  const enumFields: Record<string, readonly string[]> = {
+    mode: ['free', 'pro'], proTab: ['jinti', 'cipai'],
+    poemType: ['free', 'jueju_5', 'jueju_7', 'lvshi_5', 'lvshi_7', 'cipai', 'sonnet'],
+    jintiStart: ['ping', 'ze'], jintiRhyme: ['yes', 'no'],
+    sonnetType: ['none', 'shakespeare', 'petrarchan', 'chinese_modern'],
+    rhymeBook: ['ci_lin', 'ping_shui', 'xin_yun'], layout: ['vertical', 'horizontal'],
+    paperStyle: ['xuan', 'meihua', 'yunwen', 'zhu', 'lianhua'],
+    fontStyle: ['lxgw_wenkai', 'noto_serif', 'ma_shan_zheng', 'none'],
+  };
+  if (Object.entries(enumFields).some(([key, values]) => data[key] !== undefined && !values.includes(data[key] as string))) return null;
   const clean: CreateDraft = {};
   const copyString = <K extends keyof CreateDraft>(key: K) => {
     const value = data[key];

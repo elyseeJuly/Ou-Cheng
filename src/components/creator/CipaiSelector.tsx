@@ -27,7 +27,7 @@ const CipaiSelector: React.FC<CipaiSelectorProps> = ({ value }) => {
       ) : (
         <>
           <strong>循词牌入宋韵</strong>
-          <small>浏览词牌源流、代表作与 2092 种真实变体</small>
+          <small>浏览词牌源流、代表作与 2280 种经结构校验的谱式</small>
           <span className="cipai-picker-action">选择词牌</span>
         </>
       )}

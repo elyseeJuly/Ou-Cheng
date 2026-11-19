@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPoems, getSettings, importPoems, migrateRemovedProductData, savePoem, deletePoem, exportAllPoems, getDraft, saveDraft, deleteDraft } from './storageService';
+import { getPoems, getSettings, importPoems, migrateRemovedProductData, savePoem, deletePoem, exportAllPoems, getDraft, saveDraft, deleteDraft, saveSettings, savePouchItemsToStorage, getPouchItemsFromStorage, saveCustomFormToStorage, getCustomFormsFromStorage } from './storageService';
 
 describe('storage cleanup and import boundaries', () => {
   beforeEach(() => {
@@ -154,7 +154,113 @@ describe('storage cleanup and import boundaries', () => {
       }));
       expect(result.isV2).toBe(true);
       expect(result.addedCount).toBe(0);
+      expect(result.error).toContain('V2 备份不完整');
       expect(getPoems()).toEqual([]);
+    });
+
+    it('rejects damaged or incomplete V2 backups before modifying any existing data', async () => {
+      await savePoem(samplePoem);
+      saveSettings({ penNames: ['山客'], defaultPenName: '山客', rhymeBook: 'ping_shui', defaultPaperStyle: 'xuan', defaultLayout: 'horizontal' });
+      savePouchItemsToStorage([{ word: '明月', category: '天文', freq: 1, tone: 'PZ', timestamp: 1 }]);
+      await saveDraft(null, { content: '未完的原稿' });
+      const valid = JSON.parse(exportAllPoems());
+      const snapshot = () => Object.fromEntries(Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i)!).map(key => [key, localStorage.getItem(key)]));
+      const before = snapshot();
+      const { settings: _missingSettings, ...withoutSettings } = valid;
+      const { pouch: _missingPouch, ...withoutPouch } = valid;
+      const { exportedAt: _missingDate, ...withoutDate } = valid;
+      for (const backup of [
+        { schemaVersion: 2, poems: [{ id: 'lost', title: '损坏作品', content: '明月' }] },
+        withoutSettings, withoutPouch, withoutDate,
+        { ...valid, poems: [...valid.poems, { id: 'broken' }] },
+        { ...valid, customForms: [{ id: 'huge', name: '超长体', lineCount: 1000000000 }] },
+        { ...valid, customForms: [{ id: 'skipped', name: '误标内置', builtin: true, lineCount: 4 }] },
+        { ...valid, seals: [{ id: 'broken', name: '印' }] },
+        { ...valid, pouch: [{ word: '缺少字段' }] },
+        { ...valid, drafts: [{ key: 'oucheng_create_draft_v1', data: { content: 123 } }] },
+      ]) {
+        const result = await importPoems(JSON.stringify(backup));
+        expect(result.error).toContain('V2 备份不完整');
+        expect(result.addedCount).toBe(0);
+        expect(snapshot()).toEqual(before);
+      }
+    });
+
+    it('accepts a complete V2 without the later optional drafts field and restores every asset', async () => {
+      saveSettings({ penNames: ['山客'], defaultPenName: '山客', rhymeBook: 'ping_shui', defaultPaperStyle: 'xuan', defaultLayout: 'horizontal' });
+      savePouchItemsToStorage([{ word: '东风', category: '天文', freq: 1, tone: 'PP', timestamp: 1 }]);
+      saveCustomFormToStorage({ id: 'long', name: '长篇', builtin: false, lineCount: 200, voltaAt: 100 });
+      await savePoem(samplePoem);
+      const backup = JSON.parse(exportAllPoems());
+      delete backup.drafts;
+      localStorage.clear();
+      const result = await importPoems(JSON.stringify(backup));
+      expect(result).toEqual({ addedCount: 1, isV2: true });
+      expect(getSettings().defaultPenName).toBe('山客');
+      expect(getPouchItemsFromStorage()[0].word).toBe('东风');
+      expect(getCustomFormsFromStorage()[0].lineCount).toBe(200);
+    });
+
+    it('rejects a remote seal URL in V2 before changing local assets', async () => {
+      await savePoem(samplePoem);
+      saveSettings({ penNames: ['山客'], defaultPenName: '山客', rhymeBook: 'ping_shui', defaultPaperStyle: 'xuan', defaultLayout: 'horizontal' });
+      savePouchItemsToStorage([{ word: '明月', category: '天文', freq: 1, tone: 'PZ', timestamp: 1 }]);
+      const backup = JSON.parse(exportAllPoems());
+      const snapshot = () => Object.fromEntries(Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i)!).map(key => [key, localStorage.getItem(key)]));
+      const before = snapshot();
+      backup.seals = [{ id: 'remote', name: '远程印章', style: 'yang_yuan', dataUrl: 'https://example.invalid/track.png', isCustom: true, createdAt: 1 }];
+      const result = await importPoems(JSON.stringify(backup));
+      expect(result.error).toContain('V2 备份不完整');
+      expect(result.addedCount).toBe(0);
+      expect(snapshot()).toEqual(before);
+    });
+
+    it('imports historical v5.0 poem-only backups without resetting current settings or pouch', async () => {
+      saveSettings({ penNames: ['山客'], defaultPenName: '山客', rhymeBook: 'ping_shui', defaultPaperStyle: 'xuan', defaultLayout: 'horizontal' });
+      const pouch = [{ word: '明月', category: '天文', freq: 1, tone: 'PZ', timestamp: 1 }];
+      savePouchItemsToStorage(pouch);
+      const result = await importPoems(JSON.stringify({ version: 'v5.0', timestamp: 1, poems: [samplePoem] }));
+      expect(result).toEqual({ addedCount: 1, isV2: false });
+      expect(getSettings().defaultPenName).toBe('山客');
+      expect(getSettings().rhymeBook).toBe('ping_shui');
+      expect(getPouchItemsFromStorage()).toEqual(pouch);
+    });
+
+    it('rejects unsafe custom form rules on write and excludes previously corrupted rules on read', () => {
+      const form = { id: 'invalid', name: '异常体例', builtin: false };
+      for (const lineCount of [0, -1, 1.5, 201, 1000000000, Infinity, NaN]) {
+        expect(() => saveCustomFormToStorage({ ...form, lineCount })).toThrow('自定体例无效');
+      }
+      expect(localStorage.getItem('oucheng_custom_forms')).toBeNull();
+      localStorage.setItem('oucheng_custom_forms', JSON.stringify([{ ...form, lineCount: 1000000000 }, { ...form, id: 'valid', lineCount: 200 }]));
+      expect(getCustomFormsFromStorage()).toMatchObject([{ id: 'valid', lineCount: 200 }]);
+    });
+
+    it('rejects an explicitly unsupported backup schema instead of treating it as legacy data', async () => {
+      const result = await importPoems(JSON.stringify({
+        schemaVersion: 999,
+        exportedAt: Date.now(),
+        poems: [{ ...samplePoem, id: 'future_schema' }],
+      }));
+
+      expect(result.addedCount).toBe(0);
+      expect(result.isV2).toBe(false);
+      expect(result.error).toContain('不支持的备份版本');
+      expect(getPoems()).toEqual([]);
+    });
+
+    it('ignores draft records whose keys are outside the draft namespace', async () => {
+      const result = await importPoems(JSON.stringify({
+        schemaVersion: 2,
+        exportedAt: Date.now(),
+        poems: [],
+        settings: { penNames: ['居士'], defaultPenName: '居士', rhymeBook: 'ci_lin', defaultPaperStyle: 'xuan', defaultLayout: 'vertical' },
+        seals: [], customForms: [], pouch: [],
+        drafts: [{ key: 'oucheng_settings_v4', data: { title: '恶意覆盖', content: '不应写入' } }],
+      }));
+
+      expect(result.error).toBeUndefined();
+      expect(localStorage.getItem('oucheng_settings_v4')).not.toContain('恶意覆盖');
     });
 
     it('supports draft save, get, and delete operations', async () => {

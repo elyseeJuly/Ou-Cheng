@@ -18,13 +18,21 @@ if (!fs.existsSync(tonePath)) {
   process.exit(1);
 }
 
-const poetry = JSON.parse(fs.readFileSync(poetryPath, 'utf8'));
+const poetryBase = JSON.parse(fs.readFileSync(poetryPath, 'utf8'));
+// 词谱例词（约两千首宋元词）一并计入语料，意象覆盖更全；例句仍以诗库名篇优先
+const cipaiPath = path.join(__dirname, '../public/data/cipai.json');
+const cipaiRaw = fs.existsSync(cipaiPath) ? JSON.parse(fs.readFileSync(cipaiPath, 'utf8')) : [];
+const seenText = new Set();
+const cipaiPoems = (cipaiRaw.cipai || cipaiRaw)
+  .filter(c => c.sourceText && !seenText.has(c.sourceText) && seenText.add(c.sourceText))
+  .map(c => ({ title: c.name, author: c.sourceAuthor || '', content: c.sourceText, fromCipai: true }));
+const poetry = [...poetryBase, ...cipaiPoems];
 const dict = JSON.parse(fs.readFileSync(dictPath, 'utf8')); // [{w,c}]
 const toneMap = JSON.parse(fs.readFileSync(tonePath, 'utf8'));
 
 // ───────────────────── 配置 ─────────────────────
 const MIN_FREQ_DICT = 3;        // 词典词最低频次（低于此 = AI 生造或过僻，剔除）
-const MIN_FREQ_MINED = 15;      // 挖掘词最低频次
+const MIN_FREQ_MINED = 20;      // 挖掘词最低频次
 const PMI_THRESHOLD = 3.0;      // 点互信息阈值
 const MAX_SAMPLES = 10;         // 每词例句数
 const TOP_RELATED = 12;         // 每词关联意象数
@@ -32,7 +40,7 @@ const FAMOUS = new Set(['李白','杜甫','苏轼','王维','李商隐','杜牧'
   '李清照','陆游','孟浩然','王昌龄','刘禹锡','柳永','晏殊','欧阳修','秦观','周邦彦',
   '姜夔','纳兰性德','温庭筠','韦应物','岑参','高适','王安石','黄庭坚','范仲淹','元好问']);
 const STOP_CHARS = new Set('之乎者也而何以其于则乃且若所不无未莫勿非已此彼是的了在有'.split(''));
-const STOP_WORDS = new Set(['不知','不见','不得','何处','何时','无人','今日','明日',
+const STOP_WORDS = new Set([...'为君 三千 东南 万事 千年 千载 天子 行行 君王 自怜 年年 时候 依旧 怎生 谁知 人家 教人 先生 夫人 一半 从今 依前 凭谁 相将 最苦 见君 分付 天然 言语 独自 依然 依约 重重 飞来 飞去 风吹 天上 楼上 枝上 晚来 夜来 年时 尽日 如水 好景 行乐 太平 寿阳 粉面 影里 门外 相看 今年 深深 和气 望中 千万 满地 前事 相望 相对 愁多 知我 个人 甚时 南北 从前 寻思 相识 那更 十分 觉来 当日 颜色 升平 主人 今夕 明年 三十 万年 暗想 景良 新来 岁岁 至今 他人 一杯 香满 恁时 去后 日高 终日 须信 安排 回头 谁念 百年 三五 再三 三年 文章 特地 归后 起来 百岁 往来 近日 成行 东西 嘉宾 念我 恨难 只君 三月 两行 雨初 几日 淡泞 一半 时节 消息 尊前 凭阑 怎生 人生 天气 一笑 梦里 梦中 心事 平生 东君 参差 数声 分付 伫立 凝伫 咫尺 相忆 如画 同欢 清和 草草'.split(' '),'不知','不见','不得','何处','何时','无人','今日','明日',
   '此时','只有','惟有','唯有','自有','应有','犹有','安得','争得','那得','如此','从此',
   '一时','一日','十年','千里','万里','不可','未必','可怜','所以',
   '君子','归来','我心','上帝','相公','天下','几时','归去','别来','多情',
@@ -45,21 +53,24 @@ const STOP_WORDS = new Set(['不知','不见','不得','何处','何时','无人
   '只今','只道','总是','总为','为谁','为问','与君','与我','向谁','在何',
   '何处','何人','何日','何年','何如','何似','已自','已是','已经','犹自',
   '犹是','犹有','犹能','可怜','可堪','可奈','几度','几回','几时','几许',
-  '征夫','公子','洞房','天道','昊天','四牡','王事','之子','维其']);
+  '征夫','公子','洞房','天道','昊天','四牡','王事','之子','维其',
+  '末云','旦云','涓云','净云','孤云','外末','正旦','正末','贴旦','卜儿','副净']);
 
 // ───────────────────── 语料准备 ─────────────────────
 // 每首诗 → { author, title, lines: [纯汉字句] }
-const corpus = poetry.map(p => {
-  const raw = p.paragraphs ? (Array.isArray(p.paragraphs) ? p.paragraphs.join('') : p.paragraphs) : (p.content || '');
+const corpus = poetry.filter(p => !/[\uFFFD]/.test(`${p.title || ''}${p.author || ''}${p.content || ''}`)).map(p => {
+  const raw = (p.paragraphs ? (Array.isArray(p.paragraphs) ? p.paragraphs.join('') : p.paragraphs) : (p.content || ''))
+    // 元曲对白、科介不是意象语料；先去掉括注，避免“末云”“旦云”等舞台词进入词云。
+    .replace(/（[^）]*）|\([^)]*\)/g, '');
   return {
-    author: p.author || '', title: p.title || '',
+    author: p.author || '', title: p.title || '', fromCipai: !!p.fromCipai,
     lines: raw.split(/[，。、；：？！\s]/).filter(x => x.length >= 2),
   };
 }).filter(p => p.lines.length > 0);
 
 const allLines = [];  // { text, author, title, poemIdx }
 corpus.forEach((p, pi) => p.lines.forEach(text =>
-  allLines.push({ text, author: p.author, title: p.title, poemIdx: pi })));
+  allLines.push({ text, author: p.author, title: p.title, poemIdx: pi, fromCipai: p.fromCipai })));
 console.log(`语料: ${corpus.length} 首, ${allLines.length} 句`);
 
 // ───────────────────── 级一 + 级二共用: 频次统计 ─────────────────────
@@ -151,13 +162,18 @@ for (const ws of poemWords.values()) {
 const output = words.map(e => {
   const lis = hitLines.get(e.w) || [];
   const samples = lis.map(li => allLines[li])
-    .sort((a, b) => (FAMOUS.has(b.author) ? 1 : 0) - (FAMOUS.has(a.author) ? 1 : 0)
+    .sort((a, b) => (a.fromCipai ? 1 : 0) - (b.fromCipai ? 1 : 0)
+      || (FAMOUS.has(b.author) ? 1 : 0) - (FAMOUS.has(a.author) ? 1 : 0)
       || a.text.length - b.text.length)   // 名家优先，短句优先（更隽永）
     .filter((l, i, arr) => arr.findIndex(x => x.text === l.text) === i)  // 去重句
     .slice(0, MAX_SAMPLES)
     .map(l => ({ s: l.text, a: l.author }));
+  // 关联意象按「共现 / √对方词频」排序：既常同篇出现，又不被东风、相思这类高频词垄断，更能给人灵感
+  const freqOf = w => entries.get(w)?.freq || 1;
   const related = [...(cooc.get(e.w) || new Map()).entries()]
-    .sort((a, b) => b[1] - a[1]).slice(0, TOP_RELATED).map(([w]) => w);
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] / Math.sqrt(freqOf(b[0])) - a[1] / Math.sqrt(freqOf(a[0])))
+    .slice(0, TOP_RELATED).map(([w]) => w);
   const tone = [...e.w].map(ch => toneMap[ch] || 'X').join('');
   return { w: e.w, c: e.c, f: e.freq, t: tone, r: related, s: samples, m: e.mined };
 });

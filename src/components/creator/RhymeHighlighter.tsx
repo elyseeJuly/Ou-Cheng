@@ -97,6 +97,12 @@ const RhymeHighlighter: React.FC<RhymeHighlighterProps> = ({
           {line.chars.map((c, ci) => (
             <CharSpan key={ci} result={c} fontSize={fontSize} />
           ))}
+          {(line.rhymeLabel || line.note) && (
+            <span style={{ marginLeft: '10px', fontSize: '12px', color: 'var(--ink-dan)', fontFamily: 'var(--font-serif)', verticalAlign: 'middle' }}>
+              {line.rhymeLabel && <b style={{ marginRight: '4px', color: 'var(--accent-seal)' }}>{line.rhymeLabel}</b>}
+              {line.note}
+            </span>
+          )}
         </div>
       ))}
     </div>

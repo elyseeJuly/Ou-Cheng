@@ -6,7 +6,7 @@ import { validatePoem, validateUserSettings, validateCustomForm, validatePouchIt
 const POEMS_KEY = 'oucheng_poems_v4';
 const SETTINGS_KEY = 'oucheng_settings_v4';
 const SEALS_KEY = 'oucheng_seals_v4';
-const CUSTOM_FORMS_KEY = 'oucheng_custom_forms';
+export const CUSTOM_FORMS_KEY = 'oucheng_custom_forms';
 const POUCH_KEY = 'oucheng_pouch';
 const DRAFT_KEY = 'oucheng_create_draft_v1';
 const CLEANUP_MARKER = 'oucheng_local_only_v1';
@@ -63,11 +63,11 @@ const sanitizePoem = (value: unknown): Poem | null => {
 const sanitizeSettings = (value: unknown): UserSettings => {
   const source: Record<string, unknown> = value && typeof value === 'object' ? value as Record<string, unknown> : {};
   const penNames = Array.isArray(source.penNames)
-    ? source.penNames.filter((name: unknown) => typeof name === 'string' && name.trim() && name !== '偶成君')
+    ? source.penNames.filter((name: unknown) => typeof name === 'string' && name.trim() && name !== '偶成君' && name !== '测试笔名')
     : [];
   const clean: UserSettings = {
     penNames: penNames.length ? penNames : ['居士', '散人'],
-    defaultPenName: typeof source.defaultPenName === 'string' && source.defaultPenName && source.defaultPenName !== '偶成君'
+    defaultPenName: typeof source.defaultPenName === 'string' && source.defaultPenName && source.defaultPenName !== '偶成君' && source.defaultPenName !== '测试笔名'
       ? source.defaultPenName
       : (penNames[0] || '居士'),
     rhymeBook: ['ci_lin', 'ping_shui', 'xin_yun'].includes(String(source.rhymeBook)) ? source.rhymeBook as UserSettings['rhymeBook'] : 'ci_lin',
@@ -77,9 +77,16 @@ const sanitizeSettings = (value: unknown): UserSettings => {
     hapticsEnabled: source.hapticsEnabled !== undefined ? !!source.hapticsEnabled : true,
     beatTickHapticsEnabled: source.beatTickHapticsEnabled !== undefined ? !!source.beatTickHapticsEnabled : false,
   };
-  if (typeof source.defaultSealId === 'string') clean.defaultSealId = source.defaultSealId;
+  if (typeof source.defaultSealId === 'string') {
+    const rawSeals = safeParse<Array<{ id?: string; name?: string }>>(SEALS_KEY, []);
+    const seal = rawSeals.find(s => s?.id === source.defaultSealId);
+    if (!seal || seal.name !== '测试印') {
+      clean.defaultSealId = source.defaultSealId;
+    }
+  }
   if (['lxgw_wenkai', 'noto_serif', 'ma_shan_zheng', 'none'].includes(String(source.globalFont))) clean.globalFont = source.globalFont as UserSettings['globalFont'];
   if (typeof source.rhymeHintEnabled === 'boolean') clean.rhymeHintEnabled = source.rhymeHintEnabled;
+  // Option B：保留用户自带的 AI 接入配置
   if (typeof source.apiKey === 'string') clean.apiKey = source.apiKey;
   if (typeof source.apiBaseUrl === 'string') clean.apiBaseUrl = source.apiBaseUrl;
   if (typeof source.apiModel === 'string') clean.apiModel = source.apiModel;
@@ -109,7 +116,11 @@ const safeParse = <T>(key: string, fallback: T): T => {
 // ── IndexedDB primary store + small-state mirror setup ──
 const INDEXED_DB_OPEN_TIMEOUT_MS = 1500;
 
-const dbPromise = new Promise<IDBDatabase | null>((resolve) => {
+// 连接按需打开并缓存；浏览器关闭连接（多标签升级、后台回收、onclose）后自动重开。
+// Muse 2026-10-28：多标签长会话下出现 "The database connection is closing"，旧实现把连接固定在模块级 Promise 里，连接被关后再也不会重开。
+let dbCache: Promise<IDBDatabase | null> | null = null;
+
+const openDatabase = (): Promise<IDBDatabase | null> => new Promise<IDBDatabase | null>((resolve) => {
   if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') {
     resolve(null);
     return;
@@ -124,6 +135,14 @@ const dbPromise = new Promise<IDBDatabase | null>((resolve) => {
     }
     settled = true;
     if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    if (database) {
+      const forget = () => { dbCache = null; };
+      // 另一个标签要升级库：让出连接，下次读写时重开
+      database.onversionchange = () => { database.close(); forget(); };
+      // 浏览器异常关闭连接（存储被清、进程回收）
+      database.onclose = forget;
+    }
+    // 打开失败/超时/被阻塞：沿用旧语义，本次会话退回 localStorage，不再每次等待超时
     resolve(database);
   };
 
@@ -149,27 +168,63 @@ const dbPromise = new Promise<IDBDatabase | null>((resolve) => {
   request.onblocked = () => settle(null);
 });
 
+const getDatabase = (): Promise<IDBDatabase | null> => {
+  if (!dbCache) dbCache = openDatabase();
+  return dbCache;
+};
+
+const isClosingError = (error: unknown): boolean => {
+  const record = error && typeof error === 'object' ? error as { name?: string; message?: string } : {};
+  return record.name === 'InvalidStateError' || /closing|closed/i.test(String(record.message ?? error));
+};
+
+/**
+ * 在一个事务里执行 run；连接已关闭/正在关闭时丢弃缓存、重开连接再试一次。
+ * 返回 null 表示 IndexedDB 不可用（沿用旧语义：调用方退回 localStorage）。
+ */
+const withStore = async <T>(
+  storeName: string,
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore, tx: IDBTransaction) => Promise<T>,
+): Promise<T | null> => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const db = await getDatabase();
+    if (!db) return null;
+    let tx: IDBTransaction;
+    try {
+      tx = db.transaction(storeName, mode);
+    } catch (error) {
+      if (attempt === 0 && isClosingError(error)) {
+        if (dbCache) dbCache = null;
+        try { db.close(); } catch (_) {}
+        continue;
+      }
+      throw error;
+    }
+    return run(tx.objectStore(storeName), tx);
+  }
+  return null;
+};
+
+const completion = (tx: IDBTransaction, label: string): Promise<true> => new Promise<true>((resolve, reject) => {
+  tx.oncomplete = () => resolve(true);
+  tx.onerror = () => reject(tx.error || new Error(`IndexedDB ${label} failed`));
+  tx.onabort = () => reject(tx.error || new Error(`IndexedDB ${label} aborted`));
+});
+
 const backupToDB = async (key: string, value: unknown): Promise<void> => {
-  const db = await dbPromise;
-  if (!db) return;
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction('backup_store', 'readwrite');
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction failed'));
-    tx.onabort = () => reject(new Error('IndexedDB transaction aborted'));
-    tx.objectStore('backup_store').put(JSON.parse(JSON.stringify(value)), key);
+  await withStore('backup_store', 'readwrite', (store, tx) => {
+    const done = completion(tx, 'backup write');
+    store.put(JSON.parse(JSON.stringify(value)), key);
+    return done;
   });
 };
 
 const deleteFromDB = async (key: string): Promise<void> => {
-  const db = await dbPromise;
-  if (!db) return;
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction('backup_store', 'readwrite');
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction failed'));
-    tx.onabort = () => reject(new Error('IndexedDB transaction aborted'));
-    tx.objectStore('backup_store').delete(key);
+  await withStore('backup_store', 'readwrite', (store, tx) => {
+    const done = completion(tx, 'backup delete');
+    store.delete(key);
+    return done;
   });
 };
 
@@ -181,71 +236,47 @@ const backupBestEffort = (key: string, value: unknown): void => {
 
 const getFromDB = async <T>(key: string): Promise<T | null> => {
   try {
-    const db = await dbPromise;
-    if (!db) return null;
-    return new Promise<T | null>((resolve) => {
-      const tx = db.transaction('backup_store', 'readonly');
-      const store = tx.objectStore('backup_store');
+    return await withStore<T | null>('backup_store', 'readonly', (store) => new Promise<T | null>((resolve) => {
       const req = store.get(key);
       req.onsuccess = () => resolve(req.result as T || null);
       req.onerror = () => resolve(null);
-    });
+    }));
   } catch (e) {
     return null;
   }
 };
 
-const getPrimaryPoems = async (): Promise<Poem[] | null> => {
-  const db = await dbPromise;
-  if (!db) return null;
-  return new Promise<Poem[]>((resolve, reject) => {
-    const tx = db.transaction(PRIMARY_POEMS_STORE, 'readonly');
-    const request = tx.objectStore(PRIMARY_POEMS_STORE).getAll();
+const getPrimaryPoems = async (): Promise<Poem[] | null> =>
+  withStore<Poem[]>(PRIMARY_POEMS_STORE, 'readonly', (store) => new Promise<Poem[]>((resolve, reject) => {
+    const request = store.getAll();
     request.onsuccess = () => resolve((request.result as unknown[])
       .map(sanitizePoem)
       .filter((poem): poem is Poem => Boolean(poem))
       .sort((a, b) => b.createdAt - a.createdAt));
     request.onerror = () => reject(request.error || new Error('IndexedDB poem read failed'));
-  });
-};
+  }));
 
-const putPrimaryPoem = async (poem: Poem): Promise<boolean> => {
-  const db = await dbPromise;
-  if (!db) return false;
-  return new Promise<boolean>((resolve, reject) => {
-    const tx = db.transaction(PRIMARY_POEMS_STORE, 'readwrite');
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject(tx.error || new Error('IndexedDB poem write failed'));
-    tx.onabort = () => reject(new Error('IndexedDB poem write aborted'));
-    tx.objectStore(PRIMARY_POEMS_STORE).put(JSON.parse(JSON.stringify(poem)));
-  });
-};
+const putPrimaryPoem = async (poem: Poem): Promise<boolean> =>
+  (await withStore(PRIMARY_POEMS_STORE, 'readwrite', (store, tx) => {
+    const done = completion(tx, 'poem write');
+    store.put(JSON.parse(JSON.stringify(poem)));
+    return done;
+  })) ?? false;
 
-const deletePrimaryPoem = async (id: string): Promise<boolean> => {
-  const db = await dbPromise;
-  if (!db) return false;
-  return new Promise<boolean>((resolve, reject) => {
-    const tx = db.transaction(PRIMARY_POEMS_STORE, 'readwrite');
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject(tx.error || new Error('IndexedDB poem delete failed'));
-    tx.onabort = () => reject(new Error('IndexedDB poem delete aborted'));
-    tx.objectStore(PRIMARY_POEMS_STORE).delete(id);
-  });
-};
+const deletePrimaryPoem = async (id: string): Promise<boolean> =>
+  (await withStore(PRIMARY_POEMS_STORE, 'readwrite', (store, tx) => {
+    const done = completion(tx, 'poem delete');
+    store.delete(id);
+    return done;
+  })) ?? false;
 
-const replacePrimaryPoems = async (poems: Poem[]): Promise<boolean> => {
-  const db = await dbPromise;
-  if (!db) return false;
-  return new Promise<boolean>((resolve, reject) => {
-    const tx = db.transaction(PRIMARY_POEMS_STORE, 'readwrite');
-    const store = tx.objectStore(PRIMARY_POEMS_STORE);
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject(tx.error || new Error('IndexedDB poem replacement failed'));
-    tx.onabort = () => reject(new Error('IndexedDB poem replacement aborted'));
+const replacePrimaryPoems = async (poems: Poem[]): Promise<boolean> =>
+  (await withStore(PRIMARY_POEMS_STORE, 'readwrite', (store, tx) => {
+    const done = completion(tx, 'poem replacement');
     store.clear();
     poems.forEach(poem => store.put(JSON.parse(JSON.stringify(poem))));
-  });
-};
+    return done;
+  })) ?? false;
 
 export const rehydrateStorage = async (): Promise<void> => {
   if (typeof localStorage === 'undefined') return;
@@ -406,7 +437,16 @@ export const importPoems = async (jsonStr: string): Promise<{ addedCount: number
   if (typeof localStorage === 'undefined') return { addedCount: 0, isV2: false, error: '存储环境不可用' };
   try {
     const rawData = JSON.parse(jsonStr);
+    if (
+      rawData && typeof rawData === 'object' && !Array.isArray(rawData)
+      && 'schemaVersion' in rawData && rawData.schemaVersion !== 2
+    ) {
+      return { addedCount: 0, isV2: false, error: `不支持的备份版本：${String(rawData.schemaVersion)}` };
+    }
     const validatedV2 = validateBackupV2(rawData);
+    if (rawData?.schemaVersion === 2 && !validatedV2) {
+      return { addedCount: 0, isV2: true, error: 'V2 备份不完整或包含无效数据，未导入任何内容。请使用完整备份文件。' };
+    }
     const isV2 = Boolean(validatedV2);
     
     const rawPoems = validatedV2?.poems ?? (Array.isArray(rawData) ? rawData : (rawData?.poems || []));
@@ -485,7 +525,7 @@ export const saveSettings = (settings: UserSettings): void => {
 };
 
 // ── Seals ─────────────────────────────────────────────────
-export const getSeals = (): Seal[] => safeParse(SEALS_KEY, []);
+export const getSeals = (): Seal[] => safeParse<Seal[]>(SEALS_KEY, []).filter(s => s && s.name !== '测试印');
 
 export const saveSeal = (seal: Seal): void => {
   if (typeof localStorage === 'undefined') return;
@@ -574,15 +614,17 @@ export const deleteCollection = async (name: string, deletePoems: boolean): Prom
 // ── Custom Forms Storage ──────────────────────────────────
 export const getCustomFormsFromStorage = (): PoemForm[] => {
   const forms = safeParse(CUSTOM_FORMS_KEY, []);
-  return Array.isArray(forms) ? forms.map(validateCustomForm).filter((f): f is PoemForm => f !== null) : [];
+  return Array.isArray(forms) ? forms.map(validateCustomForm).filter((f): f is PoemForm => f !== null && f.name !== '测试自定体') : [];
 };
 
 export const saveCustomFormToStorage = (form: PoemForm): void => {
   if (typeof localStorage === 'undefined') return;
+  const valid = validateCustomForm(form);
+  if (!valid) throw new Error('自定体例无效：行数和转折行须为 1–200 的整数，每行字数须为正整数或递增范围。');
   const forms = getCustomFormsFromStorage();
-  const idx = forms.findIndex(f => f.id === form.id);
-  if (idx >= 0) forms[idx] = form;
-  else forms.push(form);
+  const idx = forms.findIndex(f => f.id === valid.id);
+  if (idx >= 0) forms[idx] = valid;
+  else forms.push(valid);
   localStorage.setItem(CUSTOM_FORMS_KEY, JSON.stringify(forms));
   backupBestEffort(CUSTOM_FORMS_KEY, forms);
 };
